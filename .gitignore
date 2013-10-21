@@ -34,3 +34,13 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+
+
+# WISECONDOR inputs and outputs
+in
+out
+ref
+*.pickle
+*.gcc
+*.txt
+*.pdf
