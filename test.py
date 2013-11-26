@@ -31,6 +31,8 @@ import numpy
 import math
 import cutoff
 
+import matplotlib
+
 numpy.seterr('ignore')
 
 binSize = 0
@@ -404,6 +406,10 @@ def testTrisomyAlt(sample,kept,zValues,blindsDict,threshold):
 				if blind >= val[1] and blind <= val[2]:
 					marked -= 1
 
+		# Skip testing if there are no testable bins on the chromosome
+		if len(zValues[str(chrom)]) - len(blindsDict[str(chrom)]) == 0:
+			continue
+
 		result = marked / float(len(zValues[str(chrom)]) - len(blindsDict[str(chrom)]))
 		if result > threshold:
 			print '\tchr' + str(chrom) + ': ' + str(round(result*100)) + '% marked'
@@ -490,6 +496,8 @@ parser.add_argument('-wminbins', default=10, type=int,
 
 parser.add_argument('-trithres', default=0.5, type=float,
 					help='threshold value for determining aneuploidy')
+parser.add_argument('-mpluse', default='agg', type=str, 
+					help='make matplotlib use another backend for plotting')
 
 parser.add_argument('-notriper', action='store_true',
                    help='do not test for aneuploidy using the single bin approach')
@@ -501,13 +509,14 @@ parser.add_argument('-noplot', action='store_true',
                    help='do not plot results in a pdf, dependent on -notriper and -notriwin, if either is toggled off, no plots will be shown')
 
 
-
 args = parser.parse_args()
 
 
 print '# Script information:'
 
 print '\n# Settings used:'
+
+matplotlib.use(args.mpluse)
 argsDict = args.__dict__
 argsKeys = argsDict.keys()
 argsKeys.sort()
