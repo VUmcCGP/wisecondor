@@ -63,7 +63,7 @@ def getDistanceTable(controls,iChrom,jChrom):
 		for jBin in range(0,jLen):
 			# Take the difference over all samples...
 			distance = 0
-			distances = [] # yeah
+			distances = []
 			for control in controls:
 				# Get iBin
 				iVal = 0
@@ -80,31 +80,25 @@ def getDistanceTable(controls,iChrom,jChrom):
 					distance = -1
 					distances = [-1]
 					break
-				distances.append(distance) # yeah
+				distances.append(distance)
 			# Append new found distance
-			if args.ignore > 0 and len(distances) > 0 and distance != -1: # yeah
+			if args.ignore > 0 and len(distances) > 0 and distance != -1:
 				distances.sort() # yeah
-				binDistances.append(sum(distances[:-args.ignore])) # yeah
-			else: # yeah
-				binDistances.append(distance) # yeah
+				binDistances.append(sum(distances[:-args.ignore]))
+			else:
+				binDistances.append(distance)
 		# Append all distances of this bin to the complete set of distances per chromosome
 		chromosomeDistances.append(binDistances)
 	return chromosomeDistances
 
-
-
 # Load the reference samples
 print 'Loading reference samples'
 controls	= dict()
-#gcCount 	= pickle.load(open(args.gccount,'rb'))
 referenceFiles = glob.glob(args.refdir + '/*.gcc')
 for refFile in referenceFiles:
 	print '\tLoading:\t' + refFile
 	curFile = pickle.load(open(refFile,'rb'))
 	controls[refFile] = curFile
-	#print '\t\tApplying GC-Correction'
-	#gccFile = gcc.correct(curFile, gcCount, args.binsize, args.gccmaxn, args.gccminrd, args.gccfval, args.gccival)
-	#controls[refFile] = gccFile
 
 print 'Building reference table'
 chromList = [str(chrom) for chrom in range(1,23)]
@@ -117,14 +111,12 @@ for iChrom in chromList:
 	jChroms = dict()
 	for jChrom in chromList:
 		print '\t\tCalculating distances to chromosome:\t' + str(jChrom)
-		#print getDistanceTable(controls,iChrom,jChrom)
 		jChroms[jChrom] = getDistanceTable(controls,iChrom,jChrom)
 
 	# Remove own chromosome from the list of referable chromosomes
 	iChromBins = jChroms.pop(iChrom)
 	print '\t\tPicking reference bins'
 	for iBin in range(len(iChromBins)):
-		#print '\t\tTargetting bin:\t' + str(iBin) + '\tchr' + str(iChrom)
 		# Tuple: [Value,Bin,Chromosome]
 		topRanks = [[sys.maxint,-1,'']] * 250 # plenty of spots to go around...
 
@@ -147,12 +139,9 @@ for iChrom in chromList:
 
 		# Read and process line for each file we have of autosomal chromosomes
 		for jChrom in jChroms.keys():
-			#print '\t\t\tPicking references from chromosome:\t' + str(jChrom)
-			#print jChroms[jChrom][iBin]
 			updateBestBins(jChroms[jChrom][iBin],jChrom)
 
 		# Don't take bins close to eachother, take the best one instead
-		#print '\t\tRemoving neighbouring reference bins'
 		minDistance = 2
 		remove = []
 		lastChrom = 0

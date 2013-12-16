@@ -35,12 +35,10 @@ parser.add_argument('outfile', type=str,
 
 parser.add_argument('-binsize', type=int, default=1000000,
 					help='binsize used for samples')
-
 parser.add_argument('-retdist', type=int, default=4,
 					help='maximum amount of base pairs difference between sequential reads to consider them part of the same tower')
 parser.add_argument('-retthres', type=int, default=4,
 					help='threshold for when a group of reads is considered a tower and will be removed')
-
 parser.add_argument('-colchr', type=int, default=2,
 					help='column containing chromosome, default is for sam format')
 parser.add_argument('-colpos', type=int, default=3,
@@ -54,18 +52,22 @@ threshold	= args.retthres
 chrColumn	= args.colchr
 startColumn	= args.colpos
 
+# Prepare the list of chromosomes
 chromosomes = dict()
 for chromosome in range(1,23):
 	chromosomes[str(chromosome)] = [0]
 chromosomes['X'] = [0]
 chromosomes['Y'] = [0]
 
+# Flush the current stack of reads
 def flush(readBuff):
 	global chromosomes
 	stairSize = len(readBuff)
 	if stairSize <= threshold or threshold < 0:	
 		for read in readBuff:
-			chromosome	= read[0][3:]
+			chromosome = read[0]
+			if chromosome[:3].lower() == 'chr': 
+				chromosome = chromosome[3:]
 			location	= read[1]
 			bin 		= location/binsize
 			if (chromosome in chromosomes):
@@ -89,6 +91,8 @@ for line in sys.stdin:
 	prevWords = curWords
 	prevLine = line
 
+# Flush after we're done
 flush(readBuff)
 
+# Dump converted data to a file
 pickle.dump(chromosomes,open(args.outfile,'wb'))

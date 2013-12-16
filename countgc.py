@@ -79,12 +79,10 @@ def finishBin():
 
 		print "\tChr: "+str(key)+"\tBin: "+str(binNumber)+"\t-\tGCC: "+str(gcCount)+"\tNC: "+str(nCount)+"\tTotal: "+str(totalCount)#+"\tStart: "+str(start)
 	gcCount = 0.
-	#totalCount = 0
 	nCount = 0.
 
 f = open(filename, 'r')
 for nextLine in f:
-	#print nextLine
 	if nextLine[0] == '>':
 		finishBin()
 		totalCount = 0
@@ -92,7 +90,7 @@ for nextLine in f:
 		key   = splitLine[0][1:]
 		if key[:3] == 'chr':
 			key = key[3:]
-		start = 0#int(splitLine[2].split(':')[3])
+		start = 0
 		print '\nWorking on:\t' + key
 	elif key in gcCounts.keys():
 		rstripLine = nextLine.rstrip()
@@ -110,4 +108,6 @@ finishBin()
 # Now put it all together in a single dict for ease of use
 for chrom in nCounts.keys():
 	gcCounts['N'+chrom]=nCounts[chrom]
+	
+# And dump it to a file
 pickle.dump(gcCounts, open(args.gccout, 'wb'))

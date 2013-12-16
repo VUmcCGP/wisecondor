@@ -25,12 +25,11 @@
 
 from math import *
 import sys
+import argparse
 import Bio.Statistics.lowess as biostat
 import numpy as np
 
 def correct(sample,gcCount,binSize,maxN=0.1,minRD=0.0001,fVal=0.1,iVal=3):
-	#maxN = binSize * 0.1 # Require a sensible amount of known bases in the ref genome
-	#minRD = binSize * 0.0001 # Require at lease a few reads in a bin
 	allX = []
 	allY = []
 
@@ -44,8 +43,6 @@ def correct(sample,gcCount,binSize,maxN=0.1,minRD=0.0001,fVal=0.1,iVal=3):
 
 	allX = np.array(allX,np.float)
 	allY = np.array(allY,np.float)
-	#fVal=1./10.
-	#iVal=3
 	lowessCurve = biostat.lowess(allX,allY,f=fVal, iter=iVal).tolist()
 	
 	correctedSample = dict()

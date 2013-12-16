@@ -25,6 +25,7 @@
 
 import sys
 import numpy
+import argparse
 
 def getReference(lookUp, cutOff):
 	reference = []
@@ -39,20 +40,11 @@ def getReference(lookUp, cutOff):
 	return reference,removed
 
 def getOptimalCutoff(lookUp, repeats, optimalCutoff):
-	#optimalCutoff = 1000000
 	for i in range(0,repeats):
 		reference,removed = getReference(lookUp, optimalCutoff)
-
 		average	= numpy.average(reference)
 		stddev	= numpy.std(reference)
-
 		optimalCutoff = average + 3 * stddev
-
-		#print 'Removed:\t' + str(removed)
-		#print '\nAverage:\t' + str(average)
-		#print 'StdDev:\t\t' + str(stddev)
-		#print 'Avg+3*StdDev:\t' + str(optimalCutoff)
-	
 	return optimalCutoff
 
 if __name__ == "__main__":
