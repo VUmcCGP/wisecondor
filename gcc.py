@@ -99,4 +99,4 @@ if __name__ == "__main__":
 	corrected = correct(sample,gcCount,args.binsize,args.maxn,args.minrd,args.fval,args.ival)
 	print 'Writing to file'
 	pickle.dump(corrected,open(args.outfile,'wb'))
-	print '# Finished\n'
+	print '\n# Finished'

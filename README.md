@@ -42,16 +42,7 @@ Then, all reference files should be fed into the newref.py script. The current i
 An example pipeline implementation can be found in pipeline.sh. This script will look for .pickle files in ./in/ and write output to ./out/. Additionally, details showing how to prepare your data can be found in this script but are not carried out as these require BWA and SAMTOOLS to be set up correctly.
 To improve your results you probably want to change a few parameters. Most of the values used in WISECONDOR can be altered using arguments. To find out what arguments can be passed into any script, try running it with -h as argument, for example:
 	python test.py -h
-
-
-
-4. STATISTICS REPORT
-
-If a statistics report should be created, the output files of above steps are needed. The script will look for the required files (.pickle, .bam and .bai files) in the directory indicated:
-	cd to ./qc_scripts
-	bash ./wc_qc.sh $INPUT_DIRECTORY
-	python ./wc_makeReport.py $INPUT_DIRECTORY $OUTPUT_DIRECTORY
-The first command creates a text file with statistics calculated on the bam-file, the second command creates the report using this text file, in combination with the .pdf and .txt file created by test.py.
+To create plots, use the file created by test.py as input for plot.py. This script turns the prepared data into a visualization, which can be customized or replaced to accommodate for personal preferences without the need to make changes to the original algorithm.
 
 
 
