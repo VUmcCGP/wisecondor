@@ -29,7 +29,7 @@ import pickle
 import gcc
 import argparse
 
-parser = argparse.ArgumentParser(description='Create a new reference table from a set of reference samples. Outputs table as pickle to a specified output file.',
+parser = argparse.ArgumentParser(description='Create a new reference table from a set of reference samples, outputs table as pickle to a specified output file',
 		formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
 parser.add_argument('refdir', type=str,

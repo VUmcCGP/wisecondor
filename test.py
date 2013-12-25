@@ -270,7 +270,7 @@ def testTrisomyStoufferDirect(zScoresDict):
 import argparse
 parser = argparse.ArgumentParser(description='WISECONDOR \
 	(WIthin-SamplE COpy Number aberration DetectOR): \
-	Detect fetal trisomies and smaller CNV\'s in a maternal plasma sample.',
+	Detect fetal trisomies and smaller CNV\'s in a maternal plasma sample',
 	formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
 parser.add_argument('sample', type=str,
@@ -359,6 +359,7 @@ if len(testTrisomyAlt(sample,kept2,zSmoothDict,blindsDict,args.trithres)) == 0:
 print '\nChromosome wide, aneuploidy test:'
 testTrisomyStoufferDirect(zScoresDict)
 
+print '\n\n# Script information:\n'
 print '\nComputing additional data for plots'
 wastedBins = dict()
 for chrom in range(1,23):
@@ -380,9 +381,3 @@ outputData['wastedBins']=wastedBins
 pickle.dump(outputData,open(args.outfile,'wb'))
 
 print '\n# Finished'
-
-quit()
-
-print '\n\n# Script information:\n'
-plotResults(sample,markedBins,kept,kept2,outputBase,zScoresDict,zSmoothDict,blindsDict)
-

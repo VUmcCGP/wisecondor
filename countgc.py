@@ -27,7 +27,7 @@ import sys
 import pickle
 import argparse
 
-parser = argparse.ArgumentParser(description='Create GC-count file for GC-corrections. Outputs table as pickle to a specified output file.',
+parser = argparse.ArgumentParser(description='Create GC-count file for GC-corrections. Outputs table as pickle to a specified output file',
 		formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
 parser.add_argument('reffile', type=str,

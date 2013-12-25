@@ -27,7 +27,7 @@ import sys
 import pickle
 import argparse
 
-parser = argparse.ArgumentParser(description='Convert any stream of reads to a pickle file for WISECONDOR, defaults are set for the SAM format.',
+parser = argparse.ArgumentParser(description='Convert any stream of reads to a pickle file for WISECONDOR, defaults are set for the SAM format',
 		formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
 parser.add_argument('outfile', type=str,
