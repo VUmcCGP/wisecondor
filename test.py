@@ -272,17 +272,20 @@ class WiseCondorTest(object):
 				chrom = result[0][0]
 				startBin = result[0][1]
 				endBin = result[-1][1]
-				kept.append([chrom,startBin,endBin])
 
 				zAverage = numpy.average([value[2] for value in result])
 				variation = '-'
 				if zAverage > 0:
 					variation = '+'
 
+				multitest = self.getMulti(chrom,startBin,endBin)
+
 				if self.verbose:
-					print '\t' + variation + '\t' + str(self.getMulti(chrom,startBin,endBin))[:5] + \
+					print '\t' + variation + '\t' + str(multitest)[:5] + \
 						'\t' + str(zAverage)[:5] + '\t' + str((endBin-startBin + 1)*binSize/1000000) + \
 						'Mb\tchr' + str(chrom) + ':' + str(startBin*binSize) + '-' + str((endBin+1)*binSize)
+
+				kept.append([chrom,startBin,endBin,variation,multitest,zAverage])
 			else:
 				filtered += 1
 		if self.verbose:
@@ -518,7 +521,7 @@ if __name__ == "__main__":
 	outputData['zSmoothDict']=zSmoothDict
 	outputData['blindsDict']=blindsDict
 	outputData['wastedBins']=wastedBins
-#	pickle.dump(outputData,open(args.outfile,'wb'))
+	pickle.dump(outputData,open(args.outfile,'wb'))
 
 	if args.verbose:
 		print '\n# Finished'
