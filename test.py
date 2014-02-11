@@ -516,7 +516,8 @@ if __name__ == "__main__":
 	outputData['kept2']=kept2
 	outputData['windowed_test'] = windowed_test
 
-	#outputData['outputFile']=outputFile
+	outputData['stouff_direct'] = wc.dStouffDirect
+
 	outputData['zScoresDict']=zScoresDict
 	outputData['zSmoothDict']=zSmoothDict
 	outputData['blindsDict']=blindsDict
