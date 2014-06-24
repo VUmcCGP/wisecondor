@@ -1,0 +1,58 @@
+WISECONDOR
+(WIthin-SamplE COpy Number aberration DetectOR):
+Detect fetal trisomies and smaller CNV's in a maternal plasma sample using whole-genome data.
+
+DEFRAG
+(DEtection of fetal FRaction And Gender):
+Determine the gender and fetal fraction of the fetus using maternal plasma samples. 
+
+Please note:
+DEFRAG is not validated in a clinical setting and must therefore be used with caution. It can be used as a tool to give you an indication of the quality of a run. 
+
+
+1. REQUIREMENTS
+
+DEFRAG was developed and tested using Python2.7. It requires the '.gcc' and '.pickle' output files of WISECONDOR as input and is dependent on the following python packages:
+- matplotlib
+- numpy
+- scikit learn
+
+
+2. PREPARING FOR TESTING
+
+To determine gender and fetal fraction of a sample, the script needs a couple of reference sets. These are defined by creating two directories with the corresponding '.gcc' and '.pickle' files of the reference samples. You need one directory containing NIPT samples with a male fetus and one directory containing NIPT samples with female fetusses. These directories are given as arguments to the script and are used to train a simple classifier for the gender determination and correct for background noise when determining the fetal fraction.
+
+This script is developed so it can be used with and without a pool of male reference samples. Without specifying the --maledir argument, the parameters 'scalingFactor' and 'percYonMales' are set according to our male reference set (11 samples). You can also set these parameters yourself or specify a directory containing the male reference samples with the --maledir argument. It is recommended to obtain a male reference pool if the tool is structurally used to determine the fetal fraction. 
+
+The last step is to determine the test sample directory that contains the '.gcc' and '.pickle' files of the test samples. 
+
+python defrag.py [boydir] [girldir] [testdir] [outputfigure prefix] (--maledir [male 
+refset] --scalingFactor [] --percYonMales []) 
+
+
+3. OUTPUT
+
+The script generates per test sample directory a PNG image and a table. The table contains the following information per sample:
+- The fetal fraction (DEFRAG) as determined on the subset of chromosome Y and the whole of chromosome Y
+- The gender
+- Total number of reads left after all WISECONDOR filtering steps
+- The cluster that it is assigned to 
+- The % of reads that are mapped on Y
+
+The PNG contains 4 plots (left to right, top to bottom):
+- 'Training Set Gender Determination': Training set that is used for the determination of the gender. Here you can see if there are enough samples available around the threshold.
+- 'Test Samples Gender Determination': Samples that were in the test directory and the corresponding % of reads on the Y chromosome, as well as the predicted label (male/female).
+- 'DEFRAG Script': The two ways to determine the fetal fraction are plotted here. The bottom left pink datapoints indicate girls ('girls' cluster), the diagonal from the bottom left to the top right is populated with boys ('boys' cluster), while the 'BAD' cluster may show up to the right of the girls cluster on Y=0.
+- 'Fetal Fraction (%) on whole chr Y vs. Coverage': Gives an overview of the coverage of the samples. The red and green thesholds are stated in the paper as well: below 8 million reads it is not unlikely that a correct analysis can be performed. 
+
+The cluster column indicates if the two ways to determine the fetal fraction are in concordance ('boys' and 'girls' classification) or if it is situated in the 'BAD' cluster. A sample will be in the 'BAD' cluster if the subset-Y fetal fraction determination can not find enough reads in the regions that it needs to calculate a fetal fraction and the whole-Y determination actually determines that the sample is male. It is located on the right hand side of the cluster of girls in plot 3 in the PNG that is created. 
+A BAD-cluster can mean one of two things:
+- The fetal fraction of the sample is too low for use with WISECONDOR
+- There are not enough reads available for analysis (often < 8 million reads)
+The BAD-cluster can be used as a way to determine if a series has gone wrong. If more than one BAD cluster is assigned, this could be an indication of something that went wrong in the lab. 
+
+
+
+4. CONTACT
+For questions, do not hesitate to contact us at d.vanbeek@vumc.nl or r.straver@vumc.nl.
+
