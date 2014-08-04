@@ -318,6 +318,9 @@ class WiseCondorTest(object):
             if result > self.trithres:
                 if self.verbose:
                     print '\tchr' + str(chrom) + ': ' + str(round(result*100)) + '% marked'
+                call = [i for i in kept if i[0] == str(chrom)][0]
+                if call[3] == '-': # report deleted as well
+                    result = result*(-1)
                 resultList.append([str(chrom), round(result*100)])
 
         return resultList

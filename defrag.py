@@ -314,7 +314,7 @@ if __name__ == '__main__':
     parser.add_argument('--scalingFactor', type=str, help='Factor that is used for correcting the calculated fetal fraction')    
     parser.add_argument('--percYonMales', type=str, help='Percentage of reads that is mapped on Y in males')
     parser.add_argument('testdir', type=str,help='Directory containing test samples (gcc and pickle)')
-    parser.add_argument('outputfig', type=str, default='something', help='prefix of output figure (extension is added by script)')
+    parser.add_argument('outputfig', type=str, default='something', help='File path (absolute preferable) of output figure (extension is added by script)')
 
 
     args = parser.parse_args()
