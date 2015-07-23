@@ -380,4 +380,41 @@ outputData['blindsDict']=blindsDict
 outputData['wastedBins']=wastedBins
 pickle.dump(outputData,open(args.outfile,'wb'))
 
+print '\nDoing bonus stuff for possible maternal peaks'
+extMarkedBins=[]
+
+if len(markedBins)>0:
+	print "Chr\tBin\tZ-Score\tMult\tPerc"
+	for i,val in enumerate(markedBins):
+		multi=getMulti(sample,val[0],val[1],val[1])
+		extVal=val[:]
+		extVal.append(multi)
+		extMarkedBins.append(extVal)
+		print "\t".join([str(x) for x in extVal])+"\t"+str(int(abs(extVal[3]-1)*200))
+
+def getMaternalGuess(curSpike):
+	if len(curSpike)>1:
+		spikeMax=max([abs(x[3]-1) for x in curSpike])
+		#print spikeMax,curSpike
+		start	= int((curSpike[ 0][1]+1-abs(curSpike[-1][3]-1)*2)*args.binsize)
+		end		= int((curSpike[-1][1]+abs(curSpike[-1][3]-1)*2)*args.binsize)
+		print "Without correction:\t"+str(curSpike[0][0])+":"+str(start)+"-"+str(end)+"\tSize: "+str(end-start)
+		if len(curSpike)>2:
+			corrector=1/spikeMax
+			#print [(x[3]-1)*corrector for x in curSpike]
+			corStart	=	int((curSpike[ 0][1]+1-abs(curSpike[-1][3]-1)*corrector)*args.binsize)
+			corEnd		=	int((curSpike[-1][1]+abs(curSpike[-1][3]-1)*corrector)*args.binsize)
+			corLen		=	corEnd-corStart
+			print "\tCorrection:\t"+str(curSpike[0][0])+":"+str(corStart)+"-"+str(corEnd)+"\tSize: "+str(corLen)
+
+if len(extMarkedBins)>1:
+	curSpike=[extMarkedBins[0]]
+	for i,val in enumerate(extMarkedBins[1:]):
+		if val[0] == curSpike[-1][0] and val[1] == curSpike[-1][1]+1:
+			curSpike.append(val)
+		else:
+			getMaternalGuess(curSpike)
+			curSpike=[val]
+	getMaternalGuess(curSpike)
+			
 print '\n# Finished'

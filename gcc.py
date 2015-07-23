@@ -68,7 +68,7 @@ if __name__ == "__main__":
 	parser.add_argument('gccount', type=str,
 						help='gc-counts file used for gc-correction (pickle)')
 	parser.add_argument('outfile', type=str,
-						help='reference table output, used for sample testing (pickle)')
+						help='gc-corrected sample data')
 
 	parser.add_argument('-binsize', default=1000000, type=int,
 						help='binsize used for samples')

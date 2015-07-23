@@ -30,8 +30,15 @@ import argparse
 parser = argparse.ArgumentParser(description='Convert any stream of reads to a pickle file for WISECONDOR, defaults are set for the SAM format',
 		formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-parser.add_argument('outfile', type=str,
+parser.add_argument('-outfile', type=str,
 					help='reference table output, used for sample testing (pickle)')
+
+parser.add_argument('-keepfile', type=str,
+					help='unaltered output of reads used in analysis')
+parser.add_argument('-dropfile', type=str,
+					help='unaltered output of reads ignored in analysis')
+parser.add_argument('-keepprint', action='store_true',
+					help='unaltered output of reads used in analysis to stdout')
 
 parser.add_argument('-binsize', type=int, default=1000000,
 					help='binsize used for samples')
@@ -59,6 +66,11 @@ for chromosome in range(1,23):
 chromosomes['X'] = [0]
 chromosomes['Y'] = [0]
 
+if args.keepfile:
+	fileKeep = open(args.keepfile,'w')
+if args.dropfile:
+	fileDrop = open(args.dropfile,'w')
+
 # Flush the current stack of reads
 def flush(readBuff):
 	global chromosomes
@@ -74,9 +86,20 @@ def flush(readBuff):
 				while len(chromosomes[chromosome]) <= bin:
 					chromosomes[chromosome].append(0.)
 				chromosomes[chromosome][bin] += 1
-
+		if args.keepfile:
+			for line in fullBuff:
+				fileKeep.write(line)
+		if args.keepprint:
+			for line in fullBuff:
+					print line
+	elif args.dropfile:
+		for line in fullBuff:
+			fileDrop.write(line)
+				
+						
 prevWords = ['0'] * 10
 readBuff = []
+fullBuff = []
 for line in sys.stdin:
 	curWords = line.split()
 
@@ -84,9 +107,11 @@ for line in sys.stdin:
 	if not((curWords[chrColumn] == prevWords[chrColumn]) and (minShift >= (int(curWords[startColumn])-int(prevWords[startColumn])))):
 		flush(readBuff)
 		readBuff = []
+		fullBuff = []
 
 	# Normal ndups will be appended here
 	readBuff.append([curWords[chrColumn],int(curWords[startColumn])])
+	fullBuff.append(line)
 	
 	prevWords = curWords
 	prevLine = line
@@ -95,4 +120,10 @@ for line in sys.stdin:
 flush(readBuff)
 
 # Dump converted data to a file
-pickle.dump(chromosomes,open(args.outfile,'wb'))
+if args.outfile:
+	pickle.dump(chromosomes,open(args.outfile,'wb'))
+
+if args.keepfile:
+	fileKeep.close()
+if args.dropfile:
+	fileDrop.close()
