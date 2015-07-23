@@ -97,6 +97,7 @@ def markBins(sample,maxRounds,minBins,maxBins,maxDist,smoothRange):
 	zScoresDict = dict()
 	zSmoothDict = dict()
 	blindsDict = dict()
+	refsDict = dict()
 	
 	while ([marked[:2] for marked in prevMarks] != [marked[:2] for marked in markedBins]) and rounds <= maxRounds:
 		print '\tRound: ' + str(rounds) + '\tMarks: ' + str(len(markedBins))
@@ -111,6 +112,7 @@ def markBins(sample,maxRounds,minBins,maxBins,maxDist,smoothRange):
 			endBin = 0
 			zScores = []
 			blinds = []
+			refs = []
 			chromFound = 0
 			avgBins = 0
 			average = 0
@@ -131,9 +133,11 @@ def markBins(sample,maxRounds,minBins,maxBins,maxDist,smoothRange):
 					markedBins.append([chrom,bin,zValue])
 
 				zScores.append(zValue)
+				refs.append(reference)
 
 			zScoresDict[str(chrom)] = zScores
 			blindsDict[str(chrom)] = blinds
+			refsDict[str(chrom)] = refs
 
 	print 'Stopped\tMarks: ' + str(len(markedBins))
 
@@ -156,7 +160,7 @@ def markBins(sample,maxRounds,minBins,maxBins,maxDist,smoothRange):
 				markedSmoothBins.append([chrom,bin,zSmooth[bin]])
 
 	markedBins.sort()
-	return markedBins, zScoresDict, markedSmoothBins, zSmoothDict, blindsDict
+	return markedBins, zScoresDict, markedSmoothBins, zSmoothDict, blindsDict, refsDict
 
 # TODO: Only give multi for enough reference bins, otherwise nan?
 def getMulti(sample,chrom,start,end):
@@ -264,7 +268,13 @@ def testTrisomyStoufferDirect(zScoresDict):
 		stouff.append((numpy.sum(temp)/numpy.sqrt(len(temp))))
 	for chromInt in range(22):
 		if abs(stouff[chromInt]) > 3:
-			print "\tChr" + str(chromInt+1) + "\t" + str(stouff[chromInt])
+			chromMulti=[]
+			for i in range(len(sample[str(chromInt+1)])-1):
+				if i not in blindsDict[str(chromInt+1)]:
+					chromMulti.append(getMulti(sample,chromInt+1,i,i+1))
+				#else:
+				#	print i
+			print "\tChr" + str(chromInt+1) + "\t" + str(stouff[chromInt]) + "\t" + str(numpy.average(chromMulti)) + "\tblergh"
 
 # --- MAIN ---
 import argparse
@@ -335,7 +345,7 @@ maxDist = cutoff.getOptimalCutoff(lookUpTable, args.refmaxrep, args.refmaxval)
 print '\tCutoff determined:\t' + str(maxDist)
 print ''
 avgDev = checkAverageDeviation(sample,args.refminbin,args.refmaxbin,maxDist)
-markedBins,zScoresDict,markedSmoothBins,zSmoothDict,blindsDict = \
+markedBins,zScoresDict,markedSmoothBins,zSmoothDict,blindsDict,refsDict = \
 	markBins(sample,args.maxrounds,args.refminbin,args.refmaxbin,maxDist,args.window)
 
 print '\nUncallable bins:\t' + str(sum([len(blindsDict[key]) for key in blindsDict.keys()]) \
@@ -362,10 +372,25 @@ testTrisomyStoufferDirect(zScoresDict)
 print '\n\n# Script information:\n'
 print '\nComputing additional data for plots'
 wastedBins = dict()
+
+refMeans = dict()
+refStds = dict()
 for chrom in range(1,23):
 	wastedBins[str(chrom)] = []
 	for bin in range(len(sample[str(chrom)])-1):
 		wastedBins[str(chrom)].append(len(getReference(sample,str(chrom),bin,[],0,4,1)) <= 3)
+
+	refMean=[]
+	refStdD=[]
+	for reference in refsDict[str(chrom)]:
+		if reference != []:
+			refMean.append(numpy.average(reference))
+			refStdD.append(numpy.std(reference))
+		else:
+			refMean.append(1)
+			refStdD.append(0)
+	refMeans[str(chrom)] = refMean
+	refStds[str(chrom)] = refStdD
 
 print '\nStoring data for creating plots'
 outputData=dict()
@@ -378,6 +403,9 @@ outputData['zScoresDict']=zScoresDict
 outputData['zSmoothDict']=zSmoothDict
 outputData['blindsDict']=blindsDict
 outputData['wastedBins']=wastedBins
+outputData['refsDict']=refsDict
+outputData['refMeans']=refMeans
+outputData['refStds']=refStds
 pickle.dump(outputData,open(args.outfile,'wb'))
 
 print '\nDoing bonus stuff for possible maternal peaks'
