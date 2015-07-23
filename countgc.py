@@ -26,6 +26,7 @@
 import sys
 import pickle
 import argparse
+import math
 
 parser = argparse.ArgumentParser(description='Create GC-count file for GC-corrections. Outputs table as pickle to a specified output file',
 		formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -35,7 +36,7 @@ parser.add_argument('reffile', type=str,
 parser.add_argument('gccout', type=str,
 					help='gc-count output file')
 
-parser.add_argument('-binsize', type=int, default=1000000,
+parser.add_argument('-binsize', type=float, default=1000000,
 					help='binsize used for samples')
 
 args = parser.parse_args()
@@ -70,7 +71,7 @@ def finishBin():
 	global start
 	global key
 	if key in gcCounts:
-		binNumber = (start+totalCount) / binSize - 1
+		binNumber = int(math.ceil((start+totalCount) / binSize)) - 1
 		while len(gcCounts[key]) <= binNumber:
 			gcCounts[key].append(0)
 			nCounts[key].append(0)
@@ -103,7 +104,8 @@ for nextLine in f:
 			if (start + totalCount) % binSize == 0:
 				finishBin()
 f.close()
-finishBin()
+if (start + totalCount) % binSize != 0:
+	finishBin()
 
 # Now put it all together in a single dict for ease of use
 for chrom in nCounts.keys():
