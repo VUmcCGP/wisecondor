@@ -39,7 +39,6 @@ Then, all reference files should be fed into the newref.py script. The current i
 
 3. RUNNING TESTS
 
-An example pipeline implementation can be found in pipeline.sh. This script will look for .pickle files in ./in/ and write output to ./out/. Additionally, details showing how to prepare your data can be found in this script but are not carried out as these require BWA and SAMTOOLS to be set up correctly.
 To improve your results you probably want to change a few parameters. Most of the values used in WISECONDOR can be altered using arguments. To find out what arguments can be passed into any script, try running it with -h as argument, for example:
 	python test.py -h
 	
