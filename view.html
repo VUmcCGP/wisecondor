@@ -1,3 +1,28 @@
+<!--
+##############################################################################
+#                                                                            #
+#    View results of testing for Fetal Copy Number Aberrations.              #
+#    Copyright(C) 2015  TU Delft & VU University Medical Center Amsterdam    #
+#    Author: Roy Straver, r.straver@vumc.nl                                  #
+#                                                                            #
+#    This file is part of WISECONDOR.                                        #
+#                                                                            #
+#    WISECONDOR is free software: you can redistribute it and/or modify      #
+#    it under the terms of the GNU General Public License as published by    #
+#    the Free Software Foundation, either version 3 of the License, or       #
+#    (at your option) any later version.                                     #
+#                                                                            #
+#    WISECONDOR is distributed in the hope that it will be useful,           #
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of          #
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           #
+#    GNU General Public License for more details.                            #
+#                                                                            #
+#    You should have received a copy of the GNU General Public License       #
+#    along with WISECONDOR.  If not, see <http://www.gnu.org/licenses/>.     #
+#                                                                            #
+##############################################################################
+-->
+
 <!DOCTYPE html>
  <style>
 	html{
@@ -72,7 +97,7 @@
 </style>
 <html>
 	<head>
-		<title>WISECONDOR viewer BETA</title>
+		<title>WISECONDOR viewer</title>
 		<meta charset="utf-8">
 
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
@@ -494,7 +519,7 @@
 							var view = document.createElement('input');
 							view.type = 'button';
 							view.name = 'view_'+i;
-							view.value = 'chr'+keptCalls[i][0]+' : '+keptCalls[i][1]+' - '+keptCalls[i][2];
+							view.value = keptCalls[i][0]+' : '+keptCalls[i][1]+' - '+keptCalls[i][2];
 							
 							view.onclick = (function(i) { 
 								return function() {var newChrom=parseInt(keptCalls[i][0]);
@@ -615,11 +640,11 @@
 					<td class="propCol" id="diffValM"></td>
 				</tr>
 			</table>
-			Single Calls
-			<ol id="resultList">
-			</ol>
 			Stouffer Calls
 			<ol id="resultList2">
+			</ol>
+			<!--Single Calls-->
+			<ol id="resultList">
 			</ol>
 			</p>
 			<div id="footer">Test page by Roy Straver</div>
