@@ -42,10 +42,21 @@ Then, all reference files should be fed into the newref.py script. The current i
 An example pipeline implementation can be found in pipeline.sh. This script will look for .pickle files in ./in/ and write output to ./out/. Additionally, details showing how to prepare your data can be found in this script but are not carried out as these require BWA and SAMTOOLS to be set up correctly.
 To improve your results you probably want to change a few parameters. Most of the values used in WISECONDOR can be altered using arguments. To find out what arguments can be passed into any script, try running it with -h as argument, for example:
 	python test.py -h
+	
 To create plots, use the file created by test.py as input for plot.py. This script turns the prepared data into a visualization, which can be customized or replaced to accommodate for personal preferences without the need to make changes to the original algorithm.
 
 
 
-4. PITFALLS
+4. VIEWING RESULTS
+
+In addition the the PDF file as created using plot.py, it is also possible to export the results to a JSON object which can be loaded into the view.html provided in the WISECONDOR package. To do this, run makejson.py on an output file from test.py and save the result to a file using the '>' function:
+	python makejson.py sampleName.out > sampleName.json
+
+However, due to requiring additional data, the output files are now larger in filesize as they contain all data available on the sample rather than just the results. The average filesize is about 3,1 MB now.
+Note: the viewer is designed and tested for Google Chrome, any other browser is not supported (but may work). Also, although it is a webpage, there is no uploading of data or calling home involved, to comply with diagnostics. Everything is fully local on the machine you use it on.
+For more information, check out the WISECONDOR wiki pages on github.
+
+
+5. PITFALLS
 
 Do not use any of the example data for your own tests, if available. Every reference file, laboratory and sequencing machine has its own effect on how read depth per bin behaves. Any results obtained by combining files from different origins are unreliable.
