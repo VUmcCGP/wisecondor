@@ -34,6 +34,8 @@ import cutoff
 import matplotlib
 import argparse
 
+import warnings
+
 numpy.seterr('ignore')
 
 binSize = 0
@@ -274,7 +276,7 @@ def testTrisomyStoufferDirect(zScoresDict):
 					chromMulti.append(getMulti(sample,chromInt+1,i,i+1))
 				#else:
 				#	print i
-			print "\tChr" + str(chromInt+1) + "\t" + str(stouff[chromInt]) + "\t" + str(numpy.average(chromMulti)) + "\tblergh"
+			print "\tChr" + str(chromInt+1) + "\t" + str(stouff[chromInt]) + "\t" + str(numpy.average(chromMulti))
 
 # --- MAIN ---
 import argparse
@@ -344,9 +346,11 @@ maxDist = cutoff.getOptimalCutoff(lookUpTable, args.refmaxrep, args.refmaxval)
 
 print '\tCutoff determined:\t' + str(maxDist)
 print ''
-avgDev = checkAverageDeviation(sample,args.refminbin,args.refmaxbin,maxDist)
-markedBins,zScoresDict,markedSmoothBins,zSmoothDict,blindsDict,refsDict = \
-	markBins(sample,args.maxrounds,args.refminbin,args.refmaxbin,maxDist,args.window)
+with warnings.catch_warnings():
+	warnings.simplefilter("ignore")
+	avgDev = checkAverageDeviation(sample,args.refminbin,args.refmaxbin,maxDist)
+	markedBins,zScoresDict,markedSmoothBins,zSmoothDict,blindsDict,refsDict = \
+		markBins(sample,args.maxrounds,args.refminbin,args.refmaxbin,maxDist,args.window)
 
 print '\nUncallable bins:\t' + str(sum([len(blindsDict[key]) for key in blindsDict.keys()]) \
 		/float(sum([len(sample[key]) for key in sample.keys()]))*100)[:5] + '%'
@@ -408,7 +412,7 @@ outputData['refMeans']=refMeans
 outputData['refStds']=refStds
 pickle.dump(outputData,open(args.outfile,'wb'))
 
-print '\nDoing bonus stuff for possible maternal peaks'
+print '\nAdditional information to determine possible maternal peaks'
 extMarkedBins=[]
 
 if len(markedBins)>0:
