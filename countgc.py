@@ -36,7 +36,7 @@ parser.add_argument('reffile', type=str,
 parser.add_argument('gccout', type=str,
 					help='gc-count output file')
 
-parser.add_argument('-binsize', type=float, default=1000000,
+parser.add_argument('-binsize', type=float, default=1000000.,
 					help='binsize used for samples')
 
 args = parser.parse_args()
@@ -85,7 +85,8 @@ def finishBin():
 f = open(filename, 'r')
 for nextLine in f:
 	if nextLine[0] == '>':
-		finishBin()
+		if (start + totalCount) % binSize != 0:
+			finishBin()
 		totalCount = 0
 		splitLine = nextLine.split()
 		key   = splitLine[0][1:]
