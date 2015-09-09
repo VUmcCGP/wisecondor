@@ -26,7 +26,7 @@ Settings we used for external tools:
 `picardtools sortsam	SO=coordinate VALIDATION_STRINGENCY=LENIENT CREATE_INDEX=true`  
 `samtools rmdup -s sample.bam - | samtools view - -q 1`  
 
-To convert a .bam file to a file for analysis, pipe the output from the samtools step shown above into consam.py:
+To convert a .bam file to a file for analysis, pipe the output from the samtools step shown above into consam.py:  
 `samtools rmdup -s sample.bam - | samtools view - -q 1 | python consam.py -outfile sample.pickle`
 
 To create a GC-count table for the genomic reference you use, use countgc.py:  
