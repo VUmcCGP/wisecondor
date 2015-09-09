@@ -321,6 +321,9 @@ parser.add_argument('-wminbins', default=10, type=int,
 
 parser.add_argument('-trithres', default=0.5, type=float,
 					help='threshold value for determining aneuploidy')
+					
+parser.add_argument('-ignorerefchr', default='', type=str,
+                   help='ignore specified chromosome in the reference to rule out its influences on target bins')
 
 args = parser.parse_args()
 
@@ -345,6 +348,21 @@ print '\nDetermining reference cutoffs'
 maxDist = cutoff.getOptimalCutoff(lookUpTable, args.refmaxrep, args.refmaxval)
 
 print '\tCutoff determined:\t' + str(maxDist)
+
+if args.ignorerefchr !='' :
+	print '\nRemoving chromosome from references:\t' + args.ignorerefchr
+	removeCount=0
+
+	for chrom in lookUpTable.keys():
+		curChrom=lookUpTable[chrom]
+		for i,curTarBin in enumerate(curChrom):
+			for j in range(len(curTarBin)-1,-1,-1):
+				#print curTarBin[j]
+				if curTarBin[j][0] == args.ignorerefchr:
+					removeCount+=1
+					curTarBin.pop(j)
+	print '\tRemoved:\t'+str(removeCount)+'\toccurrences of\t'+args.ignorerefchr
+
 print ''
 with warnings.catch_warnings():
 	warnings.simplefilter("ignore")
