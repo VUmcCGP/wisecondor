@@ -72,7 +72,7 @@ function prepSamples {
 		if [ ! -f ${SAMPLE//.pickle/.gcc} ]; 
 		then
 			echo "		Working on: $SAMPLE -> ${SAMPLE//.pickle/.gcc}"
-			python2.7 ./gcc.py $SAMPLE ./reference/gccount ${SAMPLE//.pickle/.gcc} > ${SAMPLE//.pickle/.log}
+			python2.7 ./gcc.py $SAMPLE ./$DATADIR/gccount ${SAMPLE//.pickle/.gcc} > ${SAMPLE//.pickle/.log}
 		fi
 	done
 }
