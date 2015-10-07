@@ -149,6 +149,11 @@
 					ctx2.fillStyle="rgb(255, 255, 255)";
 					ctx2.fillRect(0,0,canvas.width,canvas.height)
 					
+					if (myStringArray.length == 0)
+					{
+						return
+					}
+					
 					var arrayLength = myStringArray.length;
 					var binWidth=canvas.width/(arrayLength-1)
 	
@@ -370,6 +375,10 @@
 					};
 				}
 				canvas.addEventListener('mousemove', function(evt) {
+					if(myStringArray.length == 0)
+					{
+						return;
+					}
 					var mousePos = getMousePos(canvas, evt);
 					var binWidth = canvas.width/(myStringArray.length-1)
 					var mouseBin = Math.floor(mousePos.x/binWidth+0.5)
@@ -481,18 +490,6 @@
 						//zSmoothArray = newArr.zSmoothDict[document.getElementById('chromNumber').value];
 						drawPlot();
 					
-					
-						var resultList    = document.getElementById('resultList');
-						resultList.innerHTML='';
-						keptCalls=newArr.kept
-						keptCalls.sort();
-						//resultList.parentNode.replaceChild(ul.cloneNode(false), resultList);
-						for (var i =0; i < newArr.kept.length; i++){
-							var entry = document.createElement('li');
-							entry.appendChild(document.createTextNode('chr'+newArr.kept[i][0]+':'+newArr.kept[i][1]+'-'+newArr.kept[i][2]));
-							resultList.appendChild(entry);
-						}
-						
 						var resultList2    = document.getElementById('resultList2');
 						resultList2.innerHTML='';
 						keptCalls=newArr.kept2
@@ -600,7 +597,7 @@
 			<!-- Insert fallback content here -->
 			</canvas>
 			<canvas id="myCanvas2" width="800" height="192">
-			derp
+			<!-- Insert fallback content here -->
 			</canvas>
 			
 		</center>
@@ -642,9 +639,6 @@
 			</table>
 			Stouffer Calls
 			<ol id="resultList2">
-			</ol>
-			<!--Single Calls-->
-			<ol id="resultList">
 			</ol>
 			</p>
 			<div id="footer">Test page by Roy Straver</div>
