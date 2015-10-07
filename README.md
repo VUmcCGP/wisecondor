@@ -2,6 +2,13 @@
 ### WIthin-SamplE COpy Number aberration DetectOR
 #### Detect fetal trisomies and smaller CNV's in a maternal plasma sample using whole-genome data.
 
+## QUICKSTART GUIDE
+
+To get to work without too much reading just use `./run.sh` and follow the directions provided.
+
+If anything is not clear, try the wiki first:  
+https://github.com/rstraver/wisecondor/wiki
+
 
 
 ## REQUIREMENTS
