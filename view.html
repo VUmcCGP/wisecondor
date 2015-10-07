@@ -157,20 +157,42 @@
 					var arrayLength = myStringArray.length;
 					var binWidth=canvas.width/(arrayLength-1)
 	
-					ctx.globalAlpha=0.2;
-					ctx.fillStyle="rgb(255, 0, 255)";
+					ctx.globalAlpha=1;
+					//ctx.globalAlpha=0.2;
+					//ctx.fillStyle="rgb(255, 0, 255)";
+					
+					ctx.fillStyle="rgb(255, 153, 255)";
+					
 					for (var i = 0; i < arrayLength; i++) {
 						if 	(Math.abs(zSmoothArray[i]) >= 3){
 							ctx.fillRect((i-0.5)*binWidth-1,0,binWidth,canvas.height/4);
 							
 						}
 					}
-					ctx.fillStyle="rgb(0,255, 0)";
+					//ctx.fillStyle="rgb(0,255, 0)";
+					ctx.fillStyle="rgb(128, 255, 89)";
 					for (var i = 0; i < arrayLength; i++) {
 						if 	(Math.abs(myStringArray[i]) >= 3){
 							ctx.fillRect((i-0.5)*binWidth-1,canvas.height/4*3,binWidth,canvas.height/2);
 						}
 					}
+					
+					
+					ctx.fillStyle="rgb(77,153,18)";
+					for (var i = 0; i < keptDirCalls.length; i++) {
+						if (keptDirCalls[i][0] == parseInt(chromNumber)) {
+							ctx.fillRect((keptDirCalls[i][1]-0.5)*binWidth-1,canvas.height/6*5,binWidth*(keptDirCalls[i][2]-keptDirCalls[i][1]+1),canvas.height/6);
+						}
+					}
+					
+					
+					ctx.fillStyle="rgb(102,51,102)";
+					for (var i = 0; i < keptWinCalls.length; i++) {
+						if (keptWinCalls[i][0] == parseInt(chromNumber)) {
+							ctx.fillRect((keptWinCalls[i][1]-0.5)*binWidth-1,0,binWidth*(keptWinCalls[i][2]-keptWinCalls[i][1]+1),canvas.height/6);
+						}
+					}
+										
 					ctx.globalAlpha=1;
 	
 					function plotArray(curCtx,curData) {
@@ -493,7 +515,7 @@
 						var resultList2    = document.getElementById('resultList2');
 						resultList2.innerHTML='';
 						keptCalls=newArr.kept2
-						console.log(keptCalls);
+						//console.log(keptCalls);
 						
 						for (var i =0; i < keptCalls.length; i++){
 							keptCalls[i][0] = parseInt(keptCalls[i][0])
@@ -547,6 +569,8 @@
 					refArray      = newArr.refsDict[chromNumber];
 					refMeansArray = newArr.refMeans[chromNumber];
 					refStdsArrayT = newArr.refStds[chromNumber];
+					keptDirCalls  = newArr.kept;
+					keptWinCalls  = newArr.kept2;
 										
 					relArray	= []
 					for (var i =0; i < sampleArray.length; i++){
