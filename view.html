@@ -28,7 +28,7 @@
 	html{
 		height: 100%; 
 		background: #555; 
-		color: #555;
+		color: #444;
 	}
 	body{
 		min-height: 100%;
@@ -77,7 +77,9 @@
 	}
 	#footer {
 		clear: both ;
-		float: right;
+		float: center;
+		text-align: center;
+		padding: 40px;
 	}
 	table#tProperties{
 		float: right;
@@ -179,7 +181,7 @@
 					ctx.fillStyle="rgb(77,153,18)";
 					for (var i = 0; i < keptDirCalls.length; i++) {
 						if (keptDirCalls[i][0] == parseInt(chromNumber)) {
-							ctx.fillRect((keptDirCalls[i][1]-0.5)*binWidth,canvas.height/6*5,binWidth*(keptDirCalls[i][2]-keptDirCalls[i][1]+1),canvas.height/6);
+							ctx.fillRect((keptDirCalls[i][1]-0.5)*binWidth,canvas.height/8*7,binWidth*(keptDirCalls[i][2]-keptDirCalls[i][1]+1),canvas.height/6);
 						}
 					}
 					
@@ -187,7 +189,7 @@
 					ctx.fillStyle="rgb(102,51,102)";
 					for (var i = 0; i < keptWinCalls.length; i++) {
 						if (keptWinCalls[i][0] == parseInt(chromNumber)) {
-							ctx.fillRect((keptWinCalls[i][1]-0.5)*binWidth,0,binWidth*(keptWinCalls[i][2]-keptWinCalls[i][1]+1),canvas.height/6);
+							ctx.fillRect((keptWinCalls[i][1]-0.5)*binWidth,0,binWidth*(keptWinCalls[i][2]-keptWinCalls[i][1]+1),canvas.height/8);
 						}
 					}
 										
@@ -659,10 +661,19 @@
 					<td class="propCol" id="diffValM"></td>
 				</tr>
 			</table>
-			Stouffer Calls
-			<ol id="resultList2">
-			</ol>
+			<table>
+			Aberrations
+				<ol id="resultList2">
+				</ol>
 			</p>
-			<div id="footer">Test page by Roy Straver</div>
+			<div id="footer">
+				|
+				<a href="https://github.com/rstraver/">Roy Straver</a>
+				|
+				<a href="https://github.com/rstraver/wisecondor/">GitHub</a>
+				|
+				<a href="https://github.com/rstraver/wisecondor/wiki">Wiki</a>
+				|
+			</div>
 	</body>
 </html>
