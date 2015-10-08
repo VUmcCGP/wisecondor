@@ -33,7 +33,7 @@ import cutoff
 import matplotlib
 import argparse
 
-def plotResults(sample, markedBins, kept, kept2, outputFile, zScoresDict,zSmoothDict,blindsDict,wastedBins,sampleName):
+def plotResults(sample, markedBins, kept, kept2, outputFile, zScoresDict,zSmoothDict,blindsDict,wastedBins,sampleName,fileType):
 	import matplotlib.pyplot as plt
 	from matplotlib.collections import BrokenBarHCollection
 
@@ -132,7 +132,7 @@ def plotResults(sample, markedBins, kept, kept2, outputFile, zScoresDict,zSmooth
 	
 	ax.legend((lRed, lBlue, bLGreen, bDGreen, bPink, bPurple, bLGrey, bGrey), ('Z-score windowed method', 'Z-score individual bin method', 'Detected deviation by individual bin method', 'Called by individual bin method', 'Detected deviation by windowed method', 'Called by windowed method', 'Not enough reference bins available', 'Unmappable region'), 'lower left',prop={'size':6}, mode='expand', ncol=4)
 	
-	plt.savefig(outputFile+'.pdf',figsize=(11.7, 8.3),dpi=160)
+	plt.savefig(outputFile+'.'+fileType,figsize=(11.7, 8.3),dpi=160)
 
 
 if __name__ == "__main__":
@@ -147,6 +147,9 @@ if __name__ == "__main__":
 					   
 	parser.add_argument('-mpluse', default='agg', type=str, 
 					help='make matplotlib use another backend for plotting')
+					
+	parser.add_argument('-filetype', default='pdf', type=str, 
+					help='make save plot as filetype instead of pdf')
 
 	args = parser.parse_args()
 
@@ -175,6 +178,7 @@ if __name__ == "__main__":
 		sampleData['zSmoothDict'], \
 		sampleData['blindsDict'], \
 		sampleData['wastedBins'], \
-		sampleName
+		sampleName, \
+		args.filetype
 		)
 	print '\n# Finished'
