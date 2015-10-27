@@ -103,505 +103,6 @@
 	<head>
 		<title>WISECONDOR viewer</title>
 		<meta charset="utf-8">
-
-		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
-
-		<script>
-			var newArr
-			$(document).ready(function() {  
-			
-				var canvas = document.getElementById("myCanvas");
-				var ctx = canvas.getContext("2d");
-				var myStringArray = [];
-				var zSmoothArray = [];
-				
-				var sampleArray = [];
-				var refArray = []
-				
-				var refMeansArray = [];
-				var	refStdsArray  = [];
-				var refStdsArrayI = [];
-				var relArray = [];
-				
-				
-				//drawPlot()
-				var canvas2 = document.getElementById("myCanvas2")
-				var ctx2 = canvas2.getContext("2d");
-				var chromNumber = 21
-				
-				var prevMouseBin = 0;
-				
-				ctx.lineWidth = 4;
-				ctx2.strokeRect(0, 0, canvas2.width, canvas2.height);
-				//ctx2.fillRect(0,0,canvas2.width/2,canvas2.height);
-				
-				drawPlot();
-				var scale = canvas.height/40;
-				
-				var selectionStart=0
-				var selectionEnd=0
-				
-				function drawPlot(){
-					scale=canvas.height/document.getElementById('scaleVal').value/2
-				
-					ctx.clearRect(0,0,canvas.width,canvas.height)
-					ctx.fillStyle="rgb(255, 255, 255)";
-					ctx.fillRect(0,0,canvas.width,canvas.height)
-					
-					
-					ctx2.clearRect(0,0,canvas.width,canvas.height)
-					ctx2.fillStyle="rgb(255, 255, 255)";
-					ctx2.fillRect(0,0,canvas.width,canvas.height)
-					
-					if (myStringArray.length == 0)
-					{
-						return
-					}
-					
-					var arrayLength = myStringArray.length;
-					var binWidth=canvas.width/(arrayLength-1)
-	
-					ctx.globalAlpha=1;
-					//ctx.globalAlpha=0.2;
-					//ctx.fillStyle="rgb(255, 0, 255)";
-					ctx.fillStyle="rgb(255, 153, 255)";
-					for (var i = 0; i < arrayLength; i++) {
-						if 	(Math.abs(zSmoothArray[i]) >= 3){
-							ctx.fillRect((i-0.5)*binWidth,0,binWidth+1,canvas.height/4);
-						}
-					}
-					
-					//ctx.fillStyle="rgb(0,255, 0)";
-					ctx.fillStyle="rgb(128, 255, 89)";
-					for (var i = 0; i < arrayLength; i++) {
-						if 	(Math.abs(myStringArray[i]) >= 3){
-							ctx.fillRect((i-0.5)*binWidth,canvas.height/4*3,binWidth+1,canvas.height/2);
-						}
-					}
-					
-					
-					ctx.fillStyle="rgb(77,153,18)";
-					for (var i = 0; i < keptDirCalls.length; i++) {
-						if (keptDirCalls[i][0] == parseInt(chromNumber)) {
-							ctx.fillRect((keptDirCalls[i][1]-0.5)*binWidth,canvas.height/8*7,binWidth*(keptDirCalls[i][2]-keptDirCalls[i][1]+1),canvas.height/6);
-						}
-					}
-					
-					
-					ctx.fillStyle="rgb(102,51,102)";
-					for (var i = 0; i < keptWinCalls.length; i++) {
-						if (keptWinCalls[i][0] == parseInt(chromNumber)) {
-							ctx.fillRect((keptWinCalls[i][1]-0.5)*binWidth,0,binWidth*(keptWinCalls[i][2]-keptWinCalls[i][1]+1),canvas.height/8);
-						}
-					}
-										
-					ctx.globalAlpha=1;
-	
-					function plotArray(curCtx,curData) {
-						curCtx.beginPath();
-						curCtx.moveTo(0, canvas.height/2-(curData[0]*scale));
-						for (var i = 1; i < arrayLength; i++) {
-							if (prevVal!=0 && curData[i]!=0){
-								curCtx.lineTo(i*binWidth, canvas.height/2-(curData[i]*scale));
-							}
-							else{
-								curCtx.moveTo(i*binWidth, canvas.height/2-(curData[i]*scale));
-							}
-							if (curData[i]!=0){
-								curCtx.strokeRect(i*binWidth-1, canvas.height/2-(curData[i]*scale)-1,2,2);
-							}
-							prevVal=curData[i];
-						}
-						curCtx.stroke();
-					}
-					
-					function prepRefLines(curCtx) {
-						// Visual reference lines
-						curCtx.strokeStyle="rgb(128, 128, 128)";
-						curCtx.lineWidth = 3;
-						curCtx.beginPath();
-						curCtx.moveTo(0, canvas.height/2);
-						curCtx.lineTo(canvas.width, canvas.height/2);
-						curCtx.stroke();
-										
-						curCtx.strokeStyle="rgb(128, 128,128)";
-						curCtx.lineWidth = 1;
-						curCtx.beginPath();
-						curCtx.moveTo(0, canvas.height/4);
-						curCtx.lineTo(canvas.width, canvas.height/4);
-					
-						curCtx.moveTo(0, canvas.height/4*3);
-						curCtx.lineTo(canvas.width, canvas.height/4*3);
-						curCtx.stroke();	
-					}
-					
-					function addRefLineText(curCtx) {
-						curCtx.globalAlpha=0.5;
-						curCtx.font = "bold 12px Arial";
-						curCtx.strokeStyle="white";
-						curCtx.strokeText(document.getElementById('scaleVal').value, 10, 22);
-						curCtx.strokeText(document.getElementById('scaleVal').value/2, 10, canvas.height/4+16);
-						//ctx.fillText(0, 10, canvas.height/2-6);
-						curCtx.strokeText(-document.getElementById('scaleVal').value/2, 10, canvas.height/4*3-6);
-						curCtx.strokeText(-document.getElementById('scaleVal').value, 10, canvas.height-10);
-					
-						curCtx.globalAlpha=0.4;
-						curCtx.fillStyle = "black";
-						curCtx.fillText(document.getElementById('scaleVal').value, 10, 22);
-						curCtx.fillText(document.getElementById('scaleVal').value/2, 10, canvas.height/4+16);
-						//curCtx.fillText(0, 10, canvas.height/2-6);
-						curCtx.fillText(-document.getElementById('scaleVal').value/2, 10, canvas.height/4*3-6);
-						curCtx.fillText(-document.getElementById('scaleVal').value, 10, canvas.height-10);
-						curCtx.globalAlpha=1;
-					}
-					
-					function overlayRegions(curCtx) {
-					// Regions that did not have a proper reference set
-						curCtx.lineWidth = 3;
-						curCtx.globalAlpha=0.8;
-						//ctx.fillStyle="rgb(224, 224, 224)";
-						curCtx.fillStyle="rgb(224, 224, 224)";
-						for (var i = 0; i < arrayLength; i++) {
-							if (myStringArray[i] == 0) {
-							curCtx.fillRect(binWidth*i-binWidth/2, 0, binWidth+0.5, canvas.height);
-							}
-						}
-
-						// Overlay of selected region
-						//ctx.strokeStyle="rgb(232, 160, 0)";
-						curCtx.strokeStyle="rgb(0, 0, 0)";
-						//ctx.fillStyle="rgb(232, 160, 0)";
-						curCtx.fillStyle="rgb(128, 128, 128)";
-						curCtx.globalAlpha=0.3;
-						//ctx.fillRect((selectionStart-0.25)*binWidth, -10,(selectionEnd-selectionStart+0.5)*binWidth, canvas.height+20);				
-						curCtx.fillRect(0, -10,(selectionStart-0.25)*binWidth, canvas.height+10);				
-						curCtx.fillRect((selectionEnd+0.25)*binWidth, -10,canvas.width, canvas.height+20);
-						curCtx.globalAlpha=0.6;
-						curCtx.strokeRect((selectionStart-0.25)*binWidth, -10,(selectionEnd-selectionStart+0.5)*binWidth, canvas.height+20);
-						curCtx.globalAlpha=1;
-					
-					}
-					
-					prepRefLines(ctx)
-					
-					ctx.strokeStyle="rgb(192, 128, 64)";
-					ctx.lineWidth = 2;
-					ctx.beginPath();
-					ctx.moveTo(0, canvas.height/2-3*scale);
-					ctx.lineTo(canvas.width, canvas.height/2-3*scale);
-				
-					ctx.moveTo(0, canvas.height/2+3*scale);
-					ctx.lineTo(canvas.width, canvas.height/2+3*scale);
-					ctx.stroke();
-					
-					// zValues line
-					ctx.beginPath();
-					prevVal=1
-					ctx.strokeStyle="rgb(0, 0, 255)";
-					ctx.lineWidth = 3;
-					ctx.fillStyle="rgb(192, 192, 255)";
-					plotArray(ctx,myStringArray)
-
-					
-					// zSmooth line
-					ctx.beginPath();
-					ctx.strokeStyle="rgb(255, 0, 0)";
-					ctx.lineWidth = 3;
-					ctx.fillStyle="rgb(192, 192, 255)";
-					plotArray(ctx,zSmoothArray)
-					
-					overlayRegions(ctx)
-					
-					// Add some text
-					ctx.globalAlpha=0.5;
-					addRefLineText(ctx)
-					ctx.strokeText(' 3', canvas.width-18, canvas.height/2-3*scale-6);
-					ctx.strokeText('-3', canvas.width-18, canvas.height/2+3*scale+18);
-					ctx.globalAlpha=0.8;
-					ctx.fillStyle="rgb(192, 128, 0)";
-					ctx.fillText(' 3', canvas.width-18, canvas.height/2-3*scale-6);
-					ctx.fillText('-3', canvas.width-18, canvas.height/2+3*scale+18);
-					
-					
-					
-					var selectionLen=Math.abs(selectionStart-selectionEnd)+1
-					zScoreSum=0
-					smoothZSum=0
-					countedZbins=0
-					countedZsmoothbins=0
-					countedRefBins=0
-					refSum=0
-					multSum=0
-					multCount=0
-					for (var i = selectionStart; i <= selectionEnd; i++) {
-						if (myStringArray[i] != 0){
-							zScoreSum+=myStringArray[i];
-							countedZbins++;}
-						if (zSmoothArray[i] != 0){
-							smoothZSum+=zSmoothArray[i];
-							countedZsmoothbins++;}
-						if (refArray[i].length != 0){
-							refSum+=refArray[i].length;
-							countedRefBins++;}
-						if (refMeansArray[i] != 0 && myStringArray[i] != 0){
-							multSum+=(sampleArray[i])/(refMeansArray[i])
-							multCount++;
-						}
-					}
-					var avgZscore=zScoreSum/countedZbins;
-					var avgZsmooth=smoothZSum/countedZsmoothbins;
-					var avgRefSize=refSum/countedRefBins;
-					var avgMult=multSum/multCount*100-100;
-					
-					//var message = 'Selection:</br> chr'+chromNumber+':'+selectionStart+'-'+selectionEnd+' ('+selectionLen+' bins)</br>avgZScore: '+avgZscore.toFixed(2)+'</br>avgZsmooth: '+avgZsmooth.toFixed(2) +', Stouff:'+ (zScoreSum/Math.sqrt(countedZbins)).toFixed(2) + '</br>avgRefSize: ' + avgRefSize.toFixed(2) + '</br>avgDiff%: ' + avgMult.toFixed(2);
-					//document.getElementById('boldStuff2').innerHTML = message;
-					document.getElementById('posValS').innerHTML   = selectionStart+' - '+selectionEnd;
-					document.getElementById('sizeValS').innerHTML  = selectionLen;
-					document.getElementById('zValS').innerHTML     = avgZscore.toFixed(2);
-					document.getElementById('stoufValS').innerHTML = (zScoreSum/Math.sqrt(countedZbins)).toFixed(2);
-					document.getElementById('refValS').innerHTML   = avgRefSize.toFixed(2);
-					document.getElementById('diffValS').innerHTML  = avgMult.toFixed(2);
-
-					
-
-					
-					// Second plot
-					prepRefLines(ctx2)
-					ctx2.strokeStyle="rgb(0, 128, 128)";
-					ctx2.lineWidth = 3;
-					ctx2.fillStyle="rgb(192, 192, 255)";
-					plotArray(ctx2,refStdsArray)
-					plotArray(ctx2,refStdsArrayI)
-					ctx2.strokeStyle="rgb(255, 128, 0)";
-					ctx2.lineWidth = 3;
-					ctx2.fillStyle="rgb(192, 192, 255)";
-					plotArray(ctx2,relArray)
-					overlayRegions(ctx2)
-					addRefLineText(ctx2)
-					
-					
-					ctx.globalAlpha=1;
-					// Outline the plots
-					ctx.strokeStyle="rgb(0, 0, 0)";
-					ctx.lineWidth = 4;
-					ctx.strokeRect(0, 0, canvas.width, canvas.height);
-					ctx2.strokeStyle="rgb(0, 0, 0)";
-					ctx2.lineWidth = 4;
-					ctx2.strokeRect(0, 0, canvas.width, canvas.height);
-
-				}
-			
-				function getMousePos(canvas, evt) {
-					var rect = canvas.getBoundingClientRect();
-					return {
-						x: evt.clientX - rect.left,
-						y: evt.clientY - rect.top
-					};
-				}
-				canvas.addEventListener('mousemove', function(evt) {
-					if(myStringArray.length == 0)
-					{
-						return;
-					}
-					var mousePos = getMousePos(canvas, evt);
-					var binWidth = canvas.width/(myStringArray.length-1)
-					var mouseBin = Math.floor(mousePos.x/binWidth+0.5)
-					
-					if (prevMouseBin == mouseBin){
-						return;
-					}
-					prevMouseBin = mouseBin;
-					drawPlot();
-					
-					function drawMousePos(curCtx) {
-						curCtx.strokeStyle="rgb(128, 128, 128)";
-						curCtx.lineWidth = 1;
-						curCtx.beginPath();
-						curCtx.moveTo(mouseBin*binWidth, 0);
-						curCtx.lineTo(mouseBin*binWidth, canvas.height);
-						curCtx.stroke();
-					
-						//ctx.strokeStyle="rgb(0, 0, 0)";
-						//curCtx.lineWidth = 4;
-						//curCtx.beginPath();
-						//curCtx.moveTo(mouseBin*binWidth, canvas.height/2-(myStringArray[mouseBin]*scale));
-						//curCtx.lineTo(mouseBin*binWidth, canvas.height/2-(zSmoothArray[mouseBin]*scale));
-						//curCtx.stroke();
-					}
-					
-					drawMousePos(ctx);
-					drawMousePos(ctx2);
-					
-					var diffStrength=(sampleArray[mouseBin]/refMeansArray[mouseBin]*100-100)
-					if (sampleArray[mouseBin] == 0 || refMeansArray[mouseBin] == 0) {
-						diffStrength=0;
-					}
-					//ctx.strokeRect(mouseBin*binWidth-0.5*binWidth, -10,binWidth, canvas.height+10);
-					//var message = 'Mouse position: </br>Bin '  + mouseBin + '</br> Value ' + myStringArray[mouseBin].toFixed(2) + '</br> Value2 ' + zSmoothArray[mouseBin].toFixed(2) + '</br> Refsize ' + refArray[mouseBin].length + '</br> Diff% ' + (sampleArray[mouseBin]/refMeansArray[mouseBin]*100-100).toFixed(2);
-					document.getElementById('posValM').innerHTML   = mouseBin;
-					document.getElementById('sizeValM').innerHTML  = 1;
-					document.getElementById('zValM').innerHTML     = myStringArray[mouseBin].toFixed(2);
-					document.getElementById('stoufValM').innerHTML = zSmoothArray[mouseBin].toFixed(2);
-					document.getElementById('refValM').innerHTML   = refArray[mouseBin].length;
-					document.getElementById('diffValM').innerHTML  = diffStrength.toFixed(2);
-				}, false);
-				
-				canvas.addEventListener('mousedown', function(evt) {
-					var mousePos = getMousePos(canvas, evt);
-					var binWidth = canvas.width/(myStringArray.length-1)
-					var mouseBin = Math.floor(mousePos.x/binWidth+0.5)
-					
-					selectionStart=mouseBin;
-					selectionEnd=mouseBin;
-					drawPlot();
-				}, false);
-				
-				canvas.addEventListener('mouseup', function(evt) {
-					var mousePos = getMousePos(canvas, evt);
-					var binWidth = canvas.width/(myStringArray.length-1)
-					var mouseBin = Math.floor(mousePos.x/binWidth+0.5)
-					
-					if (mouseBin<selectionStart){
-						selectionStart=mouseBin;
-					}
-					else{
-						selectionEnd=mouseBin;
-					}
-					drawPlot();
-					
-				}, false);
-				
-				canvas.addEventListener ("mouseout",  function(evt) {
-					drawPlot();
-					//document.getElementById('boldStuff').innerHTML = 'No mouse';
-					document.getElementById('posValM').innerHTML   = "";
-					document.getElementById('sizeValM').innerHTML  = "";
-					document.getElementById('zValM').innerHTML     = "";
-					document.getElementById('stoufValM').innerHTML = "";
-					document.getElementById('refValM').innerHTML   = "";
-					document.getElementById('diffValM').innerHTML  = "";
-				}, false);
-			
-			
-				document.getElementById('fileinput').addEventListener('change', loadFile, false);
-				function loadFile() {
-					var input, file, fr;
-
-					if (typeof window.FileReader !== 'function') {
-						alert("The file API isn't supported on this browser yet.");
-						return;
-					}
-
-					input = document.getElementById('fileinput');
-					if (!input) {
-						alert("Couldn't find the fileinput element.");
-					}
-					else if (!input.files) {
-						alert("This browser doesn't seem to support the `files` property of file inputs.");
-					}
-					else {
-						file = input.files[0];
-						fr = new FileReader();
-						fr.onload = receivedText;
-						fr.readAsText(file);
-					}
-
-					function receivedText(e) {
-						lines = e.target.result;
-						newArr = JSON.parse(lines);
-						changeChrom();
-						//myStringArray = newArr.zScoresDict[document.getElementById('chromNumber').value];
-						//zSmoothArray = newArr.zSmoothDict[document.getElementById('chromNumber').value];
-						drawPlot();
-					
-						var resultList2    = document.getElementById('resultList2');
-						resultList2.innerHTML='';
-						keptCalls=newArr.kept2
-						//console.log(keptCalls);
-						
-						for (var i =0; i < keptCalls.length; i++){
-							keptCalls[i][0] = parseInt(keptCalls[i][0])
-						}
-						keptCalls.sort();
-						
-						keptCalls=keptCalls.sort(function(a,b){
-							retVal=0;
-							if(a[0]!=b[0]) retVal=a[0]>b[0]?1:-1;
-							else if(a[1]!=b[1]) retVal=a[1]>b[1]?1:-1;
-							else if(a[2]!=b[2]) retVal=a[2]>b[2]?1:-1;
-							return retVal
-						});
-						
-						//resultList.parentNode.replaceChild(ul.cloneNode(false), resultList);
-						for (var i =0; i < keptCalls.length; i++){
-							var entry = document.createElement('li');
-							var text = document.createTextNode('chr'+keptCalls[i][0]+' : '+keptCalls[i][1]+' - '+keptCalls[i][2]);
-						
-							var view = document.createElement('input');
-							view.type = 'button';
-							view.name = 'view_'+i;
-							view.value = keptCalls[i][0]+' : '+keptCalls[i][1]+' - '+keptCalls[i][2];
-							
-							view.onclick = (function(i) { 
-								return function() {var newChrom=parseInt(keptCalls[i][0]);
-									var newStart = keptCalls[i][1];
-									var newEnd = keptCalls[i][2];
-									document.getElementById('chromNumber').value = newChrom;
-									changeChrom();
-									selectionStart = newStart;
-									selectionEnd = newEnd;
-									drawPlot();
-								}
-							}(i));
-							
-							entry.appendChild(view);
-							//entry.appendChild(text);
-							resultList2.appendChild(entry);
-						}
-						
-					}
-				}
-				
-				document.getElementById('chromNumber').addEventListener('change', changeChrom, false);
-				function changeChrom() {
-					chromNumber   = document.getElementById('chromNumber').value;
-					myStringArray = newArr.zScoresDict[chromNumber];
-					zSmoothArray  = newArr.zSmoothDict[chromNumber];
-					sampleArray   = newArr.sample[chromNumber];
-					refArray      = newArr.refsDict[chromNumber];
-					refMeansArray = newArr.refMeans[chromNumber];
-					refStdsArrayT = newArr.refStds[chromNumber];
-					keptDirCalls  = newArr.kept;
-					keptWinCalls  = newArr.kept2;
-										
-					relArray	= []
-					for (var i =0; i < sampleArray.length; i++){
-						
-						if (sampleArray[i] != 0 && refMeansArray[i] != 0 && myStringArray[i] != 0) {
-							relArray[i] = (sampleArray[i] - refMeansArray[i])*100;
-						}
-						else{
-							relArray[i] = 0;
-						}
-					}
-					
-					refStdsArray = []
-					refStdsArrayI = []
-					for (var i =0; i < refStdsArrayT.length; i++){
-						refStdsArray[i] = refStdsArrayT[i] * 300;
-						refStdsArrayI[i] = -refStdsArray[i]
-					}
-
-					selectionStart=0
-					selectionEnd=myStringArray.length-1
-					drawPlot();
-				}
-				document.getElementById('scaleVal').addEventListener('change', drawPlot, false);
-				
-				
-			});
-
-		</script>
 	</head>
 
 	<body>
@@ -628,54 +129,550 @@
 			
 		</center>
 			
-			<p>
-			<table id="tProperties">
-				<caption>Region Details</caption>
-				<tr>
-					<th>Property</th>
-					<th>Selection</th>
-					<th>Cursor</th> 
-				</tr>
-				<tr>
-					<td>Position</td>
-					<td class="propCol" id="posValS"></td>
-					<td class="propCol" id="posValM"></td>
-				</tr>
-				<tr>
-					<td>Size</td>
-					<td class="propCol" id="sizeValS"></td>
-					<td class="propCol" id="sizeValM"></td>
-				</tr>
-					<td>Z-Score</td>
-					<td class="propCol" id="zValS"></td>
-					<td class="propCol" id="zValM"></td>
-				</tr>
-					<td>Z-Stouffers</td>
-					<td class="propCol" id="stoufValS"></td>
-					<td class="propCol" id="stoufValM"></td>
-				</tr>
-					<td>Reference Bins (Avg)</td>
-					<td class="propCol" id="refValS"></td>
-					<td class="propCol" id="refValM"></td>
-				</tr>
-					<td>Differentiation (%)</td>
-					<td class="propCol" id="diffValS"></td>
-					<td class="propCol" id="diffValM"></td>
-				</tr>
-			</table>
-			<table>
-			Aberrations
-				<ol id="resultList2">
-				</ol>
-			</p>
-			<div id="footer">
-				|
-				<a href="https://github.com/rstraver/">Roy Straver</a>
-				|
-				<a href="https://github.com/rstraver/wisecondor/">GitHub</a>
-				|
-				<a href="https://github.com/rstraver/wisecondor/wiki">Wiki</a>
-				|
-			</div>
+		<p>
+		<table id="tProperties">
+			<caption>Region Details</caption>
+			<tr>
+				<th>Property</th>
+				<th>Selection</th>
+				<th>Cursor</th> 
+			</tr>
+			<tr>
+				<td>Position</td>
+				<td class="propCol" id="posValS"></td>
+				<td class="propCol" id="posValM"></td>
+			</tr>
+			<tr>
+				<td>Size</td>
+				<td class="propCol" id="sizeValS"></td>
+				<td class="propCol" id="sizeValM"></td>
+			</tr>
+				<td>Z-Score</td>
+				<td class="propCol" id="zValS"></td>
+				<td class="propCol" id="zValM"></td>
+			</tr>
+				<td>Z-Stouffers</td>
+				<td class="propCol" id="stoufValS"></td>
+				<td class="propCol" id="stoufValM"></td>
+			</tr>
+				<td>Reference Bins (Avg)</td>
+				<td class="propCol" id="refValS"></td>
+				<td class="propCol" id="refValM"></td>
+			</tr>
+				<td>Differentiation (%)</td>
+				<td class="propCol" id="diffValS"></td>
+				<td class="propCol" id="diffValM"></td>
+			</tr>
+		</table>
+		<table>
+		Aberrations
+			<ol id="resultList2">
+			</ol>
+
+		</p>
+		<div id="footer">
+			|
+			<a href="https://github.com/rstraver/">Roy Straver</a>
+			|
+			<a href="https://github.com/rstraver/wisecondor/">GitHub</a>
+			|
+			<a href="https://github.com/rstraver/wisecondor/wiki">Wiki</a>
+			|
+		</div>
+		
+		
+		
+		<script>
+			var newArr
+			
+			var canvas = document.getElementById("myCanvas");
+			var ctx = canvas.getContext("2d");
+			var myStringArray = [];
+			var zSmoothArray = [];
+			
+			var sampleArray = [];
+			var refArray = []
+			
+			var refMeansArray = [];
+			var	refStdsArray  = [];
+			var refStdsArrayI = [];
+			var relArray = [];
+			
+			
+			//drawPlot()
+			var canvas2 = document.getElementById("myCanvas2")
+			var ctx2 = canvas2.getContext("2d");
+			var chromNumber = 21
+			
+			var prevMouseBin = 0;
+			
+			ctx.lineWidth = 4;
+			ctx2.strokeRect(0, 0, canvas2.width, canvas2.height);
+			//ctx2.fillRect(0,0,canvas2.width/2,canvas2.height);
+			
+			drawPlot();
+			var scale = canvas.height/40;
+			
+			var selectionStart=0
+			var selectionEnd=0
+			
+			function drawPlot(){
+				scale=canvas.height/document.getElementById('scaleVal').value/2
+			
+				ctx.clearRect(0,0,canvas.width,canvas.height)
+				ctx.fillStyle="rgb(255, 255, 255)";
+				ctx.fillRect(0,0,canvas.width,canvas.height)
+				
+				
+				ctx2.clearRect(0,0,canvas.width,canvas.height)
+				ctx2.fillStyle="rgb(255, 255, 255)";
+				ctx2.fillRect(0,0,canvas.width,canvas.height)
+				
+				if (myStringArray.length == 0)
+				{
+					return
+				}
+				
+				var arrayLength = myStringArray.length;
+				var binWidth=canvas.width/(arrayLength-1)
+
+				ctx.globalAlpha=1;
+				//ctx.globalAlpha=0.2;
+				//ctx.fillStyle="rgb(255, 0, 255)";
+				ctx.fillStyle="rgb(255, 153, 255)";
+				for (var i = 0; i < arrayLength; i++) {
+					if 	(Math.abs(zSmoothArray[i]) >= 3){
+						ctx.fillRect((i-0.5)*binWidth,0,binWidth+1,canvas.height/4);
+					}
+				}
+				
+				//ctx.fillStyle="rgb(0,255, 0)";
+				ctx.fillStyle="rgb(128, 255, 89)";
+				for (var i = 0; i < arrayLength; i++) {
+					if 	(Math.abs(myStringArray[i]) >= 3){
+						ctx.fillRect((i-0.5)*binWidth,canvas.height/4*3,binWidth+1,canvas.height/2);
+					}
+				}
+				
+				
+				ctx.fillStyle="rgb(77,153,18)";
+				for (var i = 0; i < keptDirCalls.length; i++) {
+					if (keptDirCalls[i][0] == parseInt(chromNumber)) {
+						ctx.fillRect((keptDirCalls[i][1]-0.5)*binWidth,canvas.height/8*7,binWidth*(keptDirCalls[i][2]-keptDirCalls[i][1]+1),canvas.height/6);
+					}
+				}
+				
+				
+				ctx.fillStyle="rgb(102,51,102)";
+				for (var i = 0; i < keptWinCalls.length; i++) {
+					if (keptWinCalls[i][0] == parseInt(chromNumber)) {
+						ctx.fillRect((keptWinCalls[i][1]-0.5)*binWidth,0,binWidth*(keptWinCalls[i][2]-keptWinCalls[i][1]+1),canvas.height/8);
+					}
+				}
+									
+				ctx.globalAlpha=1;
+
+				function plotArray(curCtx,curData) {
+					curCtx.beginPath();
+					curCtx.moveTo(0, canvas.height/2-(curData[0]*scale));
+					for (var i = 1; i < arrayLength; i++) {
+						if (prevVal!=0 && curData[i]!=0){
+							curCtx.lineTo(i*binWidth, canvas.height/2-(curData[i]*scale));
+						}
+						else{
+							curCtx.moveTo(i*binWidth, canvas.height/2-(curData[i]*scale));
+						}
+						if (curData[i]!=0){
+							curCtx.strokeRect(i*binWidth-1, canvas.height/2-(curData[i]*scale)-1,2,2);
+						}
+						prevVal=curData[i];
+					}
+					curCtx.stroke();
+				}
+				
+				function prepRefLines(curCtx) {
+					// Visual reference lines
+					curCtx.strokeStyle="rgb(128, 128, 128)";
+					curCtx.lineWidth = 3;
+					curCtx.beginPath();
+					curCtx.moveTo(0, canvas.height/2);
+					curCtx.lineTo(canvas.width, canvas.height/2);
+					curCtx.stroke();
+									
+					curCtx.strokeStyle="rgb(128, 128,128)";
+					curCtx.lineWidth = 1;
+					curCtx.beginPath();
+					curCtx.moveTo(0, canvas.height/4);
+					curCtx.lineTo(canvas.width, canvas.height/4);
+				
+					curCtx.moveTo(0, canvas.height/4*3);
+					curCtx.lineTo(canvas.width, canvas.height/4*3);
+					curCtx.stroke();	
+				}
+				
+				function addRefLineText(curCtx) {
+					curCtx.globalAlpha=0.5;
+					curCtx.font = "bold 12px Arial";
+					curCtx.strokeStyle="white";
+					curCtx.strokeText(document.getElementById('scaleVal').value, 10, 22);
+					curCtx.strokeText(document.getElementById('scaleVal').value/2, 10, canvas.height/4+16);
+					//ctx.fillText(0, 10, canvas.height/2-6);
+					curCtx.strokeText(-document.getElementById('scaleVal').value/2, 10, canvas.height/4*3-6);
+					curCtx.strokeText(-document.getElementById('scaleVal').value, 10, canvas.height-10);
+				
+					curCtx.globalAlpha=0.4;
+					curCtx.fillStyle = "black";
+					curCtx.fillText(document.getElementById('scaleVal').value, 10, 22);
+					curCtx.fillText(document.getElementById('scaleVal').value/2, 10, canvas.height/4+16);
+					//curCtx.fillText(0, 10, canvas.height/2-6);
+					curCtx.fillText(-document.getElementById('scaleVal').value/2, 10, canvas.height/4*3-6);
+					curCtx.fillText(-document.getElementById('scaleVal').value, 10, canvas.height-10);
+					curCtx.globalAlpha=1;
+				}
+				
+				function overlayRegions(curCtx) {
+				// Regions that did not have a proper reference set
+					curCtx.lineWidth = 3;
+					curCtx.globalAlpha=0.8;
+					//ctx.fillStyle="rgb(224, 224, 224)";
+					curCtx.fillStyle="rgb(224, 224, 224)";
+					for (var i = 0; i < arrayLength; i++) {
+						if (myStringArray[i] == 0) {
+						curCtx.fillRect(binWidth*i-binWidth/2, 0, binWidth+0.5, canvas.height);
+						}
+					}
+
+					// Overlay of selected region
+					//ctx.strokeStyle="rgb(232, 160, 0)";
+					curCtx.strokeStyle="rgb(0, 0, 0)";
+					//ctx.fillStyle="rgb(232, 160, 0)";
+					curCtx.fillStyle="rgb(128, 128, 128)";
+					curCtx.globalAlpha=0.3;
+					//ctx.fillRect((selectionStart-0.25)*binWidth, -10,(selectionEnd-selectionStart+0.5)*binWidth, canvas.height+20);				
+					curCtx.fillRect(0, -10,(selectionStart-0.25)*binWidth, canvas.height+10);				
+					curCtx.fillRect((selectionEnd+0.25)*binWidth, -10,canvas.width, canvas.height+20);
+					curCtx.globalAlpha=0.6;
+					curCtx.strokeRect((selectionStart-0.25)*binWidth, -10,(selectionEnd-selectionStart+0.5)*binWidth, canvas.height+20);
+					curCtx.globalAlpha=1;
+				
+				}
+				
+				prepRefLines(ctx)
+				
+				ctx.strokeStyle="rgb(192, 128, 64)";
+				ctx.lineWidth = 2;
+				ctx.beginPath();
+				ctx.moveTo(0, canvas.height/2-3*scale);
+				ctx.lineTo(canvas.width, canvas.height/2-3*scale);
+			
+				ctx.moveTo(0, canvas.height/2+3*scale);
+				ctx.lineTo(canvas.width, canvas.height/2+3*scale);
+				ctx.stroke();
+				
+				// zValues line
+				ctx.beginPath();
+				prevVal=1
+				ctx.strokeStyle="rgb(0, 0, 255)";
+				ctx.lineWidth = 3;
+				ctx.fillStyle="rgb(192, 192, 255)";
+				plotArray(ctx,myStringArray)
+
+				
+				// zSmooth line
+				ctx.beginPath();
+				ctx.strokeStyle="rgb(255, 0, 0)";
+				ctx.lineWidth = 3;
+				ctx.fillStyle="rgb(192, 192, 255)";
+				plotArray(ctx,zSmoothArray)
+				
+				overlayRegions(ctx)
+				
+				// Add some text
+				ctx.globalAlpha=0.5;
+				addRefLineText(ctx)
+				ctx.strokeText(' 3', canvas.width-18, canvas.height/2-3*scale-6);
+				ctx.strokeText('-3', canvas.width-18, canvas.height/2+3*scale+18);
+				ctx.globalAlpha=0.8;
+				ctx.fillStyle="rgb(192, 128, 0)";
+				ctx.fillText(' 3', canvas.width-18, canvas.height/2-3*scale-6);
+				ctx.fillText('-3', canvas.width-18, canvas.height/2+3*scale+18);
+				
+				
+				
+				var selectionLen=Math.abs(selectionStart-selectionEnd)+1
+				zScoreSum=0
+				smoothZSum=0
+				countedZbins=0
+				countedZsmoothbins=0
+				countedRefBins=0
+				refSum=0
+				multSum=0
+				multCount=0
+				for (var i = selectionStart; i <= selectionEnd; i++) {
+					if (myStringArray[i] != 0){
+						zScoreSum+=myStringArray[i];
+						countedZbins++;}
+					if (zSmoothArray[i] != 0){
+						smoothZSum+=zSmoothArray[i];
+						countedZsmoothbins++;}
+					if (refArray[i].length != 0){
+						refSum+=refArray[i].length;
+						countedRefBins++;}
+					if (refMeansArray[i] != 0 && myStringArray[i] != 0){
+						multSum+=(sampleArray[i])/(refMeansArray[i])
+						multCount++;
+					}
+				}
+				var avgZscore=zScoreSum/countedZbins;
+				var avgZsmooth=smoothZSum/countedZsmoothbins;
+				var avgRefSize=refSum/countedRefBins;
+				var avgMult=multSum/multCount*100-100;
+				
+				//var message = 'Selection:</br> chr'+chromNumber+':'+selectionStart+'-'+selectionEnd+' ('+selectionLen+' bins)</br>avgZScore: '+avgZscore.toFixed(2)+'</br>avgZsmooth: '+avgZsmooth.toFixed(2) +', Stouff:'+ (zScoreSum/Math.sqrt(countedZbins)).toFixed(2) + '</br>avgRefSize: ' + avgRefSize.toFixed(2) + '</br>avgDiff%: ' + avgMult.toFixed(2);
+				//document.getElementById('boldStuff2').innerHTML = message;
+				document.getElementById('posValS').innerHTML   = selectionStart+' - '+selectionEnd;
+				document.getElementById('sizeValS').innerHTML  = selectionLen;
+				document.getElementById('zValS').innerHTML     = avgZscore.toFixed(2);
+				document.getElementById('stoufValS').innerHTML = (zScoreSum/Math.sqrt(countedZbins)).toFixed(2);
+				document.getElementById('refValS').innerHTML   = avgRefSize.toFixed(2);
+				document.getElementById('diffValS').innerHTML  = avgMult.toFixed(2);
+
+				
+
+				
+				// Second plot
+				prepRefLines(ctx2)
+				ctx2.strokeStyle="rgb(0, 128, 128)";
+				ctx2.lineWidth = 3;
+				ctx2.fillStyle="rgb(192, 192, 255)";
+				plotArray(ctx2,refStdsArray)
+				plotArray(ctx2,refStdsArrayI)
+				ctx2.strokeStyle="rgb(255, 128, 0)";
+				ctx2.lineWidth = 3;
+				ctx2.fillStyle="rgb(192, 192, 255)";
+				plotArray(ctx2,relArray)
+				overlayRegions(ctx2)
+				addRefLineText(ctx2)
+				
+				
+				ctx.globalAlpha=1;
+				// Outline the plots
+				ctx.strokeStyle="rgb(0, 0, 0)";
+				ctx.lineWidth = 4;
+				ctx.strokeRect(0, 0, canvas.width, canvas.height);
+				ctx2.strokeStyle="rgb(0, 0, 0)";
+				ctx2.lineWidth = 4;
+				ctx2.strokeRect(0, 0, canvas.width, canvas.height);
+
+			}
+		
+			function getMousePos(canvas, evt) {
+				var rect = canvas.getBoundingClientRect();
+				return {
+					x: evt.clientX - rect.left,
+					y: evt.clientY - rect.top
+				};
+			}
+			canvas.addEventListener('mousemove', function(evt) {
+				if(myStringArray.length == 0)
+				{
+					return;
+				}
+				var mousePos = getMousePos(canvas, evt);
+				var binWidth = canvas.width/(myStringArray.length-1)
+				var mouseBin = Math.floor(mousePos.x/binWidth+0.5)
+				
+				if (prevMouseBin == mouseBin){
+					return;
+				}
+				prevMouseBin = mouseBin;
+				drawPlot();
+				
+				function drawMousePos(curCtx) {
+					curCtx.strokeStyle="rgb(128, 128, 128)";
+					curCtx.lineWidth = 1;
+					curCtx.beginPath();
+					curCtx.moveTo(mouseBin*binWidth, 0);
+					curCtx.lineTo(mouseBin*binWidth, canvas.height);
+					curCtx.stroke();
+				
+					//ctx.strokeStyle="rgb(0, 0, 0)";
+					//curCtx.lineWidth = 4;
+					//curCtx.beginPath();
+					//curCtx.moveTo(mouseBin*binWidth, canvas.height/2-(myStringArray[mouseBin]*scale));
+					//curCtx.lineTo(mouseBin*binWidth, canvas.height/2-(zSmoothArray[mouseBin]*scale));
+					//curCtx.stroke();
+				}
+				
+				drawMousePos(ctx);
+				drawMousePos(ctx2);
+				
+				var diffStrength=(sampleArray[mouseBin]/refMeansArray[mouseBin]*100-100)
+				if (sampleArray[mouseBin] == 0 || refMeansArray[mouseBin] == 0) {
+					diffStrength=0;
+				}
+				//ctx.strokeRect(mouseBin*binWidth-0.5*binWidth, -10,binWidth, canvas.height+10);
+				//var message = 'Mouse position: </br>Bin '  + mouseBin + '</br> Value ' + myStringArray[mouseBin].toFixed(2) + '</br> Value2 ' + zSmoothArray[mouseBin].toFixed(2) + '</br> Refsize ' + refArray[mouseBin].length + '</br> Diff% ' + (sampleArray[mouseBin]/refMeansArray[mouseBin]*100-100).toFixed(2);
+				document.getElementById('posValM').innerHTML   = mouseBin;
+				document.getElementById('sizeValM').innerHTML  = 1;
+				document.getElementById('zValM').innerHTML     = myStringArray[mouseBin].toFixed(2);
+				document.getElementById('stoufValM').innerHTML = zSmoothArray[mouseBin].toFixed(2);
+				document.getElementById('refValM').innerHTML   = refArray[mouseBin].length;
+				document.getElementById('diffValM').innerHTML  = diffStrength.toFixed(2);
+			}, false);
+			
+			canvas.addEventListener('mousedown', function(evt) {
+				var mousePos = getMousePos(canvas, evt);
+				var binWidth = canvas.width/(myStringArray.length-1)
+				var mouseBin = Math.floor(mousePos.x/binWidth+0.5)
+				
+				selectionStart=mouseBin;
+				selectionEnd=mouseBin;
+				drawPlot();
+			}, false);
+			
+			canvas.addEventListener('mouseup', function(evt) {
+				var mousePos = getMousePos(canvas, evt);
+				var binWidth = canvas.width/(myStringArray.length-1)
+				var mouseBin = Math.floor(mousePos.x/binWidth+0.5)
+				
+				if (mouseBin<selectionStart){
+					selectionStart=mouseBin;
+				}
+				else{
+					selectionEnd=mouseBin;
+				}
+				drawPlot();
+				
+			}, false);
+			
+			canvas.addEventListener ("mouseout",  function(evt) {
+				drawPlot();
+				//document.getElementById('boldStuff').innerHTML = 'No mouse';
+				document.getElementById('posValM').innerHTML   = "";
+				document.getElementById('sizeValM').innerHTML  = "";
+				document.getElementById('zValM').innerHTML     = "";
+				document.getElementById('stoufValM').innerHTML = "";
+				document.getElementById('refValM').innerHTML   = "";
+				document.getElementById('diffValM').innerHTML  = "";
+			}, false);
+		
+		
+			document.getElementById('fileinput').addEventListener('change', loadFile, false);
+			function loadFile() {
+				var input, file, fr;
+
+				if (typeof window.FileReader !== 'function') {
+					alert("The file API isn't supported on this browser yet.");
+					return;
+				}
+
+				input = document.getElementById('fileinput');
+				if (!input) {
+					alert("Couldn't find the fileinput element.");
+				}
+				else if (!input.files) {
+					alert("This browser doesn't seem to support the `files` property of file inputs.");
+				}
+				else {
+					file = input.files[0];
+					fr = new FileReader();
+					fr.onload = receivedText;
+					fr.readAsText(file);
+				}
+
+				function receivedText(e) {
+					lines = e.target.result;
+					newArr = JSON.parse(lines);
+					changeChrom();
+					//myStringArray = newArr.zScoresDict[document.getElementById('chromNumber').value];
+					//zSmoothArray = newArr.zSmoothDict[document.getElementById('chromNumber').value];
+					drawPlot();
+				
+					var resultList2    = document.getElementById('resultList2');
+					resultList2.innerHTML='';
+					keptCalls=newArr.kept2
+					//console.log(keptCalls);
+					
+					for (var i =0; i < keptCalls.length; i++){
+						keptCalls[i][0] = parseInt(keptCalls[i][0])
+					}
+					keptCalls.sort();
+					
+					keptCalls=keptCalls.sort(function(a,b){
+						retVal=0;
+						if(a[0]!=b[0]) retVal=a[0]>b[0]?1:-1;
+						else if(a[1]!=b[1]) retVal=a[1]>b[1]?1:-1;
+						else if(a[2]!=b[2]) retVal=a[2]>b[2]?1:-1;
+						return retVal
+					});
+					
+					//resultList.parentNode.replaceChild(ul.cloneNode(false), resultList);
+					for (var i =0; i < keptCalls.length; i++){
+						var entry = document.createElement('li');
+						var text = document.createTextNode('chr'+keptCalls[i][0]+' : '+keptCalls[i][1]+' - '+keptCalls[i][2]);
+					
+						var view = document.createElement('input');
+						view.type = 'button';
+						view.name = 'view_'+i;
+						view.value = keptCalls[i][0]+' : '+keptCalls[i][1]+' - '+keptCalls[i][2];
+						
+						view.onclick = (function(i) { 
+							return function() {var newChrom=parseInt(keptCalls[i][0]);
+								var newStart = keptCalls[i][1];
+								var newEnd = keptCalls[i][2];
+								document.getElementById('chromNumber').value = newChrom;
+								changeChrom();
+								selectionStart = newStart;
+								selectionEnd = newEnd;
+								drawPlot();
+							}
+						}(i));
+						
+						entry.appendChild(view);
+						//entry.appendChild(text);
+						resultList2.appendChild(entry);
+					}
+					
+				}
+			}
+			
+			document.getElementById('chromNumber').addEventListener('change', changeChrom, false);
+			function changeChrom() {
+				chromNumber   = document.getElementById('chromNumber').value;
+				myStringArray = newArr.zScoresDict[chromNumber];
+				zSmoothArray  = newArr.zSmoothDict[chromNumber];
+				sampleArray   = newArr.sample[chromNumber];
+				refArray      = newArr.refsDict[chromNumber];
+				refMeansArray = newArr.refMeans[chromNumber];
+				refStdsArrayT = newArr.refStds[chromNumber];
+				keptDirCalls  = newArr.kept;
+				keptWinCalls  = newArr.kept2;
+									
+				relArray	= []
+				for (var i =0; i < sampleArray.length; i++){
+					
+					if (sampleArray[i] != 0 && refMeansArray[i] != 0 && myStringArray[i] != 0) {
+						relArray[i] = (sampleArray[i] - refMeansArray[i])*100;
+					}
+					else{
+						relArray[i] = 0;
+					}
+				}
+				
+				refStdsArray = []
+				refStdsArrayI = []
+				for (var i =0; i < refStdsArrayT.length; i++){
+					refStdsArray[i] = refStdsArrayT[i] * 300;
+					refStdsArrayI[i] = -refStdsArray[i]
+				}
+
+				selectionStart=0
+				selectionEnd=myStringArray.length-1
+				drawPlot();
+			}
+			document.getElementById('scaleVal').addEventListener('change', drawPlot, false);
+			
+		</script>
 	</body>
 </html>
