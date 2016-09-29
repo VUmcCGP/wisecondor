@@ -33,7 +33,7 @@ import cutoff
 import matplotlib
 import argparse
 
-def plotResults(sample, markedBins, kept, kept2, outputFile, zScoresDict,zSmoothDict,blindsDict,wastedBins,sampleName,fileType):
+def plotResults(sample, markedBins, kept, kept2, outputFile, zScoresDict,zSmoothDict,blindsDict,wastedBins,sampleName,fileType,limit):
 	import matplotlib.pyplot as plt
 	from matplotlib.collections import BrokenBarHCollection
 
@@ -47,10 +47,14 @@ def plotResults(sample, markedBins, kept, kept2, outputFile, zScoresDict,zSmooth
 	colorHorzMarker		= 'orange'
 	colorBlinds			= (0.85,0.85,0.85)
 	colorWaste			= (0.7,0.7,0.7)
-
+	
+	chromsToProcess = range(1,23)
 	binScalar = 320
 	edgeSize = 0.15
-
+	
+	if limit:
+		chromsToProcess = [13,18,21]
+		binScalar = 480
 
 	def printMarkers(chrom):
 		binWidth = 1/float(len(sample[str(chrom)]))*binScalar
@@ -84,7 +88,13 @@ def plotResults(sample, markedBins, kept, kept2, outputFile, zScoresDict,zSmooth
 				plt.axvline(x=bin, linewidth=binWidth, color=colorWaste)
 
 	def preparePlot(chrom):
-		plt.subplot(11,2,chrom)
+		if limit:
+			for i, val in enumerate(chromsToProcess):
+				if val == chrom:
+					plt.subplot(3, 1, i+1)
+					break
+		else:
+			plt.subplot(11,2,chrom)
 		drawBlinds(chrom)
 		printMarkers(str(chrom))
 	
@@ -92,9 +102,11 @@ def plotResults(sample, markedBins, kept, kept2, outputFile, zScoresDict,zSmooth
 	ax = plt.figure(2)
 	ax.text(0.5, 0.06, 'Chromosomal position in bins', ha='center', va='bottom')
 	ax.text(0.05, 0.5, 'Z-score', ha='left', va='center', rotation='vertical')
-	ax.text(0.5, 0.93, 'Z-score versus chromosomal position - Sample ' + sampleName, ha='center', va='bottom')
+	ax.text(0.5, 0.93, 'Sample ' + sampleName, ha='center', va='bottom')
+	
 
-	for chrom in range(1,23):
+
+	for chrom in chromsToProcess:
 		preparePlot(chrom)
 
 		zSmooth = zSmoothDict[str(chrom)]
@@ -150,6 +162,8 @@ if __name__ == "__main__":
 					
 	parser.add_argument('-filetype', default='pdf', type=str, 
 					help='make save plot as filetype instead of pdf')
+					
+	parser.add_argument('-limit', action='store_true', help='limit output to plot of chr13, chr18 and chr21')
 
 	args = parser.parse_args()
 
@@ -179,6 +193,7 @@ if __name__ == "__main__":
 		sampleData['blindsDict'], \
 		sampleData['wastedBins'], \
 		sampleName, \
-		args.filetype
+		args.filetype, \
+		args.limit
 		)
 	print '\n# Finished'
