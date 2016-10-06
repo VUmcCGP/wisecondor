@@ -48,13 +48,24 @@ def plotResults(sample, markedBins, kept, kept2, outputFile, zScoresDict,zSmooth
 	colorBlinds			= (0.85,0.85,0.85)
 	colorWaste			= (0.7,0.7,0.7)
 	
+	prefix = ""
 	chromsToProcess = range(1,23)
 	binScalar = 320
 	edgeSize = 0.15
+	figsize=(8, 6)
+	nrLegend = 4
+	textFromBottom = 0.06
+	textFromLeft = 0.05
 	
 	if limit:
 		chromsToProcess = [13,18,21]
 		binScalar = 480
+		prefix = "_filter"
+		figsize = (4.5, 3)
+		figsize = (4.5, 3)
+		nrLegend = 2
+		textFromBottom = 0.19
+		textFromLeft = 0.03
 
 	def printMarkers(chrom):
 		binWidth = 1/float(len(sample[str(chrom)]))*binScalar
@@ -99,12 +110,14 @@ def plotResults(sample, markedBins, kept, kept2, outputFile, zScoresDict,zSmooth
 		printMarkers(str(chrom))
 	
 	print 'Plotting Z-Scores'
-	ax = plt.figure(2)
-	ax.text(0.5, 0.06, 'Chromosomal position in bins', ha='center', va='bottom')
-	ax.text(0.05, 0.5, 'Z-score', ha='left', va='center', rotation='vertical')
-	ax.text(0.5, 0.93, 'Sample ' + sampleName, ha='center', va='bottom')
-	
+	ax = plt.figure(2, figsize=figsize)
+	if limit:
+		ax.subplots_adjust(left=0.15, top=0.9, bottom=0.25)
+	ax.text(0.5, textFromBottom, 'Chromosomal position in bins', ha='center', va='bottom')
+	ax.text(textFromLeft, 0.5, 'Z-score', ha='left', va='center', rotation='vertical')
+	ax.suptitle('Sample ' + sampleName)
 
+	
 
 	for chrom in chromsToProcess:
 		preparePlot(chrom)
@@ -142,9 +155,9 @@ def plotResults(sample, markedBins, kept, kept2, outputFile, zScoresDict,zSmooth
 	bLGrey	= plt.Rectangle((0, 0), 1, 1, fc=colorBlinds)
 	bGrey	= plt.Rectangle((0, 0), 1, 1, fc=colorWaste)
 	
-	ax.legend((lRed, lBlue, bLGreen, bDGreen, bPink, bPurple, bLGrey, bGrey), ('Z-score windowed method', 'Z-score individual bin method', 'Detected deviation by individual bin method', 'Called by individual bin method', 'Detected deviation by windowed method', 'Called by windowed method', 'Not enough reference bins available', 'Unmappable region'), 'lower left',prop={'size':6}, mode='expand', ncol=4)
+	ax.legend((lRed, lBlue, bLGreen, bDGreen, bPink, bPurple, bLGrey, bGrey), ('Z-score windowed method', 'Z-score individual bin method', 'Detected deviation by individual bin method', 'Called by individual bin method', 'Detected deviation by windowed method', 'Called by windowed method', 'Not enough reference bins available', 'Unmappable region'), 'lower left',prop={'size':6}, mode='expand', ncol=nrLegend)
 	
-	plt.savefig(outputFile+'.'+fileType,figsize=(11.7, 8.3),dpi=160)
+	plt.savefig(outputFile + prefix + '.' + fileType, figsize=figsize, dpi=160)
 
 
 if __name__ == "__main__":
