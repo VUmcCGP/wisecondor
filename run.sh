@@ -1,29 +1,5 @@
-##############################################################################
-#                                                                            #
-#    Test a maternal DNA sample for fetal Copy Number Aberrations.           #
-#    Copyright(C) 2013  TU Delft & VU University Medical Center Amsterdam    #
-#    Author: Roy Straver, r.straver@vumc.nl                                  #
-#                                                                            #
-#    This file is part of WISECONDOR.                                        #
-#                                                                            #
-#    WISECONDOR is free software: you can redistribute it and/or modify      #
-#    it under the terms of the GNU General Public License as published by    #
-#    the Free Software Foundation, either version 3 of the License, or       #
-#    (at your option) any later version.                                     #
-#                                                                            #
-#    WISECONDOR is distributed in the hope that it will be useful,           #
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of          #
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           #
-#    GNU General Public License for more details.                            #
-#                                                                            #
-#    You should have received a copy of the GNU General Public License       #
-#    along with WISECONDOR.  If not, see <http://www.gnu.org/licenses/>.     #
-#                                                                            #
-##############################################################################
-
-
-
-set -e
+#!/usr/bin/env bash
+#set -e
 
 WORKDIR=./
 
@@ -31,52 +7,42 @@ DATADIR=dataFiles
 REFSAMPLEDIR=refSamples
 TESTSAMPLEDIR=testSamples
 
+PYTHON=python2.7
+BINSIZE=50000
+BINSIZEREF=250000
 
-# Obtain required packages
-PACKAGELIST="python2.7 python-numpy python-matplotlib python-biopython samtools" #build-essential zlib1g-dev libncurses5-dev libncursesw5-dev" # default-jre"
-INSTALLEDCOUNT=`dpkg -s $PACKAGELIST 2>/dev/null | grep 'ok installed' | wc -l`
-PACKAGECOUNT=`echo $PACKAGELIST | wc -w`
+echo '
+Please note:'
+echo '	Copyright (C) 2016 VU University Medical Center Amsterdam
+	Author: Roy Straver (github.com/rstraver)
 
-echo ""
-echo 'Please note this script relies on the following packages:' 
-echo $PACKAGELIST
-echo 'These are copyrighted by their respective owners.'
-echo ""
-
-if  [ ! $INSTALLEDCOUNT -eq $PACKAGECOUNT ]
-then
-	echo 'Additional packages are required'
-	sudo apt-get install $PACKAGELIST
-else
-	echo 'All required packages were found'
-fi
+	This file is part of WISECONDOR
+	WISECONDOR is distributed under the following license:
+	Attribution-NonCommercial-ShareAlike, CC BY-NC-SA
+	(https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode)
+	This license is governed by Dutch law and this license is subject
+	to the exclusive jurisdiction of the courts of the Netherlands.
+	'
 
 
-
-# Turn bam files into pickles, pickles into gcc
+# Turn bam files into npzs
 function prepSamples {
 	DIR=$1
 	echo "	Preparing samples in $DIR"
-	
-	for SAMPLE in `ls $DIR/*.bam`
-	do
-		if [ ! -f ${SAMPLE//.bam/.pickle} ]; 
-		then
-			echo "		Working on: $SAMPLE -> ${SAMPLE//.bam/.pickle}"
-			samtools rmdup -s $SAMPLE - | samtools view - -q 1 | python2.7 consam.py -outfile ${SAMPLE//.bam/.pickle}
-		fi
-	done
-	
-	for SAMPLE in `ls $DIR/*.pickle`
-	do
-		if [ ! -f ${SAMPLE//.pickle/.gcc} ]; 
-		then
-			echo "		Working on: $SAMPLE -> ${SAMPLE//.pickle/.gcc}"
-			python2.7 ./gcc.py $SAMPLE ./$DATADIR/gccount ${SAMPLE//.pickle/.gcc} > ${SAMPLE//.pickle/.log}
-		fi
-	done
-}
 
+
+	if [ `ls -1 $DIR/*.bam 2>/dev/null | wc -l` != 0 ];
+	then
+		for SAMPLE in `ls $DIR/*.bam`
+		do
+			if [ ! -f ${SAMPLE//.bam/.npz} ];
+			then
+				echo "		Working on: $SAMPLE -> ${SAMPLE//.bam/.npz}"
+				$PYTHON wisecondor.py convert $SAMPLE ${SAMPLE//.bam/.npz} -binsize $BINSIZE > ${SAMPLE//.bam/_convert.log}
+			fi
+		done
+	fi
+}
 
 
 # Create working directories
@@ -84,7 +50,7 @@ echo ""
 echo "Directory structure"
 for DIRECTORY in $DATADIR $REFSAMPLEDIR $TESTSAMPLEDIR
 do
-	if [ ! -d "$WORKDIR/$DIRECTORY" ]; 
+	if [ ! -d "$WORKDIR/$DIRECTORY" ];
 	then
 		echo "	Creating directory: $DIRECTORY"
 		mkdir $WORKDIR/$DIRECTORY
@@ -94,77 +60,52 @@ do
 done
 
 
-
 # Check for reference files
 echo ""
 echo "Reference data"
-	if [ ! -f $WORKDIR/$DATADIR/gccount ]; 
-	then
-		echo "	Missing: $DATADIR/gccount"
-		
-		if [ ! -f $WORKDIR/$DATADIR/*.fa* ]; 
-		then
-			echo ""
-			echo "Please provide a single *.fa* file in $DATADIR/ containing the reference used for mapping reads." 
-			exit
-		else
-			echo "Creating gccount"
-			python2.7 countgc.py $WORKDIR/$DATADIR/*.fa* $WORKDIR/$DATADIR/gccount
-		fi
-
-	else
-		echo "	$DATADIR/gccount found"
-		if [ -f $WORKDIR/$DATADIR/*.fa ]; 
-		then
-			echo "		Note: you may (re)move $DATADIR/*.fa* to save disk space"
-		fi
-	fi
-	
-	if [ ! -f $WORKDIR/$DATADIR/reference ]; 
+	if [ ! -f $WORKDIR/$DATADIR/reference.npz ];
 	then
 		echo "	Missing: $DATADIR/reference"
-		if [ `ls $WORKDIR/$REFSAMPLEDIR/*.bam | wc -l` -eq 0 ]; 
+		if [ `ls $WORKDIR/$REFSAMPLEDIR/* | wc -l` -eq 0 ];
 		then
 			echo ""
-			echo "Please provide several *.bam files in $REFSAMPLEDIR/ obtained from healthy pregnancies. More samples yield better results."		
-			exit	
+			echo "Please provide several *.bam files in $REFSAMPLEDIR/ obtained from healthy pregnancies. More samples yield better results."
+			exit
 		else
 			prepSamples $WORKDIR/$REFSAMPLEDIR
-			echo "		Found" `ls $WORKDIR/$REFSAMPLEDIR/*.pickle | wc -l` "pickle files in $REFSAMPLEDIR/"
-			python2.7 newref.py  $WORKDIR/$REFSAMPLEDIR $WORKDIR/$DATADIR/reference
+			echo "		Found" `ls $WORKDIR/$REFSAMPLEDIR/*.npz | wc -l` "npz files in $REFSAMPLEDIR/"
+			$PYTHON wisecondor.py newref $WORKDIR/$REFSAMPLEDIR/*.npz $WORKDIR/$DATADIR/reference.npz -binsize $BINSIZEREF
 		fi
 	else
 		echo "	$DATADIR/reference found"
-		echo "		Note: to update your reference with more samples remove $DATADIR/reference"
+		echo "		Note: to update your reference with more samples remove $DATADIR/reference.npz"
 	fi
 	echo "		Note: previously converted .bam files can be removed from $REFSAMPLEDIR/ to save disk space"
-	
 
 
 # Testing samples itself
 echo ""
 echo "Testing data"
-	if [ `ls $WORKDIR/$TESTSAMPLEDIR/*.bam | wc -l` -eq 0 ]; 
+	if [ `ls $WORKDIR/$TESTSAMPLEDIR/* | wc -l` -eq 0 ];
 	then
 		echo ""
-		echo "Please provide *.bam files in $TESTSAMPLEDIR/ to test pregnancies for aberrations."	
+		echo "Please provide *.bam files in $TESTSAMPLEDIR/ to test pregnancies for aberrations."
 		exit
 	fi
 	prepSamples $WORKDIR/$TESTSAMPLEDIR
-	
+
 	echo "	Testing samples"
-	for SAMPLE in `ls $WORKDIR/$TESTSAMPLEDIR/*.gcc`
+	for SAMPLE in `ls $WORKDIR/$TESTSAMPLEDIR/*.npz | grep -v '_out.npz'`
 	do
-		if [ ! -f ${SAMPLE//.gcc/.plot} ]; 
+		if [ ! -f ${SAMPLE//.npz/_out.npz} ];
 		then
 			echo "		Working on: $SAMPLE"
-			python2.7 test.py $SAMPLE $WORKDIR/$DATADIR/reference $WORKDIR/${SAMPLE//.gcc/.plot} > ${SAMPLE//.gcc/.txt}
-			python2.7 plot.py ${SAMPLE//.gcc/.plot} ${SAMPLE//.gcc/} >> ${SAMPLE//.gcc/.txt}
-			python2.7 makejson.py ${SAMPLE//.gcc/.plot} > ${SAMPLE//.gcc/.json}
+			$PYTHON wisecondor.py test $WORKDIR/$SAMPLE $WORKDIR/${SAMPLE//.npz/_out.npz} $WORKDIR/$DATADIR/reference.npz > $WORKDIR/${SAMPLE//.npz/_test.log}
+			$PYTHON wisecondor.py plot $WORKDIR/${SAMPLE//.npz/_out.npz} $WORKDIR/${SAMPLE//.npz/_plot} > $WORKDIR/${SAMPLE//.npz/_plot.log}
+			$PYTHON wisecondor.py report $WORKDIR/$SAMPLE $WORKDIR/${SAMPLE//.npz/_out.npz} > $WORKDIR/${SAMPLE//.npz/.txt}
 		fi
 	done
-	
-	
-	
+
+
 echo ""
-echo "Script finished" 
+echo "Script finished"
