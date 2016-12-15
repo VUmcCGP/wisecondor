@@ -86,7 +86,7 @@ Data contained in the npz generated using `test`:
 - `aasdef`, a `float`, equals `asdef * threshold_z`, relative effect size required on average to make a call for a single bin using the z-score method.
 - `threshold_z`, a `float` representing the treshold used to determine significant variations.
 - `results_calls`, an `array` of `arrays` of `float` values, every array defines a call.  
-format: `[chromosome, startBin, endBin, zScore, effectSize]`. Cast first 3 values to `int` if desired.
+Format: `[chromosome, startBin, endBin, zScore, effectSize]`, cast first 3 values to `int` if desired.
 - `results_cwz`, `array` of `float` values representing chromosome wide z-scores, using stouffers z-score to combine all z-scores on a chromosome.
 - `results_r`, `array` of `arrays` of `float` values, one array per chromosome, representing relative read depth change per bin.
 - `results_z`, `array` of `arrays` of `float` values, one array per chromosome, representing z-score per bin.
