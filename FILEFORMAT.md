@@ -36,9 +36,8 @@ Data contained in the first npz created from a bam file using `convert`:
 - `runtime`, a `dict` specifying information about the system when the conversion was ran.
 - `arguments`, a `dict` with all arguments used to call the script.
 - `quality`, a `dict` with integers showing the amount of reads lost per filter.
-- `sample`, a `dict` with an `int32` array per chromosome, telling the amount of reads per bin.
-
-
+- `sample`, a `dict` with an `int32` array per chromosome, telling the amount of reads per bin.  
+```
 	runtime {
 		'username': 'rstraver',
 		'version':  '5cce5e3\n',
@@ -74,7 +73,7 @@ Data contained in the first npz created from a bam file using `convert`:
 		'X':  array([0, ..., 0], dtype=int32),
 		'Y':  array([0, ..., 0], dtype=int32)
 	}
-
+```
 
 
 ## Results file
@@ -92,7 +91,7 @@ format: `[chromosome, startBin, endBin, zScore, effectSize]`. Cast first 3 value
 - `results_r`, `array` of `arrays` of `float` values, one array per chromosome, representing relative read depth change per bin.
 - `results_z`, `array` of `arrays` of `float` values, one array per chromosome, representing z-score per bin.
 
-
+```
 	runtime {
 		'username': 'rstraver',
 		'version':  '5cce5e3\n',
@@ -126,10 +125,10 @@ format: `[chromosome, startBin, endBin, zScore, effectSize]`. Cast first 3 value
 
 	results_calls [
 		[1.00000000e+00, 5.40000000e+01, 5.40000000e+01,
-		 1.06117139e+01,   3.82842947e-01],
+		 1.06117139e+01, 3.82842947e-01],
 		...,
 		[2.20000000e+01, 8.60000000e+01, 8.60000000e+01,
-		-6.10927573e+00,  -1.46670420e-01]
+		-6.10927573e+00, -1.46670420e-01]
 	]
 
 	results_cwz [
@@ -149,6 +148,7 @@ format: `[chromosome, startBin, endBin, zScore, effectSize]`. Cast first 3 value
 		...,
 		array([0.00000000e+00, ..., 0.00000000e+00])
 	]
+```
 
 
 ## Reference file
@@ -163,7 +163,7 @@ format: `[chromosome, startBin, endBin, zScore, effectSize]`. Cast first 3 value
 - `indexes`, an `array` of `arrays` of `int` values telling the indexes of bins selected for every bin. Every array contains the refset for one bin, all chromosomes are concatenated into one large array.
 - `distances`, an `array` of `arrays` of `float` values telling the distance squared between target and reference bin for every bin selected in `indexes`.
 
-
+```
 	runtime {
 		'username': 'rstraver',
 		'version':  'b12fadf\n',
@@ -202,13 +202,13 @@ format: `[chromosome, startBin, endBin, zScore, effectSize]`. Cast first 3 value
 	]
 
 	pca_components [
-		[0.00395148, ...,  0.01222231],
+		[0.00395148, ..., 0.01222231],
 		...,
-		[0.00389488, ...,  0.01998623]
+		[0.00389488, ..., 0.01998623]
 	]
 
 	pca_mean [  
-		1.22552300e-05, ...,   8.10593756e-05
+		1.22552300e-05, ..., 8.10593756e-05
 	]
 
 	indexes [
@@ -222,3 +222,4 @@ format: `[chromosome, startBin, endBin, zScore, effectSize]`. Cast first 3 value
 		...,
 		[5.83621524e-24, ..., 5.86302828e-24]
 	]
+```
