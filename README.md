@@ -19,7 +19,7 @@ A quick overview of changes made in general compared to the legacy version:
 - Z-score based segmentation.  
 -- The z-score threshold is now dependent on the amount of tests within a sample.  
 -- The single bin and set-size windowed approaches were replaced by calling the most significant sequence of bins per chromosome, until no more significant calls can be made.  
--- This method is slightly oversensitive and may call near chromosome wide read depth changes less than 1%, you are expected to filter such calls yourself.
+-- This method is slightly oversensitive and may call near chromosome wide read depth changes less than 1%, you are expected to filter such calls afterward. Report and plot functions have optional threshold arguments (`-mineffect`, default 1.5%) to do so.
 - Specific chromosomes can now be plotted, perfect for those who want to see only 13, 18 and 21.
 - Results saved in npz, obtain desired information from output directly and cleanly instead of parsing stdout. Stdout does not show results anymore.
 - Runtime specific information is now saved in output files. No more need for searching through messy log files to find out what happened.
