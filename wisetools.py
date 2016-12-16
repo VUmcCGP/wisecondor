@@ -618,7 +618,7 @@ def plotLines(zscores,marks,threshold,sampleName='',binsize=250000,cytoFile=None
 		for mark in marks:
 			if mark[0] == chromnum+1 and abs(mark[4])*100 > minEffect:
 				colorTmp = colorMarked
-				if abs(mark[4]) >= 0.3:
+				if abs(mark[4]) >= 0.2:
 					colorTmp = colorMaternal
 				plt.axvline(x=mark[1]-move, linewidth=0.5, color=colorTmp)
 				plt.axvline(x=mark[2]+move, linewidth=0.5, color=colorTmp)
