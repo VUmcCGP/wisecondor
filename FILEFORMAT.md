@@ -40,7 +40,7 @@ Data contained in the first npz created from a bam file using `convert`:
 ```
 	runtime {
 		'username': 'rstraver',
-		'version':  '5cce5e3\n',
+		'version':  '5cce5e3',
 		'hostname': 'marvin',
 		'datetime': datetime.datetime(2016, 12, 12, 17, 11, 52, 131386)
 	}
@@ -94,7 +94,7 @@ Format: `[chromosome, startBin, endBin, zScore, effectSize]`, cast first 3 value
 ```
 	runtime {
 		'username': 'rstraver',
-		'version':  '5cce5e3\n',
+		'version':  '5cce5e3',
 		'hostname': 'marvin',
 		'datetime':  datetime.datetime(2016, 12, 12, 17, 20, 21, 492569)
 	}
@@ -166,7 +166,7 @@ Format: `[chromosome, startBin, endBin, zScore, effectSize]`, cast first 3 value
 ```
 	runtime {
 		'username': 'rstraver',
-		'version':  'b12fadf\n',
+		'version':  'b12fadf',
 		'hostname': 'marvin',
 		'datetime':  datetime.datetime(2016, 12, 8, 15, 40, 19, 693540)
 	}
