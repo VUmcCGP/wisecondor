@@ -56,7 +56,7 @@ def getRuntime():
 def getVersion():
 	version = 'unknown'
 	try:
-		version = subprocess.check_output(["git", "describe", "--always"])
+		version = subprocess.check_output(["git", "describe", "--always"]).split()[0]
 	except:
 		pass
 	return version
@@ -524,7 +524,7 @@ def stouffSeg(region, threshold):
 	return myResult
 
 
-def plotLines(zscores,marks,threshold,sampleName='',binsize=250000,cytoFile=None, chromosomes=range(1,23), columns=2, size=[11.7, 8.3]):
+def plotLines(zscores,marks,threshold,sampleName='',binsize=250000,cytoFile=None, chromosomes=range(1,23), columns=2, size=[11.7, 8.3], minEffect=0):
 
 	rows = int(np.ceil(len(chromosomes)/float(columns)))
 
@@ -616,7 +616,7 @@ def plotLines(zscores,marks,threshold,sampleName='',binsize=250000,cytoFile=None
 											 linewidth=0.5))
 
 		for mark in marks:
-			if mark[0] == chromnum+1:
+			if mark[0] == chromnum+1 and abs(mark[4])*100 > minEffect:
 				colorTmp = colorMarked
 				if abs(mark[4]) >= 0.3:
 					colorTmp = colorMaternal

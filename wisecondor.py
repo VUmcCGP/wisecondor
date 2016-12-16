@@ -287,6 +287,7 @@ def toolPlot(args):
 
 	plotLines(resultFile['results_z'], resultFile['results_calls'], resultFile['threshold_z'],
 		sampleName=name,
+		minEffect=args.mineffect,
 		cytoFile=args.cytofile,
 		chromosomes=args.chromosomes,
 		columns=args.columns,
@@ -336,7 +337,8 @@ def toolReport(args):
 	print '\n# Test results: #'
 	print 'z-score\teffect\tmbsize\tlocation'
 	for result in result_file['results_calls']:
-		print "{:.2f}\t{:.2f}\t{:.2f}\t{:.0f}:{:.0f}-{:.0f}".format(result[3],result[4]*100,(result[2]-result[1]+1) * binSize/1e6,result[0],result[1]*binSize,(result[2]+1)*binSize)
+		if args.mineffect < abs(result[4]*100):
+			print "{:.2f}\t{:.2f}\t{:.2f}\t{:.0f}:{:.0f}-{:.0f}".format(result[3],result[4]*100,(result[2]-result[1]+1) * binSize/1e6,result[0],result[1]*binSize,(result[2]+1)*binSize)
 
 
 def main():
@@ -489,6 +491,9 @@ def main():
 	parser_plot.add_argument('-size',
 		type=float, nargs=2, default = [11.7, 8.3],
 		help='Size of plot in inches, default is A4 landscape')
+	parser_plot.add_argument('-mineffect',
+		type=float, default = 0,
+		help='Minimal percentual change in read depth of a call to mark it')
 	parser_plot.set_defaults(func=toolPlot)
 
 	# Report results
@@ -500,6 +505,9 @@ def main():
 	parser_report.add_argument('resultfile',
 		type=str,
 		help='Output of test')
+	parser_report.add_argument('-mineffect',
+		type=float, default = 0,
+		help='Minimal percentual change in read depth of a call to report')
 	parser_report.set_defaults(func=toolReport)
 
 	args = parser.parse_args(sys.argv[1:])
