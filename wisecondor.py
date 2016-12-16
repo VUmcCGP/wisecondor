@@ -492,7 +492,7 @@ def main():
 		type=float, nargs=2, default = [11.7, 8.3],
 		help='Size of plot in inches, default is A4 landscape')
 	parser_plot.add_argument('-mineffect',
-		type=float, default = 0,
+		type=float, default = 1.5,
 		help='Minimal percentual change in read depth of a call to mark it')
 	parser_plot.set_defaults(func=toolPlot)
 
@@ -506,7 +506,7 @@ def main():
 		type=str,
 		help='Output of test')
 	parser_report.add_argument('-mineffect',
-		type=float, default = 0,
+		type=float, default = 1.5,
 		help='Minimal percentual change in read depth of a call to report')
 	parser_report.set_defaults(func=toolReport)
 
