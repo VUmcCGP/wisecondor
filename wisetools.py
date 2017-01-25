@@ -232,7 +232,7 @@ def scaleSample(sample, fromSize, toSize):
 		newLen = int(np.ceil(len(chromData)/float(scale)))
 		scaledChrom = np.zeros(newLen, dtype=np.int32)
 		for i in range(newLen):
-			scaledChrom[i] = np_sum(chromData[i*scale:i*scale+scale])
+			scaledChrom[i] = np_sum(chromData[int(i*scale):int(i*scale+scale)])
 			returnSample[chrom] = scaledChrom
 	return returnSample
 
