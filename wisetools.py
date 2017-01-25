@@ -127,7 +127,7 @@ def convertBam(bamfile, binsize=1000000, minShift=4, threshold=4, mapq=1, demand
 		if stairSize <= threshold or threshold < 0:
 			for read in readBuff:
 				location = read.pos / binsize
-				counts[location] += 1
+				counts[int(location)] += 1
 				#if location >= len(counts):
 				#	print read
 
