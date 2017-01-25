@@ -480,12 +480,10 @@ def main():
 		type=str, default=None,
 		help='File containing cytoband information')
 		# Obtained here: http://hgdownload.cse.ucsc.edu/goldenPath/hg19/database/cytoBand.txt.gz
-#	parser_plot.add_argument('-chromosomes',
-#		type=int, nargs='*', default=range(1,23),
-#		help='Integer of every chromosome to plot')
 	parser_plot.add_argument('-chromosomes', 
 		help="Integer of every chromosome to plot", 
-		type=lambda x: x.split(','))
+		type=(lambda x: map(int,x.split(','))),
+		default=range(1,23) )
 	parser_plot.add_argument('-columns',
 		type=int, default = 2,
 		help='Amount of columns to distribute plots over')
