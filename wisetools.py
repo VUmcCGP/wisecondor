@@ -127,7 +127,7 @@ def convertBam(bamfile, binsize=1000000, minShift=4, threshold=4, mapq=1, demand
 		if stairSize <= threshold or threshold < 0:
 			for read in readBuff:
 				location = read.pos / binsize
-				counts[location] += 1
+				counts[int(location)] += 1
 				#if location >= len(counts):
 				#	print read
 
@@ -232,7 +232,7 @@ def scaleSample(sample, fromSize, toSize):
 		newLen = int(np.ceil(len(chromData)/float(scale)))
 		scaledChrom = np.zeros(newLen, dtype=np.int32)
 		for i in range(newLen):
-			scaledChrom[i] = np_sum(chromData[i*scale:i*scale+scale])
+			scaledChrom[i] = np_sum(chromData[int(i*scale):int(i*scale+scale)])
 			returnSample[chrom] = scaledChrom
 	return returnSample
 

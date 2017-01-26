@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Copyright (C) 2016 VU University Medical Center Amsterdam
 # Author: Roy Straver (github.com/rstraver)
 #
@@ -229,13 +230,12 @@ def toolTest(args):
 	stouffCalls = []
 	chromWide = []
 
-	for i in range(22):
+	for i in [x-1 for x in args.chromosomes]:
 		start = sum(cleanedBins[:i])
 		end = sum(cleanedBins[:i + 1])
 		zTriangle = fillTriMin(cleanedZ[start:end],cleanedR[start:end],args.mineffectsize)
 		chromWide.append(zTriangle.getValue(0,end-start-1))
 		stoseg = zTriangle.segmentTri(z_threshold, 3)
-
 		for seg in stoseg:
 
 			perc = (seg[1][1] - seg[1][0]) / float(end - start) * 100
@@ -452,6 +452,10 @@ def main():
 	parser_test.add_argument('-minzscore',
 		type=float, default=None,
 		help='Minimum absolute z-score')
+	parser_test.add_argument('-chromosomes', 
+		help="Integer of every chromosome to plot, comma delimited",
+		type=(lambda x: map(int,x.split(','))),
+		default=range(1,23) ),
 	parser_test.add_argument('-mineffectsize',
 		type=float, default=0,
 		help='Minimum absolute relative change in read depth')
@@ -479,9 +483,10 @@ def main():
 		type=str, default=None,
 		help='File containing cytoband information')
 		# Obtained here: http://hgdownload.cse.ucsc.edu/goldenPath/hg19/database/cytoBand.txt.gz
-	parser_plot.add_argument('-chromosomes',
-		type=int, nargs='*', default=range(1,23),
-		help='Integer of every chromosome to plot')
+	parser_plot.add_argument('-chromosomes', 
+		help="Integer of every chromosome to plot, comma delimited",
+		type=(lambda x: map(int,x.split(','))),
+		default=range(1,23))
 	parser_plot.add_argument('-columns',
 		type=int, default = 2,
 		help='Amount of columns to distribute plots over')
