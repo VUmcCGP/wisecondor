@@ -453,9 +453,9 @@ def main():
 		type=float, default=None,
 		help='Minimum absolute z-score')
 	parser_test.add_argument('-chromosomes', 
-	help="Integer of every chromosome to plot", 
-	type=(lambda x: map(int,x.split(','))),
-	default=range(1,23) ),
+		help="Integer of every chromosome to plot, comma delimited",
+		type=(lambda x: map(int,x.split(','))),
+		default=range(1,23) ),
 	parser_test.add_argument('-mineffectsize',
 		type=float, default=0,
 		help='Minimum absolute relative change in read depth')
@@ -484,9 +484,9 @@ def main():
 		help='File containing cytoband information')
 		# Obtained here: http://hgdownload.cse.ucsc.edu/goldenPath/hg19/database/cytoBand.txt.gz
 	parser_plot.add_argument('-chromosomes', 
-		help="Integer of every chromosome to plot", 
+		help="Integer of every chromosome to plot, comma delimited",
 		type=(lambda x: map(int,x.split(','))),
-		default=range(1,23) )
+		default=range(1,23))
 	parser_plot.add_argument('-columns',
 		type=int, default = 2,
 		help='Amount of columns to distribute plots over')
