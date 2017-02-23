@@ -135,11 +135,11 @@ Add `-cpus 4` to `newref` to enable multi core reference creation using 4 cores.
 ### Cluster newref
 Submit reference creation parts as jobs on a compute cluster using three steps instead of `newref`. These steps consist of a single-core preparation step, a multi-core step, and finally another single-core step to combine data again. While overkill for 1mb bins, and likely overdone for 250kb bins, this approach becomes more useful when increasing resolution even further (i.e. 50kb).  
 1. Create a combined file using all reference samples and applies PCA using a single CPU.  
-`newrefprep ./refSamples/*.npz ./dataFiles/refprep.npz`
+`newrefprep ./refSamples/*.npz ./dataFiles/refprep.npz`  
 2. Take the prepared file and obtains reference bins for the first 1/4th of all bins. It solves splitting chromosomes etc by itself. Replace 1 with 2, 3 and 4 to run all parts in this example. Of course, using a cluster would allow you to use any value instead of 4: start as many jobs as you want and provide the right index of the job to the script.   
-`newrefpart ./dataFiles/refprep.npz ./dataFiles/refpart 1 4`
+`newrefpart ./dataFiles/refprep.npz ./dataFiles/refpart 1 4`  
 3. Combine results from all jobs into a single reference file by providing the amount of parts used (`4`).   
-`newrefpost ./dataFiles/refprep.npz ./dataFiles/refpart 4 ./dataFiles/reference.npz`
+`newrefpost ./dataFiles/refprep.npz ./dataFiles/refpart 4 ./dataFiles/reference.npz`  
 
 ### Multi-core vs single-core
 The single core approach is currently implemented to call all steps in the multicore process in sequential order. The `-cpus` option in newref simply applies the cluster approach by itself. Therefore, all approaches use the same code and differences between single an multi core reference creation should be non-existent.
