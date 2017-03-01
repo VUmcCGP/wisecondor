@@ -41,6 +41,8 @@ If anything is not clear, try the [wiki](https://github.com/rstraver/wisecondor/
 If your problem or question is still unsolved, feel free to post a question or submit a bug report on the [issue tracker](https://github.com/rstraver/wisecondor/issues).
 If you do not get any response, the contact information [on my page](https://github.com/rstraver) should help you to get in touch with me.
 
+[![Join the chat at https://gitter.im/rstraver/wisecondor](https://badges.gitter.im/rstraver/wisecondor.svg)](https://gitter.im/rstraver/wisecondor?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ## QUICKSTART GUIDE
 Obtain the required modules:  
 `pip install sklearn numpy scipy matplotlib pysam futures`  
