@@ -288,6 +288,7 @@ def toolPlot(args):
 	plotLines(resultFile['results_z'], resultFile['results_calls'], resultFile['threshold_z'],
 		sampleName=name,
 		minEffect=args.mineffect,
+		binsize=resultFile['binsize'],
 		cytoFile=args.cytofile,
 		chromosomes=args.chromosomes,
 		columns=args.columns,
