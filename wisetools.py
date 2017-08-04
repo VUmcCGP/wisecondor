@@ -318,7 +318,7 @@ def getRefForBins(amount, start, end, sampleData, otherData):
 				insertIndex(pos, i)
 				insertDist(pos, binVal)
 				curMax = thisDistances[-1]
-				i += 1
+			i += 1
 
 		refIndexes[thisBin - start, :] = thisIndexes
 		refDistances[thisBin - start, :] = thisDistances
