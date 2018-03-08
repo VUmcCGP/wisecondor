@@ -29,7 +29,7 @@ A quick overview of changes made in general compared to the legacy version:
 -- By default bam files are converted to 50kb bins, but reference creation and analysis is run at 250kb bins. This is possible through scaling the data, allowing to run some tricks on higher resolutions without re-processing the same bam files. We do suggest using more reference samples if you aim to increase resolution. Although probably overdone, we used nearly 600 samples for our 250kb resolution reference set.
 
 What was not changed:
-- Chromosomes X and Y are still not part of analysis. I believe these require additional work for consistent results. However, you are free to implement your own solutions.
+- Chromosomes X and Y are still not part of analysis. A fork of this project, named [WisecondorX](https://github.com/leraman/wisecondorX), includes the necessary changes to test these chromosomes as well.
 
 What is lost:
 - DEFRAG, if you do want to use this you can obtain the script from the legacy branch.
