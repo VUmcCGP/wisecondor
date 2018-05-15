@@ -41,7 +41,7 @@ Alternatively, stable releases can be installed using [Conda](https://conda.io/d
 conda install -c bioconda wisecondorx
 ```
 
-### Running wisecondorX
+### Running WisecondorX
 
 There are three main stages for using WisecondorX:
 - Converting .bam files to .npz files (both reference and test samples)
