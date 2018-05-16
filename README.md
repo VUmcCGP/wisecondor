@@ -29,16 +29,17 @@ bins from non-informative ones.
 
 ### Installation
 
-WisecondorX can be installed using the python Setuptools library. To install use:
+Stable releases can be installed using [Conda](https://conda.io/docs/). This is the preferred option since
+Conda takes care of all necessary dependencies. Whilst doing this, make sure you are in a Python 2.7 environment.
+```bash
+
+conda install -f -c conda-forge -c bioconda wisecondorx
+```
+
+Alternatively, WisecondorX can be installed using the python Setuptools library.
 ```bash
 
 python setup.py install
-```
-
-Alternatively, stable releases can be installed using [Conda](https://conda.io/docs/). This is the preferred option since Conda takes care of other dependencies too.
-```bash
-
-conda install -c bioconda wisecondorx
 ```
 
 ### Running WisecondorX
@@ -55,8 +56,8 @@ There are three main stages for using WisecondorX:
         wrongly map the X chromosome. Using a matching reference, the latter is accounted for.
         - For NIPT, exclusively a female reference should be created. This implies that for NIPT, WisecondorX is not able
         to analyse the Y chromosome. Furthermore, obtaining consistent shifts in the X chromosome is only possible when the reference
-        is created using pregnancies of female fetuses only. When this cannot be achieved, you risk blacklisting the entire X chromosome
-        due to its variability because of fetal fraction dependence.  
+        is created using pregnancies of female fetuses only, irrespective of the gender of your test cases. When this cannot
+        be achieved, you risk blacklisting the entire X chromosome due to its variability because of fetal fraction dependence.  
         - It is of paramount importance that the reference set consists of exclusively healthy samples that originate from the same 
         sequencer, mapper, reference genome, type of material, ... etc, as the test samples. As a rule of thumb, think of
         all laboratory and in silico pre-processing steps: the more sources of bias that can be omitted, the better.  
