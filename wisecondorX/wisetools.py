@@ -27,22 +27,6 @@ np_sqrt = np.sqrt
 find_pos = bisect.bisect
 
 
-def load_cytobands(cyto_file):
-    cyto_dict = dict()
-    cur_chrom = None
-    cur_cyto = None
-    with open(cyto_file, 'r') as cytoData:
-        for line in cytoData:
-            split_line = line.split()
-            if split_line[0][3:] != cur_chrom:
-                if cur_chrom:
-                    cyto_dict[cur_chrom] = cur_cyto
-                cur_cyto = []
-                cur_chrom = split_line[0][3:]
-            cur_cyto.append(split_line[1:])
-    return cyto_dict
-
-
 def train_pca(ref_data, pcacomp=3):
     t_data = ref_data.T
     pca = PCA(n_components=pcacomp)
@@ -67,7 +51,7 @@ def apply_pca(sample_data, mean, components):
     return sample_data / reconstructed
 
 
-def convert_bam(bamfile, binsize=100000, min_shift=4, threshold=6, mapq=1, demand_pair=False):
+def convert_bam(bamfile, binsize, min_shift, threshold, mapq=1, demand_pair=False):
     # Prepare the list of chromosomes
     chromosomes = dict()
     for chromosome in range(1, 25):
