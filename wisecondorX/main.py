@@ -309,18 +309,6 @@ def tool_test(args):
     logging.info("Finished prediction")
 
 
-def get_gender(args):
-    npzfile = np.load(args.infile)
-    sample = npzfile['sample'].item()
-    non_y = float(sum([np.sum(sample[str(chr)]) for chr in range(1, 24)]))
-    y = float(np.sum(sample["24"]))
-    permille_y = y / (non_y + y) * 1000.0
-    if permille_y > args.cutoff:
-        print("male")
-    else:
-        print("female")
-
-
 def main():
     parser = argparse.ArgumentParser(description="wisecondorX")
     parser.add_argument('--loglevel',
