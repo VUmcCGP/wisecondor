@@ -1,11 +1,9 @@
 import bisect
 import json
 import logging
-import math
 import os
 import sys
 import subprocess
-import time
 import pysam
 import numpy as np
 from sklearn.decomposition import PCA
@@ -184,15 +182,12 @@ def scale_sample(sample, from_size, to_size):
     return return_sample
 
 
-def to_numpy_array(samples, gender):
+def to_numpy_array(samples):
     by_chrom = []
     chrom_bins = []
     sample_count = len(samples)
 
-    if gender == "F":
-        chromosomes = range(1, 24)
-    else:
-        chromosomes = range(1, 25)
+    chromosomes = range(1, len(samples[0]) + 1)
 
     for chromosome in chromosomes:
         max_len = max([sample[str(chromosome)].shape[0] for sample in samples])
@@ -208,11 +203,9 @@ def to_numpy_array(samples, gender):
     sum_per_sample = np_sum(all_data, 0)
     all_data = all_data / sum_per_sample
 
-    logging.info('Applying nonzero mask on the data: {}'.format(all_data.shape))
     sum_per_bin = np_sum(all_data, 1)
     mask = sum_per_bin > 0
     masked_data = all_data[mask, :]
-    logging.info('becomes {}'.format(masked_data.shape))
 
     return masked_data, chrom_bins, mask
 
@@ -354,8 +347,7 @@ def get_part(partnum, outof, bincount):
 
 
 def get_reference(corrected_data, chromosome_bins, chromosome_bin_sums,
-                  gender, select_ref_amount=100, part=1, split_parts=1):
-    time_start_selection = time.time()
+                  select_ref_amount=100, part=1, split_parts=1):
     big_indexes = []
     big_distances = []
 
@@ -382,7 +374,7 @@ def get_reference(corrected_data, chromosome_bins, chromosome_bin_sums,
 
         x_length = chromosome_bin_sums[22] - (chromosome_bin_sums[22] - chromosome_bins[22])  # index 22 -> chrX
 
-        if gender == "M":
+        if len(chromosome_bin_sums) == 24:
             y_length = chromosome_bin_sums[23] - (chromosome_bin_sums[23] - chromosome_bins[23])
             if chrom == 22:
                 knit_length = y_length
@@ -400,8 +392,6 @@ def get_reference(corrected_data, chromosome_bins, chromosome_bin_sums,
                                                         end, corrected_data, chrom_data, knit_length)
         big_indexes.extend(part_indexes)
         big_distances.extend(part_distances)
-
-        logging.info('{} Time spent {} seconds'.format(part, int(time.time() - time_start_selection)))
 
     index_array = np.array(big_indexes)
     distance_array = np.array(big_distances)

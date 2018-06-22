@@ -36,77 +36,136 @@ def tool_newref(args):
     base_path = os.path.join(split_path[0], split_path[1])
 
     # Add single thread information used for parallel processing functions
+    args.basepath = base_path
     args.prepfile = base_path + "_prep.npz"
     args.partfile = base_path + "_part"
     args.parts = args.cpus
 
-    tool_newref_prep(args)
-
-    # Use multiple cores if requested
-    if args.cpus != 1:
-        import concurrent.futures
-        import copy
-        with concurrent.futures.ProcessPoolExecutor(max_workers=args.cpus) as executor:
-            for part in xrange(1, args.parts + 1):
-                if not os.path.isfile(args.partfile + "_" + str(part) + ".npz"):
-                    this_args = copy.copy(args)
-                    this_args.part = [part, args.parts]
-                    executor.submit(tool_newref_part, this_args)
-            executor.shutdown(wait=True)
-    else:
-        for part in xrange(1, args.parts + 1):
-            if not os.path.isfile(args.partfile + "_" + str(part) + ".npz"):
-                args.part = [part, args.parts]
-                tool_newref_part(args)
-
-    # Put it all together
-    tool_newref_post(args)
-
-    # Remove parallel processing temp data
-    os.remove(args.prepfile)
-    for part in xrange(1, args.parts + 1):
-        os.remove(args.partfile + '_' + str(part) + '.npz')
-
-    logging.info("Finished creating reference")
-
-
-def tool_newref_prep(args):
     samples = []
-    nreads = []
+    genders = []
     binsizes = set()
     logging.info('Importing data ...')
-    for infile in args.infiles:  # glob.glob(args.infiles):
-        logging.info('Loading:{}'.format(infile))
+    for infile in args.infiles:
+        logging.info('Loading: {}'.format(infile))
         npzdata = np.load(infile)
         sample = npzdata['sample'].item()
-        logging.info('binsize:{}'.format(int(npzdata['binsize'].item())))
-        samples.append(scale_sample(sample, npzdata['binsize'].item(), args.binsize))
-        nreads.append(sum([sum(sample[x]) for x in sample.keys()]))
-        binsizes.add(npzdata['binsize'].item())
+        binsize = npzdata['binsize'].item()
+        gender = npzdata['gender'].item()
+        logging.info('Binsize: {} | Gender : {}'.format(int(binsize), gender))
+
+        scaled_sample = scale_sample(sample, binsize, args.binsize)
+        corrected_sample = gender_correct(scaled_sample, gender)
+
+        genders.append(gender)
+        samples.append(corrected_sample)
+        binsizes.add(binsize)
 
     if args.binsize is None and len(binsizes) != 1:
         logging.critical('There appears to be a mismatch in binsizes in your dataset: {} \n\t'
                          'Either remove the offending sample(s) or use a different --binsize'.format(binsizes))
         sys.exit()
 
-    binsize = args.binsize
-    if args.binsize is None:
-        binsize = binsizes.pop()
+    samples = np.array(samples)
 
-    masked_data, chromosome_bins, mask = to_numpy_array(samples, args.gender)
+    outfiles = []
+    if genders.count("F") > 4:
+        logging.info('Starting new female reference creation ...')
+        args.tmpoutfile = args.basepath + ".tmp.F.npz"
+        outfiles.append(args.tmpoutfile)
+        tool_newref_prep(args, samples, np.array(genders), "F")
+
+        # Use multiple cores if requested
+        if args.cpus != 1:
+            import concurrent.futures
+            import copy
+            with concurrent.futures.ProcessPoolExecutor(max_workers=args.cpus) as executor:
+                for part in xrange(1, args.parts + 1):
+                    if not os.path.isfile(args.partfile + "_" + str(part) + ".npz"):
+                        this_args = copy.copy(args)
+                        this_args.part = [part, args.parts]
+                        executor.submit(tool_newref_part, this_args)
+                executor.shutdown(wait=True)
+        else:
+            for part in xrange(1, args.parts + 1):
+                if not os.path.isfile(args.partfile + "_" + str(part) + ".npz"):
+                    args.part = [part, args.parts]
+                    tool_newref_part(args)
+
+        # Put it all together
+        tool_newref_post(args)
+
+        # Remove parallel processing temp data
+        os.remove(args.prepfile)
+        for part in xrange(1, args.parts + 1):
+            os.remove(args.partfile + '_' + str(part) + '.npz')
+
+    else:
+        logging.warning('Provide at least 5 female samples to enable the generation of a female reference. '
+                        'If these are of no interest, ingnore this warning.')
+
+    if genders.count("M") > 4:
+        logging.info('Starting new male reference creation ...')
+        args.tmpoutfile = args.basepath + ".tmp.M.npz"
+        outfiles.append(args.tmpoutfile)
+        tool_newref_prep(args, samples, np.array(genders), "M")
+
+        # Use multiple cores if requested
+        if args.cpus != 1:
+            import concurrent.futures
+            import copy
+            with concurrent.futures.ProcessPoolExecutor(max_workers=args.cpus) as executor:
+                for part in xrange(1, args.parts + 1):
+                    if not os.path.isfile(args.partfile + "_" + str(part) + ".npz"):
+                        this_args = copy.copy(args)
+                        this_args.part = [part, args.parts]
+                        executor.submit(tool_newref_part, this_args)
+                executor.shutdown(wait=True)
+        else:
+            for part in xrange(1, args.parts + 1):
+                if not os.path.isfile(args.partfile + "_" + str(part) + ".npz"):
+                    args.part = [part, args.parts]
+                    tool_newref_part(args)
+
+        # Put it together
+        tool_newref_post(args)
+
+        # Remove parallel processing temp data
+        os.remove(args.prepfile)
+        for part in xrange(1, args.parts + 1):
+            os.remove(args.partfile + '_' + str(part) + '.npz')
+
+    else:
+        logging.warning('Provide at least 5 male samples to enable the generation of a male reference. '
+                        'If these are of no interest (e.g. NIPT), ingnore this warning.')
+
+    if len(outfiles) == 0:
+        logging.critical('Not enough reference samples were provided.')
+        sys.exit()
+
+    tool_newref_merge(args, outfiles)
+    logging.info("Finished creating reference")
+
+
+def tool_newref_prep(args, samples, genders, gender):
+
+    samples = samples[genders == gender]
+
+    masked_data, chromosome_bins, mask = to_numpy_array(samples)
+
     del samples
     masked_chrom_bins = [sum(mask[sum(chromosome_bins[:i]):sum(chromosome_bins[:i]) + x]) for i, x in
                          enumerate(chromosome_bins)]
     masked_chrom_bin_sums = [sum(masked_chrom_bins[:x + 1]) for x in range(len(masked_chrom_bins))]
     corrected_data, pca = train_pca(masked_data)
     np.savez_compressed(args.prepfile,
-                        binsize=binsize,
+                        binsize=args.binsize,
                         chromosome_bins=chromosome_bins,
                         masked_data=masked_data,
                         mask=mask,
                         masked_chrom_bins=masked_chrom_bins,
                         masked_chrom_bin_sums=masked_chrom_bin_sums,
                         corrected_data=corrected_data,
+                        gender=gender,
                         pca_components=pca.components_,
                         pca_mean=pca.mean_)
 
@@ -125,8 +184,8 @@ def tool_newref_part(args):
     masked_chrom_bins = npzdata['masked_chrom_bins']
     masked_chrom_bin_sums = npzdata['masked_chrom_bin_sums']
 
-    logging.info('Creating reference ... This might take a while ...')
-    indexes, distances = get_reference(corrected_data, masked_chrom_bins, masked_chrom_bin_sums, args.gender,
+    logging.info('This might take a while ...')
+    indexes, distances = get_reference(corrected_data, masked_chrom_bins, masked_chrom_bin_sums,
                                        select_ref_amount=args.refsize, part=args.part[0], split_parts=args.part[1])
 
     np.savez_compressed(args.partfile + '_' + str(args.part[0]) + '.npz',
@@ -143,6 +202,7 @@ def tool_newref_post(args):
     pca_components = npzdata['pca_components']
     pca_mean = npzdata['pca_mean']
     binsize = npzdata['binsize'].item()
+    gender = npzdata['gender'].item()
 
     # Load and combine part file data
     big_indexes = []
@@ -154,12 +214,10 @@ def tool_newref_post(args):
         big_indexes.extend(npzdata['indexes'])
         big_distances.extend(npzdata['distances'])
 
-        logging.info("{}, {}".format(part, npzdata['indexes'].shape))
-
     indexes = np.array(big_indexes)
     distances = np.array(big_distances)
 
-    np.savez_compressed(args.outfile,
+    np.savez_compressed(args.tmpoutfile,
                         binsize=binsize,
                         indexes=indexes,
                         distances=distances,
@@ -168,7 +226,20 @@ def tool_newref_post(args):
                         masked_sizes=masked_chrom_bins,
                         pca_components=pca_components,
                         pca_mean=pca_mean,
-                        gender=args.gender)
+                        gender=gender)
+
+
+def tool_newref_merge(args, outfiles):
+    final_ref = {}
+    for file_id in outfiles:
+        npz_file = np.load(file_id)
+        gender = npz_file['gender']
+        for component in npz_file.keys():
+            if component == 'gender':
+                continue
+            final_ref[str(component) + "." + str(gender)] = npz_file[component]
+        os.remove(file_id)
+    np.savez_compressed(args.outfile, **final_ref)
 
 
 def tool_test(args):
