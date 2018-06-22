@@ -9,11 +9,20 @@ def tool_convert(args):
     logging.info('Starting conversion')
     logging.info('Importing data ...')
     logging.info('Converting bam ... This might take a while ...')
-    converted, qual_info = convert_bam(args.infile, binsize=args.binsize,
+    sample, qual_info = convert_bam(args.infile, binsize=args.binsize,
                                        min_shift=args.retdist, threshold=args.retthres)
+    if args.gender:
+        gender = args.gender
+        logging.info('Gender {}'.format(gender))
+    else:
+        logging.info('Predicting gender ...')
+        gender = get_gender(args, sample)
+        logging.info('... {}'.format(gender))
+
     np.savez_compressed(args.outfile,
                         binsize=args.binsize,
-                        sample=converted,
+                        sample=sample,
+                        gender=gender,
                         quality=qual_info)
     logging.info('Finished conversion')
 
@@ -343,6 +352,16 @@ def main():
                                 type=int,
                                 default=4,
                                 help='Threshold for when a group of reads is considered a tower and will be removed.')
+    parser_convert.add_argument('--gender',
+                                type=str,
+                                choices=["F", "M"],
+                                help='Gender of the case. If not given, WisecondorX will predict it')
+    parser_convert.add_argument('--gonmapr',
+                                type=float,
+                                default=2,
+                                help='The gonosomal mappabality ratio between X and Y. Concerning short single-end '
+                                     'read mapping, a Y bin is twice (default) times less likely to be referred to '
+                                     'as \'mappable\' as an X bin. Used to predict gender.')
     parser_convert.set_defaults(func=tool_convert)
 
     # Find gender
@@ -377,11 +396,6 @@ def main():
                                type=int,
                                default=1e5,
                                help='Scale samples to this binsize, multiples of existing binsize only.')
-    parser_newref.add_argument('--gender',
-                               type=str,
-                               default="F",
-                               choices=["F", "M"],
-                               help='Gender of the reference .npz input files.')
     parser_newref.add_argument('--cpus',
                                type=int,
                                default=1,

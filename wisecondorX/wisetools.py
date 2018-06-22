@@ -27,30 +27,6 @@ np_sqrt = np.sqrt
 find_pos = bisect.bisect
 
 
-def train_pca(ref_data, pcacomp=3):
-    t_data = ref_data.T
-    pca = PCA(n_components=pcacomp)
-    pca.fit(t_data)
-    PCA(copy=True, whiten=False)
-    transformed = pca.transform(t_data)
-    inversed = pca.inverse_transform(transformed)
-    corrected = t_data / inversed
-
-    return corrected.T, pca
-
-
-def apply_pca(sample_data, mean, components):
-    pca = PCA(n_components=components.shape[0])
-    pca.components_ = components
-    pca.mean_ = mean
-
-    transform = pca.transform(np.array([sample_data]))
-
-    reconstructed = np.dot(transform, pca.components_) + pca.mean_
-    reconstructed = reconstructed[0]
-    return sample_data / reconstructed
-
-
 def convert_bam(bamfile, binsize, min_shift, threshold, mapq=1, demand_pair=False):
     # Prepare the list of chromosomes
     chromosomes = dict()
@@ -155,6 +131,39 @@ def convert_bam(bamfile, binsize, min_shift, threshold, mapq=1, demand_pair=Fals
     return chromosomes, qual_info
 
 
+def get_gender(args, sample):
+
+    tot_reads = float(sum([sum(sample[str(x)]) for x in range(1, 25)]))
+    X_reads = float(sum(sample["23"]))
+    X_len = float(len(sample["23"]))
+    Y_reads = float(sum(sample["24"]))
+    Y_len = float(len(sample["24"]))
+
+    X = (X_reads / tot_reads) / X_len * (1./args.gonmapr)
+    Y = (Y_reads / tot_reads) / Y_len
+
+    # X/Y               = ?
+    # 1/1 (MALE)        = 1
+    # 2/noise (FEMALE)  = [4,8]
+    # cut-off 2.5 -- should be robust vs noise and mosaic large subchromosomal duplication/deletions
+
+    if X/Y < 2.5:
+        return "M"
+    else:
+        return "F"
+
+
+def gender_correct(sample, gender):
+
+    if gender == "M":
+        sample["23"] = sample["23"] * 2
+        sample["24"] = sample["24"] * 2
+    else:
+        sample.pop("24")
+
+    return sample
+
+
 def scale_sample(sample, from_size, to_size):
     if not to_size or from_size == to_size:
         return sample
@@ -206,6 +215,30 @@ def to_numpy_array(samples, gender):
     logging.info('becomes {}'.format(masked_data.shape))
 
     return masked_data, chrom_bins, mask
+
+
+def train_pca(ref_data, pcacomp=3):
+    t_data = ref_data.T
+    pca = PCA(n_components=pcacomp)
+    pca.fit(t_data)
+    PCA(copy=True, whiten=False)
+    transformed = pca.transform(t_data)
+    inversed = pca.inverse_transform(transformed)
+    corrected = t_data / inversed
+
+    return corrected.T, pca
+
+
+def apply_pca(sample_data, mean, components):
+    pca = PCA(n_components=components.shape[0])
+    pca.components_ = components
+    pca.mean_ = mean
+
+    transform = pca.transform(np.array([sample_data]))
+
+    reconstructed = np.dot(transform, pca.components_) + pca.mean_
+    reconstructed = reconstructed[0]
+    return sample_data / reconstructed
 
 
 def to_numpy_ref_format(sample, chrom_bins, mask, gender):
