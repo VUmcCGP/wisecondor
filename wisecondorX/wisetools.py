@@ -143,9 +143,9 @@ def get_gender(args, sample):
     # X/Y               = ?
     # 1/1 (MALE)        = 1
     # 2/noise (FEMALE)  = [4,8]
-    # cut-off 2.5 -- should be robust vs noise, mosaic large subchromosomal duplication/deletions, and male pregnancies
+    # cut-off 3 -- should be robust vs noise, mosaic large subchromosomal duplication/deletions, and male pregnancies
 
-    if X/Y < 2.5:
+    if X/Y < 3:
         return "M"
     else:
         return "F"
@@ -294,26 +294,16 @@ def get_ref_for_bins(amount, start, end, sample_data, other_data, knit_length):
     return ref_indexes, ref_distances
 
 
-def get_optimal_cutoff(reference, chromosome_sizes, repeats):
-    autosome_len = sum(chromosome_sizes[:22])
+def get_optimal_cutoff(reference, repeats):
 
-    autosome_ref = reference[:autosome_len]
-    autosome_cutoff = float("inf")
+    cutoff = float("inf")
     for i in range(0, repeats):
-        mask = autosome_ref < autosome_cutoff
-        average = np.average(autosome_ref[mask])
-        stddev = np.std(autosome_ref[mask])
-        autosome_cutoff = average + 3 * stddev
+        mask = reference < cutoff
+        average = np.average(reference[mask])
+        stddev = np.std(reference[mask])
+        cutoff = average + 3 * stddev
 
-    allosome_ref = reference[autosome_len:]
-    allosome_cutoff = float("inf")
-    for i in range(0, repeats):
-        mask = allosome_ref < allosome_cutoff
-        average = np.average(allosome_ref[mask])
-        stddev = np.std(allosome_ref[mask])
-        allosome_cutoff = average + 3 * stddev
-
-    return autosome_cutoff, allosome_cutoff
+    return cutoff
 
 
 # Returns: Chromosome index, startBinNumber, endBinNumber
@@ -394,7 +384,7 @@ def get_reference(corrected_data, chromosome_bins, chromosome_bin_sums,
 
 
 def try_sample(test_data, test_copy, indexes, distances, chromosome_bins,
-               chromosome_bin_sums, autosome_cutoff, allosome_cutoff):
+               chromosome_bin_sums, cutoff):
     bincount = chromosome_bin_sums[-1]
 
     results_z = np.zeros(bincount)
@@ -411,10 +401,7 @@ def try_sample(test_data, test_copy, indexes, distances, chromosome_bins,
             (test_copy[:chromosome_bin_sums[chrom] - chromosome_bins[chrom]], test_copy[chromosome_bin_sums[chrom]:]))
 
         for index in indexes[start:end]:
-            if chrom < 22:
-                ref_data = chrom_data[index[distances[i] < autosome_cutoff]]
-            else:
-                ref_data = chrom_data[index[distances[i] < allosome_cutoff]]
+            ref_data = chrom_data[index[distances[i] < cutoff]]
             ref_data = ref_data[ref_data >= 0]  # Previously found aberrations are marked by negative values
             ref_mean = np_mean(ref_data)
             ref_stdev = np_std(ref_data)
@@ -426,20 +413,20 @@ def try_sample(test_data, test_copy, indexes, distances, chromosome_bins,
             ref_sizes[i] = ref_data.shape[0]
             i += 1
 
-    return results_z, results_r, ref_sizes, std_dev_sum / std_dev_num
+    return results_z, results_r, ref_sizes
 
 
 def repeat_test(test_data, indexes, distances, chromosome_bins,
-                chromosome_bin_sums, autosome_cutoff, allosome_cutoff, threshold, repeats):
+                chromosome_bin_sums, cutoff, threshold, repeats):
     results_z = None
     results_r = None
     test_copy = np.copy(test_data)
     for i in xrange(repeats):
-        results_z, results_r, ref_sizes, std_dev_avg = try_sample(test_data, test_copy, indexes, distances,
+        results_z, results_r, ref_sizes = try_sample(test_data, test_copy, indexes, distances,
                                                                   chromosome_bins, chromosome_bin_sums,
-                                                                  autosome_cutoff, allosome_cutoff)
+                                                                  cutoff)
         test_copy[np_abs(results_z) >= threshold] = -1
-    return results_z, results_r, ref_sizes, std_dev_avg
+    return results_z, results_r, ref_sizes
 
 
 def get_weights(distances):

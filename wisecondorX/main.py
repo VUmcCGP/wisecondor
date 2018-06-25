@@ -2,7 +2,7 @@
 
 import argparse
 from scipy.stats import norm
-from wisecondorX.wisetools import *
+from wisetools import *
 
 
 def tool_convert(args):
@@ -72,6 +72,7 @@ def tool_newref(args):
         args.tmpoutfile = args.basepath + ".tmp.F.npz"
         outfiles.append(args.tmpoutfile)
         tool_newref_prep(args, samples, np.array(genders), "F")
+        logging.info('This might take a while ...')
         tool_newref_main(args, args.cpus)
     else:
         logging.critical('Provide at least 5 samples to enable the generation of a reference.')
@@ -158,7 +159,6 @@ def tool_newref_part(args):
     masked_chrom_bins = npzdata['masked_chrom_bins']
     masked_chrom_bin_sums = npzdata['masked_chrom_bin_sums']
 
-    logging.info('This might take a while ...')
     indexes, distances = get_reference(corrected_data, masked_chrom_bins, masked_chrom_bin_sums,
                                        select_ref_amount=args.refsize, part=args.part[0], split_parts=args.part[1])
 
@@ -279,15 +279,15 @@ def tool_test(args):
 
     test_data = to_numpy_ref_format(sample, chromosome_sizes, mask)
     test_data = apply_pca(test_data, pca_mean, pca_components)
-    autosome_cutoff, allosome_cutoff = get_optimal_cutoff(distances, masked_sizes, args.maskrepeats)
+    cutoff = get_optimal_cutoff(distances, args.maskrepeats)
 
     z_threshold = norm.ppf(0.975)  # two-tailed test
 
     logging.info('Applying within-sample normalization ...')
     test_copy = np.copy(test_data)
-    results_z, results_r, ref_sizes, std_dev_avg = repeat_test(test_copy, indexes, distances,
+    results_z, results_r, ref_sizes = repeat_test(test_copy, indexes, distances,
                                                                masked_sizes, masked_chrom_bin_sums,
-                                                               autosome_cutoff, allosome_cutoff, z_threshold, 5)
+                                                               cutoff, z_threshold, 5)
 
     if not has_male and gender == "M":
         logging.warning('This sample is male, whilst the reference is created with fewer than 5 males. '
@@ -299,12 +299,12 @@ def tool_test(args):
         test_data = to_numpy_ref_format(sample, reference_file['chromosome_sizes.Y'], reference_file['mask.Y'])
         test_data = apply_pca(test_data, reference_file['pca_mean.Y'], reference_file['pca_components.Y'])
         test_copy = np.copy(test_data)
-        results_z_Y, results_r_Y, ref_sizes_Y, _ = repeat_test(test_copy, reference_file['indexes.Y'],
+        results_z_Y, results_r_Y, ref_sizes_Y = repeat_test(test_copy, reference_file['indexes.Y'],
                                                                    reference_file['distances.Y'],
                                                                    reference_file['masked_sizes.Y'],
                                                                    [sum(reference_file['masked_sizes.Y'][:x + 1]) for x in
                                                                     range(len(reference_file['masked_sizes.Y']))],
-                                                                   autosome_cutoff, allosome_cutoff, z_threshold, 5)
+                                                                    cutoff, z_threshold, 5)
         results_z = np.append(results_z, results_z_Y[len(results_z):])
         results_r = np.append(results_r, results_r_Y[len(results_r):])
         ref_sizes = np.append(ref_sizes, ref_sizes_Y[len(ref_sizes):])
@@ -427,8 +427,8 @@ def main():
                                 type=float,
                                 default=2,
                                 help='The gonosomal mappabality ratio between X and Y. Concerning short single-end '
-                                     'read mapping, a Y bin is twice (default) times less likely to be referred to '
-                                     'as \'mappable\' as an X bin. Used to predict gender.')
+                                     'read mapping, a Y bin is two times (default) less mappable compared to an X bin. '
+                                     'Used to predict gender')
     parser_convert.set_defaults(func=tool_convert)
 
 
