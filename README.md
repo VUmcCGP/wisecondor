@@ -45,10 +45,10 @@ python setup.py install
 ### Running WisecondorX
 
 There are three main stages (converting, reference creating & predicting) for using WisecondorX:  
-- Convert .bam files to .npz files (both reference and test samples)
+- Convert .bam files to .npz files (both reference and test samples)  
 - Create a reference (using reference .npz files)  
     - **Important notes**
-        - WisecondorX will internally generate a male and female reference. It is advisable that both female and male
+        - WisecondorX will internally generate a male and female reference. It is advisable that both male and female
         samples are represented in the reference set. If e.g. no male samples are included, the Y chromosome will not be
         part of the analysis when testing male cases.  
         - For NIPT analysis, an important exception on previous rule holds: only pregnancies of female feti should be used to 
@@ -60,7 +60,7 @@ There are three main stages (converting, reference creating & predicting) for us
         the better.  
         - Try to include at least 50 samples per reference. The more the better, yet, from 300 on it is unlikely to observe
         additional improvement concerning normalization.  
-- Predict CNAs (using the reference and test .npz cases of interest)
+- Predict CNAs (using the reference and test .npz cases of interest)  
 
 ### Stage (1) Convert .bam to .npz
 
@@ -75,7 +75,7 @@ WisecondorX convert input.bam output.npz [--optional arguments]
 `--retdist x` | Max amount of bp's between reads to consider them part of the same tower (default: x=4)  
 `--retthres x` | Threshold for a group of reads to be considered a tower. These will be removed (default: x=4)  
 `--gender x` | When not used (which is recommended), WisecondorX will predict the gender (options: x=F, x=M)  
-`--gonmapr x` | Represents the overall mappabality ratio between X and Y. Concerning short single-end read mapping, a Y bin is two times less mappable compared to an X bin. Used to predict gender. (default: x=2)  
+`--gonmapr x` | Represents the overall mappabality ratio between X and Y. Concerning short single-end read mapping, an X bin is twice (default) as mappable compared to an Y bin. Used to predict gender. (default: x=2)  
 
 
 &rarr; Bash recipe (example for NIPT) at `./pipeline/convert.sh`
