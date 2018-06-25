@@ -270,10 +270,10 @@ def tool_test(args):
 
     # Test sample data handling
     sample = sample_file['sample'].item()
+    nreads = sum([sum(sample[x]) for x in sample.keys()])
     sample = gender_correct(sample, gender)
 
     logging.info('Applying between-sample normalization ...')
-    nreads = sum([sum(sample[x]) for x in sample.keys()])
     sample_bin_size = sample_file['binsize'].item()
     sample = scale_sample(sample, sample_bin_size, binsize)
 
