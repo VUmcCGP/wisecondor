@@ -299,7 +299,7 @@ def tool_test(args):
     sample_bin_size = sample_file['binsize'].item()
     sample = scale_sample(sample, sample_bin_size, binsize)
 
-    test_data = to_numpy_ref_format(sample, chromosome_sizes, mask, gender)
+    test_data = to_numpy_ref_format(sample, chromosome_sizes, mask)
     test_data = apply_pca(test_data, pca_mean, pca_components)
     autosome_cutoff, allosome_cutoff = get_optimal_cutoff(distances, masked_sizes, args.maskrepeats)
 
@@ -341,7 +341,7 @@ def tool_test(args):
 
     # Apply blacklist
     if args.blacklist:
-        apply_blacklist(args, binsize, results_r, results_z, results_w, sample, gender)
+        apply_blacklist(args, binsize, results_r, results_z, results_w, sample)
 
     # Make R interpretable
     results_r = [x.tolist() for x in results_r]
@@ -358,25 +358,24 @@ def tool_test(args):
     logging.info('Obtaining CBS segments ...')
     cbs_calls = cbs(args, results_r, results_z, results_w, gender, wc_dir)
 
-    json_out = {'binsize': binsize,
+    out_dict = {'binsize': binsize,
                 'results_r': results_r,
                 'results_z': results_z,
                 'results_w' : results_w,
-                'threshold_z': z_threshold.tolist(),
-                'asdef': std_dev_avg.tolist(),
-                'aasdef': (std_dev_avg * z_threshold).tolist(),
                 'nreads': nreads,
-                'cbs_calls': cbs_calls}
+                'cbs_calls': cbs_calls,
+                'gender': str(gender),
+                'beta': str(args.beta)}
 
     # Save txt: optional
     if args.bed:
         logging.info('Writing tables ...')
-        generate_txt_output(args, json_out)
+        generate_txt_output(args, out_dict)
 
     # Create plots: optional
     if args.plot:
         logging.info('Writing plots ...')
-        write_plots(args, json_out, wc_dir, gender)
+        write_plots(args, out_dict, wc_dir)
 
     logging.info("Finished prediction")
 
@@ -424,18 +423,6 @@ def main():
                                      'as \'mappable\' as an X bin. Used to predict gender.')
     parser_convert.set_defaults(func=tool_convert)
 
-    # Find gender
-    parser_gender = subparsers.add_parser('gender',
-                                          description='Predict the gender of a sample',
-                                          formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser_gender.add_argument('infile',
-                               type=str,
-                               help='.npz input file')
-    parser_gender.add_argument('--cutoff',
-                               type=float,
-                               default=3.5,
-                               help='Y-read permille cut-off. Below is female, above is male.')
-    parser_gender.set_defaults(func=get_gender)
 
     # New reference creation
     parser_newref = subparsers.add_parser('newref',

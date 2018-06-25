@@ -7,35 +7,17 @@ options(warn=-1)
 arguments = "
 
 --infile          - (mandatory argument) input .json
---sexchroms       - (mandatory argument) which sex chromosomes will be analyzed? (X or XY)
---beta            - (mandatory argument) which sex chromosomes will be analyzed? (X or XY)
 --outdir          - (mandatory argument) output folder
 
 "
 
 args <- commandArgs(TRUE)
-len.args <- length(args)
 
 parseArgs <- function(x) strsplit(sub("^--", "", x), " ")
 args <- as.matrix(do.call("rbind", parseArgs(args)))
 
 in.file <- paste0(args[,1][which(args[,1] == "infile")+1])
-sex.chrom <- paste0(args[,1][which(args[,1] == "sexchroms")+1])
-beta <- paste0(args[,1][which(args[,1] == "beta")+1])
 out.dir <- paste0(args[,1][which(args[,1] == "outdir")+1])
-
-# -----
-# param
-# -----
-
-if (sex.chrom == "X"){
-  exclude.chr = c(24)
-} else {
-  exclude.chr = c()
-}
-
-gain.cut <- log2(1 + as.numeric(beta) / 4)
-del.cut <- log2(1 - as.numeric(beta) / 4)
 
 # -----
 # lib
@@ -53,6 +35,14 @@ dir.create(out.dir, showWarnings = FALSE)
 input <- read_json(in.file, na = "string")
 binsize <- input$binsize
 
+# param
+
+gender = input$gender
+beta = input$beta
+
+gain.cut <- log2(1 + as.numeric(beta) / 4)
+del.cut <- log2(1 - as.numeric(beta) / 4)
+
 # get nreads (readable)
 
 nreads <- input$nreads
@@ -67,8 +57,11 @@ nreads <- paste0(nreads, collapse = ".")
 ratio <- unlist(input$results_r)
 ratio[which(ratio == 0)] <- NA #0 were introduced if infinite/na values were seen in python. They're all the same: of no interest
 
-chrs = c(1:24)
-chrs = chrs[which(!(chrs  %in% exclude.chr))]
+if (gender == "M"){
+  chrs = 1:24
+} else {
+  chrs = 1:23
+}
 bins.per.chr <- sapply(chrs, FUN = function(x) length(unlist(input$results_r[x])))
 
 labels = as.vector(sapply(chrs, FUN = function(x) paste0("chr", x)))
@@ -140,9 +133,6 @@ dot.cols = rep(black, length(ratio))
 for (ab in input$cbs_calls){
   info = unlist(ab)
   chr = as.integer(info[1])
-  if (chr %in% exclude.chr){
-    next
-  }
   start = as.integer(info[2]) + chr.end.pos[chr]
   end = as.integer(info[3]) + chr.end.pos[chr]
   height = as.double(info[5])
@@ -168,7 +158,7 @@ plot.constitutionals <- function(ploidy, start, end){
 
 genome.len <- chr.end.pos[length(chr.end.pos)]
 autosome.len <- chr.end.pos[23]
-if ((sex.chrom == "X")){
+if (gender == "F"){
   plot.constitutionals(2, -genome.len * 0.025, genome.len * 1.025)
 } else {
   plot.constitutionals(2, -genome.len * 0.025, autosome.len)
@@ -198,9 +188,6 @@ par(xpd=FALSE)
 for (ab in input$cbs_calls){
   info = unlist(ab)
   chr = as.integer(info[1])
-  if (chr %in% exclude.chr){
-    next
-  }
   start = as.integer(info[2]) + chr.end.pos[chr]
   end = as.integer(info[3]) + chr.end.pos[chr]
   bm.score = abs(as.double(info[4]))
@@ -238,7 +225,7 @@ axis(2, tick = T, cex.lab = 2, col = black, las = 1, tcl=0.5)
 par(mar = c(4,4,4,0), mgp=c(1,0.5,2))
 axis(1, at=1:(length(chrs) - 22), labels=labels[23:length(chrs)], tick = F, cex.lab = 3)
 
-if ((sex.chrom == "X")){
+if (gender == "F"){
   plot.constitutionals(2, 0.6, length(chrs[23:length(chrs)]) + 1)
 } else {
   plot.constitutionals(1, 0.6, length(chrs[23:length(chrs)]) + 1)
@@ -262,7 +249,6 @@ for (c in chrs){
   x.labels <- x.labels[2:(length(x.labels) - 1)]
   x.labels.at <- x.labels.at[2:(length(x.labels.at) - 1)]
   
-  mean = mean(box.list[[c]], na.rm = T)
   whis = boxplot(box.list[[c]], plot = F)$stats[c(1,5),]
   
   if (any(is.na(whis))){
@@ -294,9 +280,6 @@ for (c in chrs){
   for (ab in input$cbs_calls){
     info = unlist(ab)
     chr = as.integer(info[1])
-    if (chr %in% exclude.chr){
-      next
-    }
     start = as.integer(info[2]) + chr.end.pos[chr]
     end = as.integer(info[3]) + chr.end.pos[chr]
     bm.score = abs(as.double(info[4]))
@@ -310,7 +293,7 @@ for (c in chrs){
   axis(1, at=x.labels.at, labels=x.labels, tick = F, cex.axis=0.8)
   axis(2, tick = T, cex.lab = 2, col = black, las = 1, tcl=0.5)
   
-  if ((sex.chrom == "X")){
+  if (gender == "F"){
     plot.constitutionals(2, chr.end.pos[c] - bins.per.chr[c] * 0.02, chr.end.pos[c+1] + bins.per.chr[c] * 0.02)
   } else {
     if (c == 23 | c == 24){

@@ -234,13 +234,10 @@ def apply_pca(sample_data, mean, components):
     return sample_data / reconstructed
 
 
-def to_numpy_ref_format(sample, chrom_bins, mask, gender):
+def to_numpy_ref_format(sample, chrom_bins, mask):
     by_chrom = []
 
-    if gender == "M":
-        chrs = range(1, 25)
-    else:
-        chrs = range(1, 24)
+    chrs = range(1, len(sample) + 1)
 
     for chromosome in chrs:
         this_chrom = np.zeros(chrom_bins[chromosome - 1], dtype=float)
@@ -534,21 +531,17 @@ def generate_txt_output(args, json_out):
     statistics_file.close()
 
 
-def write_plots(args, json_out, wc_dir, gender):
+def write_plots(args, out_dict, wc_dir):
     json_file = open(args.outid + "_plot_tmp.json", "w")
-    json.dump(json_out, json_file)
+    json.dump(out_dict,
+              json_file)
     json_file.close()
 
     plot_script = str(os.path.dirname(wc_dir)) + "/include/plotter.R"
-    if gender == "M":
-        sexchrom = "XY"
-    else:
-        sexchrom = "X"
+
     r_cmd = ["Rscript", plot_script,
              "--infile", "{}_plot_tmp.json".format(args.outid),
-             "--outdir", args.outid + ".plots",
-             "--sexchroms", sexchrom,
-             "--beta", str(args.beta)]
+             "--outdir", "{}.plots".format(args.outid)]
     logging.debug("plot cmd: {}".format(r_cmd))
 
     try:
@@ -571,7 +564,7 @@ def get_median_within_segment_variance(segments, binratios):
     return np.median([x for x in vars if not np.isnan(x)])
 
 
-def apply_blacklist(args, binsize, results_r, results_z, results_w, sample, gender):
+def apply_blacklist(args, binsize, results_r, results_z, results_w, sample):
     blacklist = {}
 
     for line in open(args.blacklist):
@@ -588,7 +581,7 @@ def apply_blacklist(args, binsize, results_r, results_z, results_w, sample, gend
             if chr == "Y":
                 chr = "24"
             for pos in range(s_s[0], s_s[1]):
-                if gender == "F" and chr == "24":
+                if len(sample) < 24 and chr == "24":
                     continue
                 results_r[int(chr) - 1][pos] = 0
                 results_z[int(chr) - 1][pos] = 0
@@ -599,19 +592,18 @@ def apply_blacklist(args, binsize, results_r, results_z, results_w, sample, gend
 def cbs(args, results_r, results_z, results_w, gender, wc_dir):
     json_cbs_temp_dir = os.path.abspath(args.outid + "_CBS_tmp")
     json_cbs_file = open(json_cbs_temp_dir + "_01.json", "w")
-    json.dump({"results_r": results_r, "weights": results_w}, json_cbs_file)
+    json.dump({"results_r": results_r,
+               "weights": results_w,
+               "gender": str(gender),
+               "alpha": str(args.alpha)
+               },
+              json_cbs_file)
     json_cbs_file.close()
     cbs_script = str(os.path.dirname(wc_dir)) + "/include/CBS.R"
 
-    if gender == "M":
-        sexchrom = "XY"
-    else:
-        sexchrom = "X"
     r_cmd = ["Rscript", cbs_script,
              "--infile", "{}_01.json".format(json_cbs_temp_dir),
-             "--outfile", "{}_02.json".format(json_cbs_temp_dir),
-             "--sexchroms", sexchrom,
-             "--alpha", str(args.alpha)]
+             "--outfile", "{}_02.json".format(json_cbs_temp_dir)]
     logging.debug("CBS cmd: {}".format(r_cmd))
 
     try:
@@ -619,6 +611,7 @@ def cbs(args, results_r, results_z, results_w, gender, wc_dir):
     except subprocess.CalledProcessError as e:
         logging.critical("Script {} failed with error {}".format(cbs_script, e))
         sys.exit()
+
     os.remove(json_cbs_temp_dir + "_01.json")
     cbs_data = json.load(open(json_cbs_temp_dir + "_02.json"))[1:]
     cbs_data = [[float(y.encode("utf-8")) for y in x] for x in cbs_data]
