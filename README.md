@@ -135,7 +135,7 @@ To understand the underlying algorithm, I highly recommend reading [Straver et a
 update shortly introduced in [Huijsdens-van Amsterdam et al (2018)](https://www.nature.com/articles/gim201832.epdf).
 Numerous adaptations to this algorithm have been made, yet the central principles remain. Changes include e.g. the inclusion of a gender
 prediction algorithm, gender handling prior to normalization (ultimately enabling X and Y predictions), extensive
-blacklisting options, inclusion of the CBS algorithm, improved codes for output tables and plots, and &mdash; last but
+blacklisting options, inclusion of a weighted CBS algorithm, improved codes for output tables and plots, and &mdash; last but
 not least &mdash; restrictions on within-sample referencing, an important feature for NIPT:  
 
 ![Alt text](./figures/within-sample-normalization-2.png?raw=true "Within-sample normalization in WisecondorX")

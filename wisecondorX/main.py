@@ -266,7 +266,6 @@ def tool_test(args):
     ref_has_male = reference_file['has_male']
     ref_has_female = reference_file['has_female']
 
-
     # Test sample data handling
     sample = sample_file['sample'].item()
     nreads = sum([sum(sample[x]) for x in sample.keys()])
@@ -323,7 +322,6 @@ def tool_test(args):
 
     del reference_file
     mask_list.append(mask)
-
 
     # Get rid of infinite values caused by having no reference bins or only zeros in the reference
     infinite_mask = (ref_sizes >= args.minrefbins)
