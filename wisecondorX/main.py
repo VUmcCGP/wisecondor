@@ -272,26 +272,27 @@ def tool_test(args):
         logging.warning("Parameter alpha seems to be a bit high. \n\t"
                         "Have you read https://github.com/CenterForMedicalGeneticsGhent/wisecondorX#parameters on parameter optimization?")
 
+    gender = sample_file['gender']
+
     # Reference data handling
     mask_list = []
-    weights = get_weights(reference_file["distances"])
-    gender = reference_file['gender']
-    binsize = reference_file['binsize'].item()
-    indexes = reference_file['indexes']
-    distances = reference_file['distances']
-    chromosome_sizes = reference_file['chromosome_sizes']
-    mask = reference_file['mask']
+    weights = get_weights(reference_file["distances" + "." + str(gender)])
+    binsize = reference_file['binsize' + "." + str(gender)].item()
+    indexes = reference_file['indexes' + "." + str(gender)]
+    distances = reference_file['distances' + "." + str(gender)]
+    chromosome_sizes = reference_file['chromosome_sizes' + "." + str(gender)]
+    mask = reference_file['mask' + "." + str(gender)]
     mask_list.append(mask)
-    masked_sizes = reference_file['masked_sizes']
+    masked_sizes = reference_file['masked_sizes' + "." + str(gender)]
     masked_chrom_bin_sums = [sum(masked_sizes[:x + 1]) for x in range(len(masked_sizes))]
-
-    pca_mean = reference_file['pca_mean']
-    pca_components = reference_file['pca_components']
+    pca_mean = reference_file['pca_mean' + "." + str(gender)]
+    pca_components = reference_file['pca_components' + "." + str(gender)]
 
     del reference_file
 
     # Test sample data handling
     sample = sample_file['sample'].item()
+    sample = gender_correct(sample, gender)
 
     logging.info('Applying between-sample normalization ...')
     nreads = sum([sum(sample[x]) for x in sample.keys()])
