@@ -2,7 +2,7 @@
 
 import argparse
 from scipy.stats import norm
-from WisecondorX.wisetools import *
+from wisecondorX.wisetools import *
 
 
 def tool_convert(args):
