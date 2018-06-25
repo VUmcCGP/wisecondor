@@ -251,8 +251,6 @@ def tool_test(args):
         logging.warning("Parameter alpha seems to be a bit high. \n\t"
                         "Have you read https://github.com/CenterForMedicalGeneticsGhent/wisecondorX#parameters on parameter optimization?")
 
-    gender = sample_file['gender']
-
     # Reference data handling
     mask_list = []
     weights = get_weights(reference_file["distances"])
@@ -265,12 +263,13 @@ def tool_test(args):
     masked_chrom_bin_sums = [sum(masked_sizes[:x + 1]) for x in range(len(masked_sizes))]
     pca_mean = reference_file['pca_mean']
     pca_components = reference_file['pca_components']
-    has_male = reference_file['has_male']
+    ref_has_male = reference_file['has_male']
 
 
     # Test sample data handling
     sample = sample_file['sample'].item()
     nreads = sum([sum(sample[x]) for x in sample.keys()])
+    gender = sample_file['gender']
     sample = gender_correct(sample, gender)
 
     logging.info('Applying between-sample normalization ...')
@@ -289,13 +288,14 @@ def tool_test(args):
                                                                masked_sizes, masked_chrom_bin_sums,
                                                                cutoff, z_threshold, 5)
 
-    if not has_male and gender == "M":
+    if not ref_has_male and gender == "M":
         logging.warning('This sample is male, whilst the reference is created with fewer than 5 males. '
                         'Chromosome Y normalisation is thus not possible, and X chromosomal predictions might not be accurate. '
                         'If these are desired, create a new reference and include male samples. ')
 
         gender = "F"
-    elif has_male and gender == "M":
+
+    elif ref_has_male and gender == "M":
         test_data = to_numpy_ref_format(sample, reference_file['chromosome_sizes.Y'], reference_file['mask.Y'])
         test_data = apply_pca(test_data, reference_file['pca_mean.Y'], reference_file['pca_components.Y'])
         test_copy = np.copy(test_data)
@@ -310,7 +310,7 @@ def tool_test(args):
         ref_sizes = np.append(ref_sizes, ref_sizes_Y[len(ref_sizes):])
         weights = np.append(weights, get_weights(reference_file["distances.Y"])[len(weights):])
         chromosome_sizes = reference_file['chromosome_sizes.Y']
-        mask = np.append(mask,reference_file['mask.Y'][len(mask):])
+        mask = np.append(mask, reference_file['mask.Y'][len(mask):])
         masked_sizes = np.append(masked_sizes, reference_file['masked_sizes.Y'][len(masked_sizes):])
 
         masked_chrom_bin_sums = [sum(masked_sizes[:x + 1]) for x in range(len(masked_sizes))]
