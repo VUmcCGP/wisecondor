@@ -143,7 +143,7 @@ def get_gender(args, sample):
     # X/Y               = ?
     # 1/1 (MALE)        = 1
     # 2/noise (FEMALE)  = [4,8]
-    # cut-off 2.5 -- should be robust vs noise and mosaic large subchromosomal duplication/deletions
+    # cut-off 2.5 -- should be robust vs noise, mosaic large subchromosomal duplication/deletions, and male pregnancies
 
     if X/Y < 2.5:
         return "M"
@@ -376,19 +376,10 @@ def get_reference(corrected_data, chromosome_bins, chromosome_bin_sums,
 
         x_length = chromosome_bin_sums[22] - (chromosome_bin_sums[22] - chromosome_bins[22])  # index 22 -> chrX
 
-        if len(chromosome_bin_sums) == 24:
-            y_length = chromosome_bin_sums[23] - (chromosome_bin_sums[23] - chromosome_bins[23])
-            if chrom == 22:
-                knit_length = y_length
-            elif chrom == 23:
-                knit_length = x_length
-            else:
-                knit_length = x_length + y_length
+        if chrom == 22:
+            knit_length = 0
         else:
-            if chrom == 22:
-                knit_length = 0
-            else:
-                knit_length = x_length
+            knit_length = x_length
 
         part_indexes, part_distances = get_ref_for_bins(select_ref_amount, start,
                                                         end, corrected_data, chrom_data, knit_length)

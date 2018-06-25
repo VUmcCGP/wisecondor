@@ -291,7 +291,9 @@ def tool_test(args):
 
     if not has_male and gender == "M":
         logging.warning('This sample is male, whilst the reference is created with fewer than 5 males. '
-                        'Chromosome Y normalisation is thus not possible. If this is desired, create a new reference.')
+                        'Chromosome Y normalisation is thus not possible, and X chromosomal predictions might not be accurate. '
+                        'If these are desired, create a new reference and include male samples. ')
+
         gender = "F"
     elif has_male and gender == "M":
         test_data = to_numpy_ref_format(sample, reference_file['chromosome_sizes.Y'], reference_file['mask.Y'])
@@ -326,7 +328,6 @@ def tool_test(args):
     cleaned_bin_sums = [np_sum(infinite_mask[:val]) for val in masked_chrom_bin_sums]
     cleaned_bins = [cleaned_bin_sums[i] - cleaned_bin_sums[i - 1] for i in range(1, len(cleaned_bin_sums))]
     cleaned_bins.insert(0, cleaned_bin_sums[0])
-
 
     results_z = []
     results_r = []
