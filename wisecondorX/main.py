@@ -2,7 +2,7 @@
 
 import argparse
 from scipy.stats import norm
-from wisecondorX.wisetools import *
+from wisetools import *
 
 
 def tool_convert(args):
@@ -39,7 +39,6 @@ def tool_newref(args):
     args.basepath = base_path
     args.prepfile = base_path + "_prep.npz"
     args.partfile = base_path + "_part"
-    args.parts = args.cpus
 
     samples = []
     genders = []
@@ -75,7 +74,8 @@ def tool_newref(args):
         tool_newref_prep(args, samples, np.array(genders), "F")
         tool_newref_main(args, args.cpus)
     else:
-        logging.warning('Provide at least 5 samples to enable the generation of a reference.')
+        logging.critical('Provide at least 5 samples to enable the generation of a reference.')
+        sys.exit()
 
     if genders.count("M") > 4:
         logging.info('Starting new Y reference creation ...')
@@ -85,11 +85,7 @@ def tool_newref(args):
         tool_newref_main(args, 1)
     else:
         logging.warning('Provide at least 5 male samples to enable Y chromosomal predictions. '
-                        'If these are of no interest (e.g. NIPT), ingnore this warning.')
-
-    if len(outfiles) == 0:
-        logging.critical('Not enough reference samples were provided.')
-        sys.exit()
+                        'If these are of no interest (e.g. NIPT), ignore this warning.')
 
     tool_newref_merge(args, outfiles)
     logging.info("Finished creating reference")
@@ -102,24 +98,24 @@ def tool_newref_main(args, cpus):
         import concurrent.futures
         import copy
         with concurrent.futures.ProcessPoolExecutor(max_workers=args.cpus) as executor:
-            for part in xrange(1, args.parts + 1):
+            for part in xrange(1, cpus + 1):
                 if not os.path.isfile(args.partfile + "_" + str(part) + ".npz"):
                     this_args = copy.copy(args)
-                    this_args.part = [part, args.parts]
+                    this_args.part = [part, cpus]
                     executor.submit(tool_newref_part, this_args)
             executor.shutdown(wait=True)
     else:
-        for part in xrange(1, args.parts + 1):
+        for part in xrange(1, cpus + 1):
             if not os.path.isfile(args.partfile + "_" + str(part) + ".npz"):
-                args.part = [part, args.parts]
+                args.part = [part, cpus]
                 tool_newref_part(args)
 
     # Put it together
-    tool_newref_post(args)
+    tool_newref_post(args, cpus)
 
     # Remove parallel processing temp data
     os.remove(args.prepfile)
-    for part in xrange(1, args.parts + 1):
+    for part in xrange(1, cpus + 1):
         os.remove(args.partfile + '_' + str(part) + '.npz')
 
 
@@ -171,7 +167,7 @@ def tool_newref_part(args):
                         distances=distances)
 
 
-def tool_newref_post(args):
+def tool_newref_post(args, cpus):
     # Load prep file data
     npzdata = np.load(args.prepfile)
     masked_chrom_bins = npzdata['masked_chrom_bins']
@@ -185,7 +181,7 @@ def tool_newref_post(args):
     # Load and combine part file data
     big_indexes = []
     big_distances = []
-    for part in xrange(1, args.parts + 1):  # glob.glob(args.infiles):
+    for part in xrange(1, cpus + 1):  # glob.glob(args.infiles):
         infile = args.partfile + '_' + str(part) + '.npz'
         logging.info('Loading: {}'.format(infile))
         npzdata = np.load(infile)
@@ -294,8 +290,9 @@ def tool_test(args):
                                                                autosome_cutoff, allosome_cutoff, z_threshold, 5)
 
     if not has_male and gender == "M":
-        logging.warning('Reference contains fewer than 5 males. Chromosome Y normalisation is not possible. '
-                        'If this is desired, create a new reference.')
+        logging.warning('This sample is male, whilst the reference is created with fewer than 5 males. '
+                        'Chromosome Y normalisation is thus not possible. If this is desired, create a new reference.')
+        gender = "F"
     elif has_male and gender == "M":
         test_data = to_numpy_ref_format(sample, reference_file['chromosome_sizes.Y'], reference_file['mask.Y'])
         test_data = apply_pca(test_data, reference_file['pca_mean.Y'], reference_file['pca_components.Y'])
