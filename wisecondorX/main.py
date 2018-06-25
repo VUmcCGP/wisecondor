@@ -2,7 +2,7 @@
 
 import argparse
 from scipy.stats import norm
-from wisecondorX.wisetools import *
+from WisecondorX.wisetools import *
 
 
 def tool_convert(args):
@@ -68,74 +68,23 @@ def tool_newref(args):
     samples = np.array(samples)
 
     outfiles = []
-    if genders.count("F") > 4:
-        logging.info('Starting new female reference creation ...')
+    if len(genders) > 4:
+        logging.info('Starting new reference creation ...')
         args.tmpoutfile = args.basepath + ".tmp.F.npz"
         outfiles.append(args.tmpoutfile)
         tool_newref_prep(args, samples, np.array(genders), "F")
-
-        # Use multiple cores if requested
-        if args.cpus != 1:
-            import concurrent.futures
-            import copy
-            with concurrent.futures.ProcessPoolExecutor(max_workers=args.cpus) as executor:
-                for part in xrange(1, args.parts + 1):
-                    if not os.path.isfile(args.partfile + "_" + str(part) + ".npz"):
-                        this_args = copy.copy(args)
-                        this_args.part = [part, args.parts]
-                        executor.submit(tool_newref_part, this_args)
-                executor.shutdown(wait=True)
-        else:
-            for part in xrange(1, args.parts + 1):
-                if not os.path.isfile(args.partfile + "_" + str(part) + ".npz"):
-                    args.part = [part, args.parts]
-                    tool_newref_part(args)
-
-        # Put it all together
-        tool_newref_post(args)
-
-        # Remove parallel processing temp data
-        os.remove(args.prepfile)
-        for part in xrange(1, args.parts + 1):
-            os.remove(args.partfile + '_' + str(part) + '.npz')
-
+        tool_newref_main(args, args.cpus)
     else:
-        logging.warning('Provide at least 5 female samples to enable the generation of a female reference. '
-                        'If these are of no interest, ingnore this warning.')
+        logging.warning('Provide at least 5 samples to enable the generation of a reference.')
 
     if genders.count("M") > 4:
-        logging.info('Starting new male reference creation ...')
+        logging.info('Starting new Y reference creation ...')
         args.tmpoutfile = args.basepath + ".tmp.M.npz"
         outfiles.append(args.tmpoutfile)
         tool_newref_prep(args, samples, np.array(genders), "M")
-
-        # Use multiple cores if requested
-        if args.cpus != 1:
-            import concurrent.futures
-            import copy
-            with concurrent.futures.ProcessPoolExecutor(max_workers=args.cpus) as executor:
-                for part in xrange(1, args.parts + 1):
-                    if not os.path.isfile(args.partfile + "_" + str(part) + ".npz"):
-                        this_args = copy.copy(args)
-                        this_args.part = [part, args.parts]
-                        executor.submit(tool_newref_part, this_args)
-                executor.shutdown(wait=True)
-        else:
-            for part in xrange(1, args.parts + 1):
-                if not os.path.isfile(args.partfile + "_" + str(part) + ".npz"):
-                    args.part = [part, args.parts]
-                    tool_newref_part(args)
-
-        # Put it together
-        tool_newref_post(args)
-
-        # Remove parallel processing temp data
-        os.remove(args.prepfile)
-        for part in xrange(1, args.parts + 1):
-            os.remove(args.partfile + '_' + str(part) + '.npz')
-
+        tool_newref_main(args, 1)
     else:
-        logging.warning('Provide at least 5 male samples to enable the generation of a male reference. '
+        logging.warning('Provide at least 5 male samples to enable Y chromosomal predictions. '
                         'If these are of no interest (e.g. NIPT), ingnore this warning.')
 
     if len(outfiles) == 0:
@@ -146,11 +95,40 @@ def tool_newref(args):
     logging.info("Finished creating reference")
 
 
+def tool_newref_main(args, cpus):
+
+    # Use multiple cores if requested
+    if cpus != 1:
+        import concurrent.futures
+        import copy
+        with concurrent.futures.ProcessPoolExecutor(max_workers=args.cpus) as executor:
+            for part in xrange(1, args.parts + 1):
+                if not os.path.isfile(args.partfile + "_" + str(part) + ".npz"):
+                    this_args = copy.copy(args)
+                    this_args.part = [part, args.parts]
+                    executor.submit(tool_newref_part, this_args)
+            executor.shutdown(wait=True)
+    else:
+        for part in xrange(1, args.parts + 1):
+            if not os.path.isfile(args.partfile + "_" + str(part) + ".npz"):
+                args.part = [part, args.parts]
+                tool_newref_part(args)
+
+    # Put it together
+    tool_newref_post(args)
+
+    # Remove parallel processing temp data
+    os.remove(args.prepfile)
+    for part in xrange(1, args.parts + 1):
+        os.remove(args.partfile + '_' + str(part) + '.npz')
+
+
 def tool_newref_prep(args, samples, genders, gender):
 
-    samples = samples[genders == gender]
-
-    masked_data, chromosome_bins, mask = to_numpy_array(samples)
+    if gender == "F":
+        masked_data, chromosome_bins, mask = to_numpy_array(samples, range(1, 24))
+    else:
+        masked_data, chromosome_bins, mask = to_numpy_array(samples[genders == gender], range(1, 25))
 
     del samples
     masked_chrom_bins = [sum(mask[sum(chromosome_bins[:i]):sum(chromosome_bins[:i]) + x]) for i, x in
@@ -230,14 +208,19 @@ def tool_newref_post(args):
 
 
 def tool_newref_merge(args, outfiles):
-    final_ref = {}
+    final_ref = {"has_male" : False}
     for file_id in outfiles:
         npz_file = np.load(file_id)
         gender = npz_file['gender']
+        if gender == "M":
+            final_ref["has_male"] = True
         for component in npz_file.keys():
             if component == 'gender':
                 continue
-            final_ref[str(component) + "." + str(gender)] = npz_file[component]
+            if gender == "F":
+                final_ref[str(component)] = npz_file[component]
+            else:
+                final_ref[str(component) + ".Y"] = npz_file[component]
         os.remove(file_id)
     np.savez_compressed(args.outfile, **final_ref)
 
@@ -276,19 +259,18 @@ def tool_test(args):
 
     # Reference data handling
     mask_list = []
-    weights = get_weights(reference_file["distances" + "." + str(gender)])
-    binsize = reference_file['binsize' + "." + str(gender)].item()
-    indexes = reference_file['indexes' + "." + str(gender)]
-    distances = reference_file['distances' + "." + str(gender)]
-    chromosome_sizes = reference_file['chromosome_sizes' + "." + str(gender)]
-    mask = reference_file['mask' + "." + str(gender)]
-    mask_list.append(mask)
-    masked_sizes = reference_file['masked_sizes' + "." + str(gender)]
+    weights = get_weights(reference_file["distances"])
+    binsize = reference_file['binsize'].item()
+    indexes = reference_file['indexes']
+    distances = reference_file['distances']
+    chromosome_sizes = reference_file['chromosome_sizes']
+    mask = reference_file['mask']
+    masked_sizes = reference_file['masked_sizes']
     masked_chrom_bin_sums = [sum(masked_sizes[:x + 1]) for x in range(len(masked_sizes))]
-    pca_mean = reference_file['pca_mean' + "." + str(gender)]
-    pca_components = reference_file['pca_components' + "." + str(gender)]
+    pca_mean = reference_file['pca_mean']
+    pca_components = reference_file['pca_components']
+    has_male = reference_file['has_male']
 
-    del reference_file
 
     # Test sample data handling
     sample = sample_file['sample'].item()
@@ -310,6 +292,34 @@ def tool_test(args):
     results_z, results_r, ref_sizes, std_dev_avg = repeat_test(test_copy, indexes, distances,
                                                                masked_sizes, masked_chrom_bin_sums,
                                                                autosome_cutoff, allosome_cutoff, z_threshold, 5)
+
+    if not has_male and gender == "M":
+        logging.warning('Reference contains fewer than 5 males. Chromosome Y normalisation is not possible. '
+                        'If this is desired, create a new reference.')
+    elif has_male and gender == "M":
+        test_data = to_numpy_ref_format(sample, reference_file['chromosome_sizes.Y'], reference_file['mask.Y'])
+        test_data = apply_pca(test_data, reference_file['pca_mean.Y'], reference_file['pca_components.Y'])
+        test_copy = np.copy(test_data)
+        results_z_Y, results_r_Y, ref_sizes_Y, _ = repeat_test(test_copy, reference_file['indexes.Y'],
+                                                                   reference_file['distances.Y'],
+                                                                   reference_file['masked_sizes.Y'],
+                                                                   [sum(reference_file['masked_sizes.Y'][:x + 1]) for x in
+                                                                    range(len(reference_file['masked_sizes.Y']))],
+                                                                   autosome_cutoff, allosome_cutoff, z_threshold, 5)
+        results_z = np.append(results_z, results_z_Y[len(results_z):])
+        results_r = np.append(results_r, results_r_Y[len(results_r):])
+        ref_sizes = np.append(ref_sizes, ref_sizes_Y[len(ref_sizes):])
+        weights = np.append(weights, get_weights(reference_file["distances.Y"])[len(weights):])
+        chromosome_sizes = reference_file['chromosome_sizes.Y']
+        mask = np.append(mask,reference_file['mask.Y'][len(mask):])
+        mask_list.append(mask)
+        masked_sizes = np.append(masked_sizes, reference_file['masked_sizes.Y'][len(masked_sizes):])
+
+        masked_chrom_bin_sums = [sum(masked_sizes[:x + 1]) for x in range(len(masked_sizes))]
+
+    del reference_file
+
+
     # Get rid of infinite values caused by having no reference bins or only zeros in the reference
     infinite_mask = (ref_sizes >= args.minrefbins)
     mask_list.append(infinite_mask)

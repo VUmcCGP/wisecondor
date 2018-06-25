@@ -182,12 +182,10 @@ def scale_sample(sample, from_size, to_size):
     return return_sample
 
 
-def to_numpy_array(samples):
+def to_numpy_array(samples, chromosomes):
     by_chrom = []
     chrom_bins = []
     sample_count = len(samples)
-
-    chromosomes = range(1, len(samples[0]) + 1)
 
     for chromosome in chromosomes:
         max_len = max([sample[str(chromosome)].shape[0] for sample in samples])
@@ -237,7 +235,7 @@ def apply_pca(sample_data, mean, components):
 def to_numpy_ref_format(sample, chrom_bins, mask):
     by_chrom = []
 
-    chrs = range(1, len(sample) + 1)
+    chrs = range(1, len(chrom_bins) + 1)
 
     for chromosome in chrs:
         this_chrom = np.zeros(chrom_bins[chromosome - 1], dtype=float)
@@ -364,6 +362,13 @@ def get_reference(corrected_data, chromosome_bins, chromosome_bin_sums,
         if end_num < end:
             end = end_num
 
+        if len(chromosome_bin_sums) == 24 and chrom != 23:
+            part_indexes = np.zeros((end - start, select_ref_amount), dtype=np.int32)
+            part_distances = np.ones((end - start, select_ref_amount))
+            big_indexes.extend(part_indexes)
+            big_distances.extend(part_distances)
+            continue
+
         logging.info('Thread {} | Actual Chromosome area {} {} | chr {}'.format(
             part, chromosome_bin_sums[chrom] - chromosome_bins[chrom], chromosome_bin_sums[chrom], str(chrom + 1)))
         chrom_data = np.concatenate((corrected_data[:chromosome_bin_sums[chrom] - chromosome_bins[chrom], :],
@@ -387,6 +392,7 @@ def get_reference(corrected_data, chromosome_bins, chromosome_bin_sums,
 
         part_indexes, part_distances = get_ref_for_bins(select_ref_amount, start,
                                                         end, corrected_data, chrom_data, knit_length)
+
         big_indexes.extend(part_indexes)
         big_distances.extend(part_distances)
 
