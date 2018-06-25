@@ -88,7 +88,7 @@ def tool_newref(args):
         logging.warning('Provide at least 5 male samples to enable Y chromosomal predictions. '
                         'If these are of no interest (e.g. NIPT), ignore this warning.')
 
-    tool_newref_merge(args, outfiles)
+    tool_newref_merge(args, outfiles, genders.count("F") > 4)
     logging.info("Finished creating reference")
 
 
@@ -203,8 +203,8 @@ def tool_newref_post(args, cpus):
                         gender=gender)
 
 
-def tool_newref_merge(args, outfiles):
-    final_ref = {"has_male" : False}
+def tool_newref_merge(args, outfiles, has_female):
+    final_ref = {"has_female" : has_female, "has_male" : False}
     for file_id in outfiles:
         npz_file = np.load(file_id)
         gender = npz_file['gender']
@@ -264,6 +264,7 @@ def tool_test(args):
     pca_mean = reference_file['pca_mean']
     pca_components = reference_file['pca_components']
     ref_has_male = reference_file['has_male']
+    ref_has_female = reference_file['has_female']
 
 
     # Test sample data handling
@@ -294,6 +295,11 @@ def tool_test(args):
                         'If these are desired, create a new reference and include male samples. ')
 
         gender = "F"
+
+    elif not ref_has_female and gender == "F":
+        logging.warning('This sample is female, whilst the reference is created with fewer than 5 females. '
+                        'Chromosome X normalisation might not be accurate. '
+                        'If this is desired, create a new reference and include female samples. ')
 
     elif ref_has_male and gender == "M":
         test_data = to_numpy_ref_format(sample, reference_file['chromosome_sizes.Y'], reference_file['mask.Y'])
