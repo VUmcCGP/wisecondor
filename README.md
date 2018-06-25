@@ -76,7 +76,7 @@ WisecondorX convert input.bam output.npz [--optional arguments]
 `--retdist x` | Max amount of bp's between reads to consider them part of the same tower (default: x=4)  
 `--retthres x` | Threshold for a group of reads to be considered a tower. These will be removed (default: x=4)  
 `--gender x` | When not used (which is recommended), WisecondorX will predict the gender (options: x=F, x=M)  
-`--gonmapr x` | Represent the overall mappabality ratio between X and Y. Concerning short single-end read mapping, a Y bin is two times less mappable compared to an X bin. Used to predict gender. (default: x=2)  
+`--gonmapr x` | Represents the overall mappabality ratio between X and Y. Concerning short single-end read mapping, a Y bin is two times less mappable compared to an X bin. Used to predict gender. (default: x=2)  
 
 
 &rarr; Bash recipe (example for NIPT) at `./pipeline/convert.sh`
