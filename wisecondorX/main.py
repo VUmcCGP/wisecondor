@@ -312,12 +312,12 @@ def tool_test(args):
         weights = np.append(weights, get_weights(reference_file["distances.Y"])[len(weights):])
         chromosome_sizes = reference_file['chromosome_sizes.Y']
         mask = np.append(mask,reference_file['mask.Y'][len(mask):])
-        mask_list.append(mask)
         masked_sizes = np.append(masked_sizes, reference_file['masked_sizes.Y'][len(masked_sizes):])
 
         masked_chrom_bin_sums = [sum(masked_sizes[:x + 1]) for x in range(len(masked_sizes))]
 
     del reference_file
+    mask_list.append(mask)
 
 
     # Get rid of infinite values caused by having no reference bins or only zeros in the reference
