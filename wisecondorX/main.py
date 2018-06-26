@@ -67,28 +67,38 @@ def tool_newref(args):
     samples = np.array(samples)
 
     outfiles = []
-    if len(genders) > 4:
-        logging.info('Starting new reference creation ...')
+    if len(genders) > 9:
+        logging.info('Starting autosomal reference creation ...')
+        args.tmpoutfile = args.basepath + ".tmp.A.npz"
+        outfiles.append(args.tmpoutfile)
+        tool_newref_prep(args, samples, np.array(genders), "A")
+        logging.info('This might take a while ...')
+        tool_newref_main(args, args.cpus)
+    else:
+        logging.critical('Provide at least 10 samples to enable the generation of a reference.')
+        sys.exit()
+
+    if genders.count("F") > 4:
+        logging.info('Starting female gonosomal reference creation ...')
         args.tmpoutfile = args.basepath + ".tmp.F.npz"
         outfiles.append(args.tmpoutfile)
         tool_newref_prep(args, samples, np.array(genders), "F")
         logging.info('This might take a while ...')
-        tool_newref_main(args, args.cpus)
+        tool_newref_main(args, 1)
     else:
-        logging.critical('Provide at least 5 samples to enable the generation of a reference.')
-        sys.exit()
+        logging.warning('Provide at least 5 female samples to enable normalization of female gonosomes.')
 
     if genders.count("M") > 4:
-        logging.info('Starting new Y reference creation ...')
+        logging.info('Starting male gonosomal reference creation ...')
         args.tmpoutfile = args.basepath + ".tmp.M.npz"
         outfiles.append(args.tmpoutfile)
         tool_newref_prep(args, samples, np.array(genders), "M")
         tool_newref_main(args, 1)
     else:
-        logging.warning('Provide at least 5 male samples to enable Y chromosomal predictions. '
+        logging.warning('Provide at least 5 male samples to enable normalization of male gonosomes. '
                         'If these are of no interest (e.g. NIPT), ignore this warning.')
 
-    tool_newref_merge(args, outfiles, genders.count("F") > 4)
+    tool_newref_merge(args, outfiles)
     logging.info("Finished creating reference")
 
 
@@ -122,8 +132,10 @@ def tool_newref_main(args, cpus):
 
 def tool_newref_prep(args, samples, genders, gender):
 
-    if gender == "F":
-        masked_data, chromosome_bins, mask = to_numpy_array(samples, range(1, 24))
+    if gender == "A":
+        masked_data, chromosome_bins, mask = to_numpy_array(samples, range(1, 23))
+    elif gender == "F":
+        masked_data, chromosome_bins, mask = to_numpy_array(samples[genders == gender], range(1, 24))
     else:
         masked_data, chromosome_bins, mask = to_numpy_array(samples[genders == gender], range(1, 25))
 
@@ -183,7 +195,6 @@ def tool_newref_post(args, cpus):
     big_distances = []
     for part in xrange(1, cpus + 1):  # glob.glob(args.infiles):
         infile = args.partfile + '_' + str(part) + '.npz'
-        logging.info('Loading: {}'.format(infile))
         npzdata = np.load(infile)
         big_indexes.extend(npzdata['indexes'])
         big_distances.extend(npzdata['distances'])
@@ -203,20 +214,20 @@ def tool_newref_post(args, cpus):
                         gender=gender)
 
 
-def tool_newref_merge(args, outfiles, has_female):
-    final_ref = {"has_female" : has_female, "has_male" : False}
+def tool_newref_merge(args, outfiles):
+    final_ref = {"has_female" : False, "has_male" : False}
     for file_id in outfiles:
         npz_file = np.load(file_id)
-        gender = npz_file['gender']
-        if gender == "M":
-            final_ref["has_male"] = True
-        for component in npz_file.keys():
-            if component == 'gender':
-                continue
+        gender = str(npz_file['gender'])
+        for component in [x for x in npz_file.keys() if x != "gender"]:
             if gender == "F":
-                final_ref[str(component)] = npz_file[component]
+                final_ref["has_female"] = True
+                final_ref[str(component) + ".F"] = npz_file[component]
+            elif gender == "M":
+                final_ref["has_male"] = True
+                final_ref[str(component) + ".M"] = npz_file[component]
             else:
-                final_ref[str(component) + ".Y"] = npz_file[component]
+                final_ref[str(component)] = npz_file[component]
         os.remove(file_id)
     np.savez_compressed(args.outfile, **final_ref)
 
@@ -269,57 +280,44 @@ def tool_test(args):
     # Test sample data handling
     sample = sample_file['sample'].item()
     nreads = sum([sum(sample[x]) for x in sample.keys()])
-    gender = sample_file['gender']
-    sample = gender_correct(sample, gender)
+    actual_gender = sample_file['gender']
+    reference_gender = str(actual_gender)
+    sample = gender_correct(sample, actual_gender)
 
-    logging.info('Applying between-sample normalization ...')
+    logging.info('Applying between-sample normalization autosomes...')
     sample_bin_size = sample_file['binsize'].item()
     sample = scale_sample(sample, sample_bin_size, binsize)
 
     test_data = to_numpy_ref_format(sample, chromosome_sizes, mask)
     test_data = apply_pca(test_data, pca_mean, pca_components)
-    cutoff = get_optimal_cutoff(distances, args.maskrepeats)
+    cutoff = get_optimal_cutoff(distances, args.maskrepeats, 0)
 
     z_threshold = norm.ppf(0.975)  # two-tailed test
 
-    logging.info('Applying within-sample normalization ...')
+    logging.info('Applying within-sample normalization autosomes...')
     test_copy = np.copy(test_data)
     results_z, results_r, ref_sizes = repeat_test(test_copy, indexes, distances,
-                                                               masked_sizes, masked_chrom_bin_sums,
-                                                               cutoff, z_threshold, 5)
+                                                masked_sizes, masked_chrom_bin_sums,
+                                                cutoff, z_threshold, 5)
 
-    if not ref_has_male and gender == "M":
+    if not ref_has_male and actual_gender == "M":
         logging.warning('This sample is male, whilst the reference is created with fewer than 5 males. '
-                        'Chromosome Y normalisation is thus not possible, and X chromosomal predictions might not be accurate. '
-                        'If these are desired, create a new reference and include male samples. ')
+                        'The female gonosomal reference will be used for X predictions. Note that these might '
+                        'not be accurate. If the latter is desired, create a new reference and include more '
+                        'male samples.')
+        reference_gender = "F"
 
-        gender = "F"
-
-    elif not ref_has_female and gender == "F":
+    elif not ref_has_female and actual_gender == "F":
         logging.warning('This sample is female, whilst the reference is created with fewer than 5 females. '
-                        'Chromosome X normalisation might not be accurate. '
-                        'If this is desired, create a new reference and include female samples. ')
+                        'The male gonosomal reference will be used for XY predictions. Note that these might '
+                        'not be accurate. If the latter is desired, create a new reference and include more '
+                        'female samples.')
+        reference_gender = "M"
 
-    elif ref_has_male and gender == "M":
-        test_data = to_numpy_ref_format(sample, reference_file['chromosome_sizes.Y'], reference_file['mask.Y'])
-        test_data = apply_pca(test_data, reference_file['pca_mean.Y'], reference_file['pca_components.Y'])
-        test_copy = np.copy(test_data)
-        results_z_Y, results_r_Y, ref_sizes_Y = repeat_test(test_copy, reference_file['indexes.Y'],
-                                                                   reference_file['distances.Y'],
-                                                                   reference_file['masked_sizes.Y'],
-                                                                   [sum(reference_file['masked_sizes.Y'][:x + 1]) for x in
-                                                                    range(len(reference_file['masked_sizes.Y']))],
-                                                                    cutoff, z_threshold, 5)
-        results_z = np.append(results_z, results_z_Y[len(results_z):])
-        results_r = np.append(results_r, results_r_Y[len(results_r):])
-        ref_sizes = np.append(ref_sizes, ref_sizes_Y[len(ref_sizes):])
-        weights = np.append(weights, get_weights(reference_file["distances.Y"])[len(weights):])
-        chromosome_sizes = reference_file['chromosome_sizes.Y']
-        mask = np.append(mask, reference_file['mask.Y'][len(mask):])
-        masked_sizes = np.append(masked_sizes, reference_file['masked_sizes.Y'][len(masked_sizes):])
-
-        masked_chrom_bin_sums = [sum(masked_sizes[:x + 1]) for x in range(len(masked_sizes))]
-
+    results_z, results_r, ref_sizes, weights, chromosome_sizes, mask, masked_sizes, masked_chrom_bin_sums = \
+        append_objects_with_gonosomes(args, reference_gender, sample, reference_file,
+                                  z_threshold,results_z, results_r,
+                                  ref_sizes, weights, mask, masked_sizes)
     del reference_file
     mask_list.append(mask)
 
@@ -353,7 +351,7 @@ def tool_test(args):
 
     # Apply blacklist
     if args.blacklist:
-        apply_blacklist(args, binsize, results_r, results_z, results_w, sample)
+        apply_blacklist(args, binsize, results_r, results_z, results_w)
 
     # Make R interpretable
     results_r = [x.tolist() for x in results_r]
@@ -368,7 +366,7 @@ def tool_test(args):
                 results_w[c][i] = 0
 
     logging.info('Obtaining CBS segments ...')
-    cbs_calls = cbs(args, results_r, results_z, results_w, gender, wc_dir)
+    cbs_calls = cbs(args, results_r, results_z, results_w, reference_gender, wc_dir)
 
     out_dict = {'binsize': binsize,
                 'results_r': results_r,
@@ -376,7 +374,8 @@ def tool_test(args):
                 'results_w' : results_w,
                 'nreads': nreads,
                 'cbs_calls': cbs_calls,
-                'gender': str(gender),
+                'actual_gender': str(actual_gender),
+                'reference_gender': str(reference_gender),
                 'beta': str(args.beta)}
 
     # Save txt: optional

@@ -156,10 +156,37 @@ def gender_correct(sample, gender):
     if gender == "M":
         sample["23"] = sample["23"] * 2
         sample["24"] = sample["24"] * 2
-    else:
-        sample.pop("24")
 
     return sample
+
+
+def append_objects_with_gonosomes(args, gender, sample, reference_file,
+                                  z_threshold,results_z, results_r,
+                                  ref_sizes, weights, mask, masked_sizes):
+    cutoff = get_optimal_cutoff(reference_file['distances.' + gender], args.maskrepeats,
+                                sum(reference_file['masked_sizes.' + gender][:22]))
+    test_data = to_numpy_ref_format(sample, reference_file['chromosome_sizes.' + gender],
+                                    reference_file['mask.' + gender])
+    logging.info('Applying between-sample normalization gonosomes...')
+    test_data = apply_pca(test_data, reference_file['pca_mean.' + gender], reference_file['pca_components.' + gender])
+    test_copy = np.copy(test_data)
+    logging.info('Applying within-sample normalization gonosomes...')
+    results_z_Y, results_r_Y, ref_sizes_Y = repeat_test(test_copy, reference_file['indexes.' + gender],
+                                                        reference_file['distances.' + gender],
+                                                        reference_file['masked_sizes.' + gender],
+                                                        [sum(reference_file['masked_sizes.' + gender][:x + 1]) for x in
+                                                         range(len(reference_file['masked_sizes.' + gender]))],
+                                                        cutoff, z_threshold, 5)
+    results_z = np.append(results_z, results_z_Y[len(results_z):])
+    results_r = np.append(results_r, results_r_Y[len(results_r):])
+    ref_sizes = np.append(ref_sizes, ref_sizes_Y[len(ref_sizes):])
+    weights = np.append(weights, get_weights(reference_file["distances." + gender])[len(weights):])
+    chromosome_sizes = reference_file['chromosome_sizes.' + gender]
+    mask = np.append(mask, reference_file['mask.' + gender][len(mask):])
+    masked_sizes = np.append(masked_sizes, reference_file['masked_sizes.' + gender][len(masked_sizes):])
+    masked_chrom_bin_sums = [sum(masked_sizes[:x + 1]) for x in range(len(masked_sizes))]
+
+    return results_z, results_r, ref_sizes, weights, chromosome_sizes, mask, masked_sizes, masked_chrom_bin_sums
 
 
 def scale_sample(sample, from_size, to_size):
@@ -294,15 +321,14 @@ def get_ref_for_bins(amount, start, end, sample_data, other_data, knit_length):
     return ref_indexes, ref_distances
 
 
-def get_optimal_cutoff(reference, repeats):
-
+def get_optimal_cutoff(reference, repeats, start_index):
+    reference = reference[start_index:]
     cutoff = float("inf")
     for i in range(0, repeats):
         mask = reference < cutoff
         average = np.average(reference[mask])
         stddev = np.std(reference[mask])
         cutoff = average + 3 * stddev
-
     return cutoff
 
 
@@ -339,7 +365,7 @@ def get_reference(corrected_data, chromosome_bins, chromosome_bin_sums,
     bincount = chromosome_bin_sums[-1]
 
     start_num, end_num = get_part(part - 1, split_parts, bincount)
-    logging.info('Working on thread {} of {} meaning bins {} up to {}'.format(part, split_parts, start_num, end_num))
+    logging.info('Working on thread {} of {}, meaning bins {} up to {}'.format(part, split_parts, start_num, end_num))
     regions = split_by_chrom(start_num, end_num, chromosome_bin_sums)
 
     for region in regions:
@@ -352,24 +378,27 @@ def get_reference(corrected_data, chromosome_bins, chromosome_bin_sums,
         if end_num < end:
             end = end_num
 
-        if len(chromosome_bin_sums) == 24 and chrom != 23:
+        if len(chromosome_bin_sums) > 22 and chrom != 22 and chrom != 23: # chrom = index chrom
             part_indexes = np.zeros((end - start, select_ref_amount), dtype=np.int32)
             part_distances = np.ones((end - start, select_ref_amount))
             big_indexes.extend(part_indexes)
             big_distances.extend(part_distances)
             continue
 
-        logging.info('Thread {} | Actual Chromosome area {} {} | chr {}'.format(
+        logging.info('Thread {} | Working on area {} {} | chr {}'.format(
             part, chromosome_bin_sums[chrom] - chromosome_bins[chrom], chromosome_bin_sums[chrom], str(chrom + 1)))
         chrom_data = np.concatenate((corrected_data[:chromosome_bin_sums[chrom] - chromosome_bins[chrom], :],
                                     corrected_data[chromosome_bin_sums[chrom]:, :]))
 
-        x_length = chromosome_bin_sums[22] - (chromosome_bin_sums[22] - chromosome_bins[22])  # index 22 -> chrX
-
-        if chrom == 22:
-            knit_length = 0
-        else:
-            knit_length = x_length
+        # restrictions
+        knit_length = 0
+        if len(chromosome_bin_sums) == 24: # male ref
+            x_length = chromosome_bin_sums[22] - (chromosome_bin_sums[22] - chromosome_bins[22])
+            y_length = chromosome_bin_sums[23] - (chromosome_bin_sums[23] - chromosome_bins[23])
+            if chrom == 22:
+                knit_length = y_length
+            elif chrom == 23:
+                knit_length = x_length
 
         part_indexes, part_distances = get_ref_for_bins(select_ref_amount, start,
                                                         end, corrected_data, chrom_data, knit_length)
@@ -423,8 +452,8 @@ def repeat_test(test_data, indexes, distances, chromosome_bins,
     test_copy = np.copy(test_data)
     for i in xrange(repeats):
         results_z, results_r, ref_sizes = try_sample(test_data, test_copy, indexes, distances,
-                                                                  chromosome_bins, chromosome_bin_sums,
-                                                                  cutoff)
+                                                    chromosome_bins, chromosome_bin_sums,
+                                                    cutoff)
         test_copy[np_abs(results_z) >= threshold] = -1
     return results_z, results_r, ref_sizes
 
@@ -435,13 +464,20 @@ def get_weights(distances):
     return weights
 
 
-def generate_txt_output(args, json_out):
+def get_aberration_cutoff(beta, ploidy):
+    loss_cutoff = np.log2((ploidy - (beta / 2)) / ploidy)
+    gain_cutoff = np.log2((ploidy + (beta / 2)) / ploidy)
+    return loss_cutoff, gain_cutoff
+
+
+def generate_txt_output(args, out_dict):
     bed_file = open(args.outid + "_bins.bed", "w")
     bed_file.write("chr\tstart\tend\tid\tratio\tzscore\n")
-    results_r = json_out["results_r"]
-    results_z = json_out["results_z"]
-    results_w = json_out["results_w"]
-    binsize = json_out["binsize"]
+    results_r = out_dict["results_r"]
+    results_z = out_dict["results_z"]
+    results_w = out_dict["results_w"]
+    binsize = out_dict["binsize"]
+    actual_gender = out_dict["actual_gender"]
     for chr_i in range(len(results_r)):
         chr = str(chr_i + 1)
         if chr == "23":
@@ -467,7 +503,7 @@ def generate_txt_output(args, json_out):
     ab_file = open(args.outid + "_aberrations.bed", "w")
     segments_file.write("chr\tstart\tend\tratio\tzscore\n")
     ab_file.write("chr\tstart\tend\tratio\tzscore\ttype\n")
-    segments = json_out["cbs_calls"]
+    segments = out_dict["cbs_calls"]
     for segment in segments:
         chr = str(int(segment[0]))
         if chr == "23":
@@ -477,9 +513,12 @@ def generate_txt_output(args, json_out):
         it = [chr, int(segment[1] * binsize + 1), int((segment[2] + 1) * binsize), segment[4], segment[3]]
         it = [str(x) for x in it]
         segments_file.write("\t".join(it) + "\n")
-        if float(segment[4]) > np.log2(1. + args.beta / 4):
+        ploidy = 2
+        if (chr == "X" or chr == "Y") and actual_gender == "M":
+            ploidy = 1
+        if float(segment[4]) > get_aberration_cutoff(args.beta, ploidy)[1]:
             ab_file.write("\t".join(it) + "\tgain\n")
-        elif float(segment[4]) < np.log2(1. - args.beta / 4):
+        elif float(segment[4]) < get_aberration_cutoff(args.beta, ploidy)[0]:
             ab_file.write("\t".join(it) + "\tloss\n")
 
     segments_file.close()
@@ -548,7 +587,7 @@ def get_median_within_segment_variance(segments, binratios):
     return np.median([x for x in vars if not np.isnan(x)])
 
 
-def apply_blacklist(args, binsize, results_r, results_z, results_w, sample):
+def apply_blacklist(args, binsize, results_r, results_z, results_w):
     blacklist = {}
 
     for line in open(args.blacklist):
@@ -565,20 +604,19 @@ def apply_blacklist(args, binsize, results_r, results_z, results_w, sample):
             if chr == "Y":
                 chr = "24"
             for pos in range(s_s[0], s_s[1]):
-                if len(sample) < 24 and chr == "24":
+                if len(results_r) < 24 and chr == "24":
                     continue
                 results_r[int(chr) - 1][pos] = 0
                 results_z[int(chr) - 1][pos] = 0
                 results_w[int(chr) - 1][pos] = 0
-                sample[chr][pos] = 0
 
 
-def cbs(args, results_r, results_z, results_w, gender, wc_dir):
+def cbs(args, results_r, results_z, results_w, reference_gender, wc_dir):
     json_cbs_temp_dir = os.path.abspath(args.outid + "_CBS_tmp")
     json_cbs_file = open(json_cbs_temp_dir + "_01.json", "w")
     json.dump({"results_r": results_r,
                "weights": results_w,
-               "gender": str(gender),
+               "reference_gender": str(reference_gender),
                "alpha": str(args.alpha)
                },
               json_cbs_file)

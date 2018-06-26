@@ -34,7 +34,7 @@ input <- read_json(in.file)
 ratio <- as.numeric(unlist(input$results_r))
 weights <- as.numeric(unlist(input$weights))
 
-gender <- input$gender
+gender <- input$reference_gender
 alpha <- input$alpha
 
 if (gender == "M"){

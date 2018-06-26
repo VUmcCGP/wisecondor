@@ -37,11 +37,16 @@ binsize <- input$binsize
 
 # param
 
-gender = input$gender
-beta = input$beta
+gender = input$reference_gender
+beta = as.numeric(input$beta)
 
-gain.cut <- log2(1 + as.numeric(beta) / 4)
-del.cut <- log2(1 - as.numeric(beta) / 4)
+# aberration_cutoff
+
+get.aberration.cutoff <- function(beta, ploidy){
+    loss.cutoff = log2((ploidy - (beta / 2)) / ploidy)
+    gain.cutoff = log2((ploidy + (beta / 2)) / ploidy)
+    return(c(loss.cutoff, gain.cutoff))
+}
 
 # get nreads (readable)
 
@@ -136,11 +141,15 @@ for (ab in input$cbs_calls){
   start = as.integer(info[2]) + chr.end.pos[chr]
   end = as.integer(info[3]) + chr.end.pos[chr]
   height = as.double(info[5])
-  if (height > gain.cut){
-    dot.cols[start:end] = blue
+  ploidy = 2
+  if ((chr == 23 | chr == 24) & gender == "M"){
+    ploidy = 1
   }
-  if (height < del.cut){
+  if (height < get.aberration.cutoff(beta, ploidy)[1]){
     dot.cols[start:end] = red
+  }
+  if (height > get.aberration.cutoff(beta, ploidy)[2]){
+    dot.cols[start:end] = blue
   }
 }
 plot(ratio, main = "", axes=F,

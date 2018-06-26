@@ -48,12 +48,12 @@ There are three main stages (converting, reference creating & predicting) for us
 - Convert .bam files to .npz files (both reference and test samples)  
 - Create a reference (using reference .npz files)  
     - **Important notes**
-        - WisecondorX will internally generate a male and female reference. It is advisable that both male and female
+        - WisecondorX will internally generate a male and female gonosomal reference. It is advisable that both male and female
         samples are represented in the reference set. If e.g. no male samples are included, the Y chromosome will not be
         part of the analysis when testing male cases.  
         - For NIPT analysis, an important exception on previous rule holds: only pregnancies of female feti should be used to 
         generate the reference. This implies that for NIPT, WisecondorX is not able to analyse the Y chromosome. Additionally,
-        this goes without saying, for NIPT, make sure you do not manually annotate samples as male during the convert phase.  
+        this goes without saying, make sure you do not manually annotate samples as male during the convert phase.  
         - It is of paramount importance that the reference set consists of exclusively healthy samples that originate from
         the same sequencer, mapper, reference genome, type of material, ... etc, as the test samples. As a rule of thumb,
         think of all laboratory and in silico pre-processing steps: the more sources of bias that can be omitted,
@@ -74,8 +74,8 @@ WisecondorX convert input.bam output.npz [--optional arguments]
 `--binsize x` | Size per bin in bp, the reference bin size should be a multiple of this value (default: x=5e3)  
 `--retdist x` | Max amount of bp's between reads to consider them part of the same tower (default: x=4)  
 `--retthres x` | Threshold for a group of reads to be considered a tower. These will be removed (default: x=4)  
-`--gender x` | When not used (which is recommended), WisecondorX will predict the gender (options: x=F, x=M)  
-`--gonmapr x` | Represents the overall mappabality ratio between X and Y. Concerning short single-end read mapping, an X bin is twice (default) as mappable compared to an Y bin. Used to predict gender. (default: x=2)  
+`--gender x` | When not used (which is recommended), WisecondorX will predict the gender. Manually assigning gender could be useful for highly aberrant samples (choices: x=F, x=M)  
+`--gonmapr x` | Represents the overall mappability ratio between X and Y. Concerning short single-end read mapping, an X bin is twice (default) as mappable compared to an Y bin. Used to predict gender (default: x=2)  
 
 
 &rarr; Bash recipe (example for NIPT) at `./pipeline/convert.sh`
