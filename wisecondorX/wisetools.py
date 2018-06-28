@@ -1,11 +1,9 @@
 import bisect
 import json
 import logging
-import math
 import os
 import sys
 import subprocess
-import time
 import pysam
 import numpy as np
 from sklearn.decomposition import PCA
@@ -25,30 +23,6 @@ np_abs = np.abs
 np_sqrt = np.sqrt
 
 find_pos = bisect.bisect
-
-
-def train_pca(ref_data, pcacomp=3):
-    t_data = ref_data.T
-    pca = PCA(n_components=pcacomp)
-    pca.fit(t_data)
-    PCA(copy=True, whiten=False)
-    transformed = pca.transform(t_data)
-    inversed = pca.inverse_transform(transformed)
-    corrected = t_data / inversed
-
-    return corrected.T, pca
-
-
-def apply_pca(sample_data, mean, components):
-    pca = PCA(n_components=components.shape[0])
-    pca.components_ = components
-    pca.mean_ = mean
-
-    transform = pca.transform(np.array([sample_data]))
-
-    reconstructed = np.dot(transform, pca.components_) + pca.mean_
-    reconstructed = reconstructed[0]
-    return sample_data / reconstructed
 
 
 def convert_bam(bamfile, binsize, min_shift, threshold, mapq=1, demand_pair=False):
@@ -155,6 +129,64 @@ def convert_bam(bamfile, binsize, min_shift, threshold, mapq=1, demand_pair=Fals
     return chromosomes, qual_info
 
 
+def get_gender(args, sample):
+    tot_reads = float(sum([sum(sample[str(x)]) for x in range(1, 25)]))
+    X_reads = float(sum(sample["23"]))
+    X_len = float(len(sample["23"]))
+    Y_reads = float(sum(sample["24"]))
+    Y_len = float(len(sample["24"]))
+
+    X = (X_reads / tot_reads) / X_len * (1. / args.gonmapr)
+    Y = (Y_reads / tot_reads) / Y_len
+
+    # X/Y               = ?
+    # 1/1 (MALE)        = 1
+    # 2/noise (FEMALE)  = [4,8]
+    # cut-off 3 -- should be robust vs noise, mosaic large subchromosomal duplication/deletions, and male pregnancies
+
+    if X / Y < 3:
+        return "M"
+    else:
+        return "F"
+
+
+def gender_correct(sample, gender):
+    if gender == "M":
+        sample["23"] = sample["23"] * 2
+        sample["24"] = sample["24"] * 2
+
+    return sample
+
+
+def append_objects_with_gonosomes(args, gender, sample, reference_file,
+                                  z_threshold, results_z, results_r,
+                                  ref_sizes, weights, mask, masked_sizes):
+    cutoff = get_optimal_cutoff(reference_file['distances.' + gender], args.maskrepeats,
+                                sum(reference_file['masked_sizes.' + gender][:22]))
+    test_data = to_numpy_ref_format(sample, reference_file['chromosome_sizes.' + gender],
+                                    reference_file['mask.' + gender])
+    logging.info('Applying between-sample normalization gonosomes...')
+    test_data = apply_pca(test_data, reference_file['pca_mean.' + gender], reference_file['pca_components.' + gender])
+    test_copy = np.copy(test_data)
+    logging.info('Applying within-sample normalization gonosomes...')
+    results_z_Y, results_r_Y, ref_sizes_Y = repeat_test(test_copy, reference_file['indexes.' + gender],
+                                                        reference_file['distances.' + gender],
+                                                        reference_file['masked_sizes.' + gender],
+                                                        [sum(reference_file['masked_sizes.' + gender][:x + 1]) for x in
+                                                         range(len(reference_file['masked_sizes.' + gender]))],
+                                                        cutoff, z_threshold, 5)
+    results_z = np.append(results_z, results_z_Y[len(results_z):])
+    results_r = np.append(results_r, results_r_Y[len(results_r):])
+    ref_sizes = np.append(ref_sizes, ref_sizes_Y[len(ref_sizes):])
+    weights = np.append(weights, get_weights(reference_file["distances." + gender])[len(weights):])
+    chromosome_sizes = reference_file['chromosome_sizes.' + gender]
+    mask = np.append(mask, reference_file['mask.' + gender][len(mask):])
+    masked_sizes = np.append(masked_sizes, reference_file['masked_sizes.' + gender][len(masked_sizes):])
+    masked_chrom_bin_sums = [sum(masked_sizes[:x + 1]) for x in range(len(masked_sizes))]
+
+    return results_z, results_r, ref_sizes, weights, chromosome_sizes, mask, masked_sizes, masked_chrom_bin_sums
+
+
 def scale_sample(sample, from_size, to_size):
     if not to_size or from_size == to_size:
         return sample
@@ -175,15 +207,10 @@ def scale_sample(sample, from_size, to_size):
     return return_sample
 
 
-def to_numpy_array(samples, gender):
+def to_numpy_array(samples, chromosomes):
     by_chrom = []
     chrom_bins = []
     sample_count = len(samples)
-
-    if gender == "F":
-        chromosomes = range(1, 24)
-    else:
-        chromosomes = range(1, 25)
 
     for chromosome in chromosomes:
         max_len = max([sample[str(chromosome)].shape[0] for sample in samples])
@@ -199,22 +226,41 @@ def to_numpy_array(samples, gender):
     sum_per_sample = np_sum(all_data, 0)
     all_data = all_data / sum_per_sample
 
-    logging.info('Applying nonzero mask on the data: {}'.format(all_data.shape))
     sum_per_bin = np_sum(all_data, 1)
     mask = sum_per_bin > 0
     masked_data = all_data[mask, :]
-    logging.info('becomes {}'.format(masked_data.shape))
 
     return masked_data, chrom_bins, mask
 
 
-def to_numpy_ref_format(sample, chrom_bins, mask, gender):
+def train_pca(ref_data, pcacomp=3):
+    t_data = ref_data.T
+    pca = PCA(n_components=pcacomp)
+    pca.fit(t_data)
+    PCA(copy=True, whiten=False)
+    transformed = pca.transform(t_data)
+    inversed = pca.inverse_transform(transformed)
+    corrected = t_data / inversed
+
+    return corrected.T, pca
+
+
+def apply_pca(sample_data, mean, components):
+    pca = PCA(n_components=components.shape[0])
+    pca.components_ = components
+    pca.mean_ = mean
+
+    transform = pca.transform(np.array([sample_data]))
+
+    reconstructed = np.dot(transform, pca.components_) + pca.mean_
+    reconstructed = reconstructed[0]
+    return sample_data / reconstructed
+
+
+def to_numpy_ref_format(sample, chrom_bins, mask):
     by_chrom = []
 
-    if gender == "M":
-        chrs = range(1, 25)
-    else:
-        chrs = range(1, 24)
+    chrs = range(1, len(chrom_bins) + 1)
 
     for chromosome in chrs:
         this_chrom = np.zeros(chrom_bins[chromosome - 1], dtype=float)
@@ -273,26 +319,15 @@ def get_ref_for_bins(amount, start, end, sample_data, other_data, knit_length):
     return ref_indexes, ref_distances
 
 
-def get_optimal_cutoff(reference, chromosome_sizes, repeats):
-    autosome_len = sum(chromosome_sizes[:22])
-
-    autosome_ref = reference[:autosome_len]
-    autosome_cutoff = float("inf")
+def get_optimal_cutoff(reference, repeats, start_index):
+    reference = reference[start_index:]
+    cutoff = float("inf")
     for i in range(0, repeats):
-        mask = autosome_ref < autosome_cutoff
-        average = np.average(autosome_ref[mask])
-        stddev = np.std(autosome_ref[mask])
-        autosome_cutoff = average + 3 * stddev
-
-    allosome_ref = reference[autosome_len:]
-    allosome_cutoff = float("inf")
-    for i in range(0, repeats):
-        mask = allosome_ref < allosome_cutoff
-        average = np.average(allosome_ref[mask])
-        stddev = np.std(allosome_ref[mask])
-        allosome_cutoff = average + 3 * stddev
-
-    return autosome_cutoff, allosome_cutoff
+        mask = reference < cutoff
+        average = np.average(reference[mask])
+        stddev = np.std(reference[mask])
+        cutoff = average + 3 * stddev
+    return cutoff
 
 
 # Returns: Chromosome index, startBinNumber, endBinNumber
@@ -321,15 +356,14 @@ def get_part(partnum, outof, bincount):
 
 
 def get_reference(corrected_data, chromosome_bins, chromosome_bin_sums,
-                  gender, select_ref_amount=100, part=1, split_parts=1):
-    time_start_selection = time.time()
+                  select_ref_amount=100, part=1, split_parts=1):
     big_indexes = []
     big_distances = []
 
     bincount = chromosome_bin_sums[-1]
 
     start_num, end_num = get_part(part - 1, split_parts, bincount)
-    logging.info('Working on thread {} of {} meaning bins {} up to {}'.format(part, split_parts, start_num, end_num))
+    logging.info('Working on thread {} of {}, meaning bins {} up to {}'.format(part, split_parts, start_num, end_num))
     regions = split_by_chrom(start_num, end_num, chromosome_bin_sums)
 
     for region in regions:
@@ -342,33 +376,33 @@ def get_reference(corrected_data, chromosome_bins, chromosome_bin_sums,
         if end_num < end:
             end = end_num
 
-        logging.info('Thread {} | Actual Chromosome area {} {} | chr {}'.format(
+        if len(chromosome_bin_sums) > 22 and chrom != 22 and chrom != 23:  # chrom = index chrom
+            part_indexes = np.zeros((end - start, select_ref_amount), dtype=np.int32)
+            part_distances = np.ones((end - start, select_ref_amount))
+            big_indexes.extend(part_indexes)
+            big_distances.extend(part_distances)
+            continue
+
+        logging.info('Thread {} | Working on area {} {} | chr {}'.format(
             part, chromosome_bin_sums[chrom] - chromosome_bins[chrom], chromosome_bin_sums[chrom], str(chrom + 1)))
         chrom_data = np.concatenate((corrected_data[:chromosome_bin_sums[chrom] - chromosome_bins[chrom], :],
-                                    corrected_data[chromosome_bin_sums[chrom]:, :]))
+                                     corrected_data[chromosome_bin_sums[chrom]:, :]))
 
-        x_length = chromosome_bin_sums[22] - (chromosome_bin_sums[22] - chromosome_bins[22])  # index 22 -> chrX
-
-        if gender == "M":
+        # restrictions
+        knit_length = 0
+        if len(chromosome_bin_sums) == 24:  # male ref
+            x_length = chromosome_bin_sums[22] - (chromosome_bin_sums[22] - chromosome_bins[22])
             y_length = chromosome_bin_sums[23] - (chromosome_bin_sums[23] - chromosome_bins[23])
             if chrom == 22:
                 knit_length = y_length
             elif chrom == 23:
                 knit_length = x_length
-            else:
-                knit_length = x_length + y_length
-        else:
-            if chrom == 22:
-                knit_length = 0
-            else:
-                knit_length = x_length
 
         part_indexes, part_distances = get_ref_for_bins(select_ref_amount, start,
                                                         end, corrected_data, chrom_data, knit_length)
+
         big_indexes.extend(part_indexes)
         big_distances.extend(part_distances)
-
-        logging.info('{} Time spent {} seconds'.format(part, int(time.time() - time_start_selection)))
 
     index_array = np.array(big_indexes)
     distance_array = np.array(big_distances)
@@ -377,7 +411,7 @@ def get_reference(corrected_data, chromosome_bins, chromosome_bin_sums,
 
 
 def try_sample(test_data, test_copy, indexes, distances, chromosome_bins,
-               chromosome_bin_sums, autosome_cutoff, allosome_cutoff):
+               chromosome_bin_sums, cutoff):
     bincount = chromosome_bin_sums[-1]
 
     results_z = np.zeros(bincount)
@@ -394,10 +428,7 @@ def try_sample(test_data, test_copy, indexes, distances, chromosome_bins,
             (test_copy[:chromosome_bin_sums[chrom] - chromosome_bins[chrom]], test_copy[chromosome_bin_sums[chrom]:]))
 
         for index in indexes[start:end]:
-            if chrom < 22:
-                ref_data = chrom_data[index[distances[i] < autosome_cutoff]]
-            else:
-                ref_data = chrom_data[index[distances[i] < allosome_cutoff]]
+            ref_data = chrom_data[index[distances[i] < cutoff]]
             ref_data = ref_data[ref_data >= 0]  # Previously found aberrations are marked by negative values
             ref_mean = np_mean(ref_data)
             ref_stdev = np_std(ref_data)
@@ -409,41 +440,47 @@ def try_sample(test_data, test_copy, indexes, distances, chromosome_bins,
             ref_sizes[i] = ref_data.shape[0]
             i += 1
 
-    return results_z, results_r, ref_sizes, std_dev_sum / std_dev_num
+    return results_z, results_r, ref_sizes
 
 
 def repeat_test(test_data, indexes, distances, chromosome_bins,
-                chromosome_bin_sums, autosome_cutoff, allosome_cutoff, threshold, repeats):
+                chromosome_bin_sums, cutoff, threshold, repeats):
     results_z = None
     results_r = None
     test_copy = np.copy(test_data)
     for i in xrange(repeats):
-        results_z, results_r, ref_sizes, std_dev_avg = try_sample(test_data, test_copy, indexes, distances,
-                                                                  chromosome_bins, chromosome_bin_sums,
-                                                                  autosome_cutoff, allosome_cutoff)
+        results_z, results_r, ref_sizes = try_sample(test_data, test_copy, indexes, distances,
+                                                     chromosome_bins, chromosome_bin_sums, cutoff)
         test_copy[np_abs(results_z) >= threshold] = -1
-    return results_z, results_r, ref_sizes, std_dev_avg
+    return results_z, results_r, ref_sizes
 
 
 def get_weights(distances):
     inverse_weights = [np.mean(x) for x in distances]
-    weights = np.array([1/x for x in inverse_weights])
+    weights = np.array([1 / x for x in inverse_weights])
     return weights
 
 
-def generate_txt_output(args, json_out):
+def get_aberration_cutoff(beta, ploidy):
+    loss_cutoff = np.log2((ploidy - (beta / 2)) / ploidy)
+    gain_cutoff = np.log2((ploidy + (beta / 2)) / ploidy)
+    return loss_cutoff, gain_cutoff
+
+
+def generate_txt_output(args, out_dict):
     bed_file = open(args.outid + "_bins.bed", "w")
     bed_file.write("chr\tstart\tend\tid\tratio\tzscore\n")
-    results_r = json_out["results_r"]
-    results_z = json_out["results_z"]
-    results_w = json_out["results_w"]
-    binsize = json_out["binsize"]
+    results_r = out_dict["results_r"]
+    results_z = out_dict["results_z"]
+    results_w = out_dict["results_w"]
+    binsize = out_dict["binsize"]
+    actual_gender = out_dict["actual_gender"]
     for chr_i in range(len(results_r)):
-        chr = str(chr_i + 1)
-        if chr == "23":
-            chr = "X"
-        if chr == "24":
-            chr = "Y"
+        chrom = str(chr_i + 1)
+        if chrom == "23":
+            chrom = "X"
+        if chrom == "24":
+            chrom = "Y"
         feat = 1
         for feat_i in range(len(results_r[chr_i])):
             r = results_r[chr_i][feat_i]
@@ -452,8 +489,8 @@ def generate_txt_output(args, json_out):
                 r = "NaN"
             if z == 0:
                 z = "NaN"
-            feat_str = chr + ":" + str(feat) + "-" + str(feat + binsize - 1)
-            it = [chr, feat, feat + binsize - 1, feat_str, r, z]
+            feat_str = chrom + ":" + str(feat) + "-" + str(feat + binsize - 1)
+            it = [chrom, feat, feat + binsize - 1, feat_str, r, z]
             it = [str(x) for x in it]
             bed_file.write("\t".join(it) + "\n")
             feat += binsize
@@ -463,19 +500,22 @@ def generate_txt_output(args, json_out):
     ab_file = open(args.outid + "_aberrations.bed", "w")
     segments_file.write("chr\tstart\tend\tratio\tzscore\n")
     ab_file.write("chr\tstart\tend\tratio\tzscore\ttype\n")
-    segments = json_out["cbs_calls"]
+    segments = out_dict["cbs_calls"]
     for segment in segments:
-        chr = str(int(segment[0]))
-        if chr == "23":
-            chr = "X"
-        if chr == "24":
-            chr = "Y"
-        it = [chr, int(segment[1] * binsize + 1), int((segment[2] + 1) * binsize), segment[4], segment[3]]
+        chrom = str(int(segment[0]))
+        if chrom == "23":
+            chrom = "X"
+        if chrom == "24":
+            chrom = "Y"
+        it = [chrom, int(segment[1] * binsize + 1), int((segment[2] + 1) * binsize), segment[4], segment[3]]
         it = [str(x) for x in it]
         segments_file.write("\t".join(it) + "\n")
-        if float(segment[4]) > np.log2(1. + args.beta / 4):
+        ploidy = 2
+        if (chrom == "X" or chrom == "Y") and actual_gender == "M":
+            ploidy = 1
+        if float(segment[4]) > get_aberration_cutoff(args.beta, ploidy)[1]:
             ab_file.write("\t".join(it) + "\tgain\n")
-        elif float(segment[4]) < np.log2(1. - args.beta / 4):
+        elif float(segment[4]) < get_aberration_cutoff(args.beta, ploidy)[0]:
             ab_file.write("\t".join(it) + "\tloss\n")
 
     segments_file.close()
@@ -484,11 +524,11 @@ def generate_txt_output(args, json_out):
     statistics_file.write("chr\tratio.mean\tratio.median\tzscore\n")
     chrom_scores = []
     for chr_i in range(len(results_r)):
-        chr = str(chr_i + 1)
-        if chr == "23":
-            chr = "X"
-        if chr == "24":
-            chr = "Y"
+        chrom = str(chr_i + 1)
+        if chrom == "23":
+            chrom = "X"
+        if chrom == "24":
+            chrom = "Y"
         R = [x for x in results_r[chr_i] if x != 0]
 
         stouffer = np.sum(np.array(results_z[chr_i]) * np.array(results_w[chr_i])) \
@@ -497,7 +537,7 @@ def generate_txt_output(args, json_out):
         chrom_ratio_mean = np.mean(R)
         chrom_ratio_median = np.median(R)
 
-        statistics_file.write(str(chr)
+        statistics_file.write(str(chrom)
                               + "\t" + str(chrom_ratio_median)
                               + "\t" + str(chrom_ratio_mean)
                               + "\t" + str(stouffer)
@@ -511,21 +551,17 @@ def generate_txt_output(args, json_out):
     statistics_file.close()
 
 
-def write_plots(args, json_out, wc_dir, gender):
+def write_plots(args, out_dict, wc_dir):
     json_file = open(args.outid + "_plot_tmp.json", "w")
-    json.dump(json_out, json_file)
+    json.dump(out_dict,
+              json_file)
     json_file.close()
 
     plot_script = str(os.path.dirname(wc_dir)) + "/include/plotter.R"
-    if gender == "M":
-        sexchrom = "XY"
-    else:
-        sexchrom = "X"
+
     r_cmd = ["Rscript", plot_script,
              "--infile", "{}_plot_tmp.json".format(args.outid),
-             "--outdir", args.outid + ".plots",
-             "--sexchroms", sexchrom,
-             "--beta", str(args.beta)]
+             "--outdir", "{}.plots".format(args.outid)]
     logging.debug("plot cmd: {}".format(r_cmd))
 
     try:
@@ -542,13 +578,13 @@ def get_median_within_segment_variance(segments, binratios):
     for segment in segments:
         segment_ratios = binratios[int(segment[0]) - 1][int(segment[1]):int(segment[2])]
         segment_ratios = [x for x in segment_ratios if x != 0]
-        if [] != segment_ratios:
+        if segment_ratios:
             var = np.var(segment_ratios)
             vars.append(var)
     return np.median([x for x in vars if not np.isnan(x)])
 
 
-def apply_blacklist(args, binsize, results_r, results_z, results_w, sample, gender):
+def apply_blacklist(args, binsize, results_r, results_z, results_w):
     blacklist = {}
 
     for line in open(args.blacklist):
@@ -558,37 +594,35 @@ def apply_blacklist(args, binsize, results_r, results_z, results_w, sample, gend
             blacklist[bchr] = []
         blacklist[bchr].append([int(int(bstart) / binsize), int(int(bstop) / binsize) + 1])
 
-    for chr in blacklist.keys():
-        for s_s in blacklist[chr]:
-            if chr == "X":
-                chr = "23"
-            if chr == "Y":
-                chr = "24"
+    for chrom in blacklist.keys():
+        for s_s in blacklist[chrom]:
+            if chrom == "X":
+                chrom = "23"
+            if chrom == "Y":
+                chrom = "24"
             for pos in range(s_s[0], s_s[1]):
-                if gender == "F" and chr == "24":
+                if len(results_r) < 24 and chrom == "24":
                     continue
-                results_r[int(chr) - 1][pos] = 0
-                results_z[int(chr) - 1][pos] = 0
-                results_w[int(chr) - 1][pos] = 0
-                sample[chr][pos] = 0
+                results_r[int(chrom) - 1][pos] = 0
+                results_z[int(chrom) - 1][pos] = 0
+                results_w[int(chrom) - 1][pos] = 0
 
 
-def cbs(args, results_r, results_z, results_w, gender, wc_dir):
+def cbs(args, results_r, results_z, results_w, reference_gender, wc_dir):
     json_cbs_temp_dir = os.path.abspath(args.outid + "_CBS_tmp")
     json_cbs_file = open(json_cbs_temp_dir + "_01.json", "w")
-    json.dump({"results_r": results_r, "weights": results_w}, json_cbs_file)
+    json.dump({"results_r": results_r,
+               "weights": results_w,
+               "reference_gender": str(reference_gender),
+               "alpha": str(args.alpha)
+               },
+              json_cbs_file)
     json_cbs_file.close()
     cbs_script = str(os.path.dirname(wc_dir)) + "/include/CBS.R"
 
-    if gender == "M":
-        sexchrom = "XY"
-    else:
-        sexchrom = "X"
     r_cmd = ["Rscript", cbs_script,
              "--infile", "{}_01.json".format(json_cbs_temp_dir),
-             "--outfile", "{}_02.json".format(json_cbs_temp_dir),
-             "--sexchroms", sexchrom,
-             "--alpha", str(args.alpha)]
+             "--outfile", "{}_02.json".format(json_cbs_temp_dir)]
     logging.debug("CBS cmd: {}".format(r_cmd))
 
     try:
@@ -596,6 +630,7 @@ def cbs(args, results_r, results_z, results_w, gender, wc_dir):
     except subprocess.CalledProcessError as e:
         logging.critical("Script {} failed with error {}".format(cbs_script, e))
         sys.exit()
+
     os.remove(json_cbs_temp_dir + "_01.json")
     cbs_data = json.load(open(json_cbs_temp_dir + "_02.json"))[1:]
     cbs_data = [[float(y.encode("utf-8")) for y in x] for x in cbs_data]
@@ -610,7 +645,7 @@ def cbs(args, results_r, results_z, results_w, gender, wc_dir):
         z_segment = np.array(results_z[chr_i][start:end])
         w_segment = np.array(results_w[chr_i][start:end])
 
-        stouffer = np.sum(z_segment * w_segment) / np.sqrt(np.sum(np.power(w_segment,2)))
+        stouffer = np.sum(z_segment * w_segment) / np.sqrt(np.sum(np.power(w_segment, 2)))
         stouffer_scores.append(stouffer)
 
     # Save results

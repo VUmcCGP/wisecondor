@@ -5,30 +5,16 @@
 arguments = "
 
 --infile          - (mandatory argument) input .json file
---sexchroms       - (mandatory argument) which sex chromosomes will be analyzed? (X or XY)
 --outfile         - (mandatory argument) output .json file
---alpha           - (mandatory argument) p-value for segmentation
 
 "
 
 args <- commandArgs(TRUE)
 
 
-if (all(c(args[1], args[3], args[5], args[7]) %in% c("--infile", "--sexchroms", "--outfile", "--alpha"))){
+if (all(c(args[1], args[3]) %in% c("--infile", "--outfile"))){
   in.file <- paste0(args[which(args == "--infile")+1])
-  sex.chrom <- paste0(args[which(args == "--sexchroms")+1])
   out.file <- paste0(args[which(args == "--outfile")+1])
-  alpha <- paste0(args[which(args == "--alpha")+1])
-}
-
-# -----
-# param
-# -----
-
-if (sex.chrom == "X"){
-    exclude.chr = c(24)
-} else {
-    exclude.chr = c()
 }
 
 # -----
@@ -48,8 +34,15 @@ input <- read_json(in.file)
 ratio <- as.numeric(unlist(input$results_r))
 weights <- as.numeric(unlist(input$weights))
 
-chrs = c(1:24)
-chrs = chrs[which(!(chrs  %in% exclude.chr))]
+gender <- input$reference_gender
+alpha <- input$alpha
+
+if (gender == "M"){
+    chrs = 1:24
+} else {
+    chrs = 1:23
+}
+
 bins.per.chr <- sapply(chrs, FUN = function(x) length(unlist(input$results_r[x])))
 chr.end.pos <- c(0)
 for (chr in chrs){

@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 from setuptools import setup, find_packages
 
-version = '0.1.2dev'
+version = '0.2.0'
 dl_version = 'master' if 'dev' in version else '{}'.format(version)
 
 setup(
@@ -28,6 +28,7 @@ setup(
     entry_points={
         'console_scripts': ['WisecondorX = wisecondorX.main:main']
     },
+    scripts=['scripts/fix_convert_npz.py'],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Console',

@@ -6,13 +6,13 @@ NPZ_FILES="path/to/samples.txt" # cases that will be tested versus the given ref
 # ID_1 path/to/convert.npz/ID_1.npz
 # ID_2 path/to/convert.npz/ID_2.npz
 # ...
-REF="path/to/newref.npz/reference.hg38.F.50kb.npz" # the cases in the NPZ_FILES document are thus expected to be female
+REF="path/to/newref.npz/reference.hg38.50kb.npz"
 OUTPUT_DIR="path/to/predict.output" # existing output folder
 
 
 # OPTIONAL PARAMETERS
 
-OPT="-plot -bed"
+OPT="--plot --bed"
 
 # SCRIPT
 
