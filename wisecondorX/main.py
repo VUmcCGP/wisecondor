@@ -390,6 +390,7 @@ def tool_test(args):
 
     logging.info("Finished prediction")
 
+
 def output_gender(args):
     npzdata = np.load(args.infile)
     gender = str(npzdata['gender'])
