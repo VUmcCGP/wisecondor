@@ -7,7 +7,7 @@ as is the case with every tool, WISECONDOR has limitations of its own: the Stouf
 dealing with large amounts of aberrations, the algorithm is extremely slow (24h) when using small bin sizes (15 kb) and
 sex chromosomes are not included in the analysis. Here, I present WisecondorX, an evolved WISECONDOR that aims at dealing with
 previous difficulties. Main adaptations include the additional (and consistent) analysis of the X and Y chromosomes,
-a CBS-based segmentation technique and a custom plotter, resulting in overall superior results and significantly lower computing times,
+a weighted CBS-based segmentation technique and a custom plotter, resulting in overall superior results and significantly lower computing times,
 allowing daily diagnostic use. WisecondorX is meant to be applicable not only to NIPT, but also to gDNA, PGD, FFPE, LQB, ... etc.
 
 # Manual
@@ -75,7 +75,7 @@ WisecondorX convert input.bam output.npz [--optional arguments]
 `--retdist x` | Max amount of bp's between reads to consider them part of the same tower (default: x=4)  
 `--retthres x` | Threshold for a group of reads to be considered a tower. These will be removed (default: x=4)  
 `--gender x` | When not used (which is recommended), WisecondorX will predict the gender. Manually assigning gender could be useful for highly aberrant samples (choices: x=F, x=M)  
-`--gonmapr x` | Represents the overall mappability ratio between X and Y. Concerning short single-end read mapping, an X bin is twice (default) as mappable compared to an Y bin. Used to predict gender (default: x=2)  
+`--gonmapr x` | Represents the overall mappability ratio between X and Y. Concerning short single-end read mapping, an X bin is twice (default) as mappable compared to a Y bin. Used to predict gender (default: x=2)  
 
 
 &rarr; Bash recipe (example for NIPT) at `./pipeline/convert.sh`
