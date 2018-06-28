@@ -390,6 +390,14 @@ def tool_test(args):
 
     logging.info("Finished prediction")
 
+def output_gender(args):
+    npzdata = np.load(args.infile)
+    gender = str(npzdata['gender'])
+    if gender == "M":
+        print("male")
+    else:
+        print("female")
+
 
 def main():
     parser = argparse.ArgumentParser(description="wisecondorX")
@@ -405,23 +413,23 @@ def main():
                                            formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser_convert.add_argument('infile',
                                 type=str,
-                                help='Bam input file for conversion')
+                                help='.bam input file for conversion')
     parser_convert.add_argument('outfile',
                                 type=str,
-                                help='Output npz file')
+                                help='Output .npz file')
     parser_convert.add_argument('--binsize',
                                 type=float,
                                 default=5e3,
-                                help='Bin size (bp).')
+                                help='Bin size (bp)')
     parser_convert.add_argument('--retdist',
                                 type=int,
                                 default=4,
                                 help='Maximum amount of base pairs difference between sequential reads '
-                                     'to consider them part of the same tower.')
+                                     'to consider them part of the same tower')
     parser_convert.add_argument('--retthres',
                                 type=int,
                                 default=4,
-                                help='Threshold for when a group of reads is considered a tower and will be removed.')
+                                help='Threshold for when a group of reads is considered a tower and will be removed')
     parser_convert.add_argument('--gender',
                                 type=str,
                                 choices=["F", "M"],
@@ -434,6 +442,14 @@ def main():
                                      'Used to predict gender')
     parser_convert.set_defaults(func=tool_convert)
 
+    # Get gender
+    parser_gender = subparsers.add_parser('gender',
+                                           description='Returns the gender of a .npz resulting from convert',
+                                           formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser_gender.add_argument('infile',
+                                type=str,
+                                help='.npz input file')
+    parser_gender.set_defaults(func=output_gender)
 
     # New reference creation
     parser_newref = subparsers.add_parser('newref',
@@ -445,15 +461,15 @@ def main():
                                help='Path to all reference data files (e.g. path/to/reference/*.npz)')
     parser_newref.add_argument('outfile',
                                type=str,
-                               help='Path and filename for the reference output (i.e. ./reference/myref.npz)')
+                               help='Path and filename for the reference output (e.g. path/to/myref.npz)')
     parser_newref.add_argument('--refsize',
                                type=int,
                                default=300,
-                               help='Amount of reference locations per target.')
+                               help='Amount of reference locations per target')
     parser_newref.add_argument('--binsize',
                                type=int,
                                default=1e5,
-                               help='Scale samples to this binsize, multiples of existing binsize only.')
+                               help='Scale samples to this binsize, multiples of existing binsize only')
     parser_newref.add_argument('--cpus',
                                type=int,
                                default=1,
@@ -466,10 +482,10 @@ def main():
                                         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser_test.add_argument('infile',
                              type=str,
-                             help='Sample.npz of which the CNAs will be predicted')
+                             help='.npz input file')
     parser_test.add_argument('reference',
                              type=str,
-                             help='Reference as previously created')
+                             help='Reference .npz, as previously created with newref')
     parser_test.add_argument('outid',
                              type=str,
                              help='Basename (w/o extension) of output files (paths are allowed, e.g. path/to/ID_1)')
@@ -484,7 +500,7 @@ def main():
     parser_test.add_argument('--alpha',
                              type=float,
                              default=1e-4,
-                             help='P-value cut-off for calling a CBS breakpoint.')
+                             help='p-value cut-off for calling a CBS breakpoint.')
     parser_test.add_argument('--beta',
                              type=float,
                              default=0.1,
