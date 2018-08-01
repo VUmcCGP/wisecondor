@@ -112,10 +112,10 @@ def convert_bam(bamfile, binsize, min_shift, threshold, mapq=1, demand_pair=Fals
                 reads_seen += 1
                 larp = read.pos
 
-            # Flush after we're done
-            flush(read_buff, counts)
-            chromosomes[chrom_name] = counts
-            reads_kept += sum(counts)
+        # Flush after we're done
+        flush(read_buff, counts)
+        chromosomes[chrom_name] = counts
+        reads_kept += sum(counts)
 
     # print reads_seen,reads_kept
     qual_info = {'mapped': sam_file.mapped,
@@ -413,7 +413,6 @@ def get_reference(corrected_data, chromosome_bins, chromosome_bin_sums,
 def try_sample(test_data, test_copy, indexes, distances, chromosome_bins,
                chromosome_bin_sums, cutoff):
     bincount = chromosome_bin_sums[-1]
-
     results_z = np.zeros(bincount)
     results_r = np.zeros(bincount)
     ref_sizes = np.zeros(bincount)
@@ -584,15 +583,19 @@ def get_median_within_segment_variance(segments, binratios):
     return np.median([x for x in vars if not np.isnan(x)])
 
 
-def apply_blacklist(args, binsize, results_r, results_z, results_w):
-    blacklist = {}
-
-    for line in open(args.blacklist):
+def import_bed(file, binsize):
+    bed = {}
+    for line in open(file):
         bchr, bstart, bstop = line.strip().split("\t")
         bchr = bchr[3:]
-        if bchr not in blacklist.keys():
-            blacklist[bchr] = []
-        blacklist[bchr].append([int(int(bstart) / binsize), int(int(bstop) / binsize) + 1])
+        if bchr not in bed.keys():
+            bed[bchr] = []
+            bed[bchr].append([int(int(bstart) / binsize), int(int(bstop) / binsize) + 1])
+    return bed
+
+
+def apply_blacklist(args, binsize, results_r, results_z, results_w):
+    blacklist = import_bed(args.blacklist, binsize)
 
     for chrom in blacklist.keys():
         for s_s in blacklist[chrom]:
