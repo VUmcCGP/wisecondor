@@ -522,24 +522,30 @@ def generate_txt_output(args, out_dict):
     statistics_file = open(args.outid + "_chr_statistics.txt", "w")
     statistics_file.write("chr\tratio.mean\tratio.median\tzscore\n")
     chrom_scores = []
+
+    stouffer_scores = []
     for chr_i in range(len(results_r)):
+        stouffer = np.sum(np.array(results_z[chr_i]) * np.array(results_w[chr_i])) \
+                   / np.sqrt(np.sum(np.power(np.array(results_w[chr_i]), 2)))
+        stouffer_scores.append(stouffer)
+
+    for chr_i, stouffer_score in enumerate(stouffer_scores):
+
+        zz_score = (stouffer_score - np_mean(np.delete(stouffer_scores, chr_i)))/np_std(np.delete(stouffer_scores, chr_i))
+
         chrom = str(chr_i + 1)
         if chrom == "23":
             chrom = "X"
         if chrom == "24":
             chrom = "Y"
         R = [x for x in results_r[chr_i] if x != 0]
-
-        stouffer = np.sum(np.array(results_z[chr_i]) * np.array(results_w[chr_i])) \
-                   / np.sqrt(np.sum(np.power(np.array(results_w[chr_i]), 2)))
-
         chrom_ratio_mean = np.mean(R)
         chrom_ratio_median = np.median(R)
 
         statistics_file.write(str(chrom)
                               + "\t" + str(chrom_ratio_median)
                               + "\t" + str(chrom_ratio_mean)
-                              + "\t" + str(stouffer)
+                              + "\t" + str(zz_score)
                               + "\n")
         chrom_scores.append(chrom_ratio_mean)
 
@@ -653,9 +659,13 @@ def cbs(args, results_r, results_z, results_w, reference_gender, wc_dir):
 
     # Save results
 
+    zz_scores = []
+    for i, stouffer_score in enumerate(stouffer_scores):
+        zz_scores.append((stouffer_score - np_mean(np.delete(stouffer_scores, i)))/np_std(np.delete(stouffer_scores, i)))
+
     cbs_calls = []
     for cbs_call_index in range(len(cbs_data[0])):
         cbs_calls.append(
             [cbs_data[0][cbs_call_index], cbs_data[1][cbs_call_index] - 1, cbs_data[2][cbs_call_index] - 1,
-             stouffer_scores[cbs_call_index], cbs_data[4][cbs_call_index]])
+             zz_scores[cbs_call_index], cbs_data[4][cbs_call_index]])
     return cbs_calls

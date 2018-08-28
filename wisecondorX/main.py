@@ -4,7 +4,7 @@ import argparse
 
 from scipy.stats import norm
 
-from wisecondorX.wisetools import *
+from wisetools import *
 
 
 def tool_convert(args):
