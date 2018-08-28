@@ -442,12 +442,11 @@ def main():
     parser_convert.add_argument('--paired',
                                 action="store_true",
                                 help='Use paired-end reads | default is single-end')
-    parser_convert.add_argument('--gonmapr',
+    parser_convert.add_argument('--ycutoff',
                                 type=float,
-                                default=2,
-                                help='The gonosomal mappabality ratio between X and Y. Concerning short single-end '
-                                     'read mapping, a Y bin is two times (default) less mappable compared to an X bin. '
-                                     'Used to predict gender')
+                                default=0.004,
+                                help='A cutoff value representing the ratio \'Y reads/total reads\'. '
+                                     'Used to predict gender. Might require training for selecting the optimal value')
     parser_convert.set_defaults(func=tool_convert)
 
     # Get gender

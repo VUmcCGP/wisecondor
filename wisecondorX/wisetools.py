@@ -131,20 +131,9 @@ def convert_bam(bamfile, binsize, min_shift, threshold, demand_pair, mapq=1):
 
 def get_gender(args, sample):
     tot_reads = float(sum([sum(sample[str(x)]) for x in range(1, 25)]))
-    X_reads = float(sum(sample["23"]))
-    X_len = float(len(sample["23"]))
     Y_reads = float(sum(sample["24"]))
-    Y_len = float(len(sample["24"]))
 
-    X = (X_reads / tot_reads) / X_len * (1. / args.gonmapr)
-    Y = (Y_reads / tot_reads) / Y_len
-
-    # X/Y               = ?
-    # 1/1 (MALE)        = 1
-    # 2/noise (FEMALE)  = [4,8]
-    # cut-off 3 -- should be robust vs noise, mosaic large subchromosomal duplication/deletions, and male pregnancies
-
-    if X / Y < 3:
+    if Y_reads / tot_reads > args.ycutoff:
         return "M"
     else:
         return "F"
