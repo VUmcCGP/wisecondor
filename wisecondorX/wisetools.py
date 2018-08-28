@@ -25,7 +25,7 @@ np_sqrt = np.sqrt
 find_pos = bisect.bisect
 
 
-def convert_bam(bamfile, binsize, min_shift, threshold, mapq=1, demand_pair=False):
+def convert_bam(bamfile, binsize, min_shift, threshold, demand_pair, mapq=1):
     # Prepare the list of chromosomes
     chromosomes = dict()
     for chromosome in range(1, 25):

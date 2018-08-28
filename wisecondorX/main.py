@@ -11,8 +11,10 @@ def tool_convert(args):
     logging.info('Starting conversion')
     logging.info('Importing data ...')
     logging.info('Converting bam ... This might take a while ...')
+    print(args.paired)
     sample, qual_info = convert_bam(args.infile, binsize=args.binsize,
-                                    min_shift=args.retdist, threshold=args.retthres)
+                                    min_shift=args.retdist, threshold=args.retthres, demand_pair=args.paired)
+
     if args.gender:
         gender = args.gender
         logging.info('Gender {}'.format(gender))
@@ -437,6 +439,9 @@ def main():
                                 type=str,
                                 choices=["F", "M"],
                                 help='Gender of the case. If not given, WisecondorX will predict it')
+    parser_convert.add_argument('--paired',
+                                action="store_true",
+                                help='Use paired-end reads | default is single-end')
     parser_convert.add_argument('--gonmapr',
                                 type=float,
                                 default=2,
