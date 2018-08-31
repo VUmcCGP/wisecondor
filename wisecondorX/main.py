@@ -11,8 +11,10 @@ def tool_convert(args):
     logging.info('Starting conversion')
     logging.info('Importing data ...')
     logging.info('Converting bam ... This might take a while ...')
+    print(args.paired)
     sample, qual_info = convert_bam(args.infile, binsize=args.binsize,
-                                    min_shift=args.retdist, threshold=args.retthres)
+                                    min_shift=args.retdist, threshold=args.retthres, demand_pair=args.paired)
+
     if args.gender:
         gender = args.gender
         logging.info('Gender {}'.format(gender))
@@ -437,12 +439,14 @@ def main():
                                 type=str,
                                 choices=["F", "M"],
                                 help='Gender of the case. If not given, WisecondorX will predict it')
-    parser_convert.add_argument('--gonmapr',
+    parser_convert.add_argument('--paired',
+                                action="store_true",
+                                help='Use paired-end reads | default is single-end')
+    parser_convert.add_argument('--ycutoff',
                                 type=float,
-                                default=2,
-                                help='The gonosomal mappabality ratio between X and Y. Concerning short single-end '
-                                     'read mapping, a Y bin is two times (default) less mappable compared to an X bin. '
-                                     'Used to predict gender')
+                                default=0.004,
+                                help='A cutoff value representing the ratio \'Y reads/total reads\'. '
+                                     'Used to predict gender. Might require training for selecting the optimal value')
     parser_convert.set_defaults(func=tool_convert)
 
     # Get gender

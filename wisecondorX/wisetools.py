@@ -25,7 +25,7 @@ np_sqrt = np.sqrt
 find_pos = bisect.bisect
 
 
-def convert_bam(bamfile, binsize, min_shift, threshold, mapq=1, demand_pair=False):
+def convert_bam(bamfile, binsize, min_shift, threshold, demand_pair, mapq=1):
     # Prepare the list of chromosomes
     chromosomes = dict()
     for chromosome in range(1, 25):
@@ -112,10 +112,10 @@ def convert_bam(bamfile, binsize, min_shift, threshold, mapq=1, demand_pair=Fals
                 reads_seen += 1
                 larp = read.pos
 
-            # Flush after we're done
-            flush(read_buff, counts)
-            chromosomes[chrom_name] = counts
-            reads_kept += sum(counts)
+        # Flush after we're done
+        flush(read_buff, counts)
+        chromosomes[chrom_name] = counts
+        reads_kept += sum(counts)
 
     # print reads_seen,reads_kept
     qual_info = {'mapped': sam_file.mapped,
@@ -131,20 +131,9 @@ def convert_bam(bamfile, binsize, min_shift, threshold, mapq=1, demand_pair=Fals
 
 def get_gender(args, sample):
     tot_reads = float(sum([sum(sample[str(x)]) for x in range(1, 25)]))
-    X_reads = float(sum(sample["23"]))
-    X_len = float(len(sample["23"]))
     Y_reads = float(sum(sample["24"]))
-    Y_len = float(len(sample["24"]))
 
-    X = (X_reads / tot_reads) / X_len * (1. / args.gonmapr)
-    Y = (Y_reads / tot_reads) / Y_len
-
-    # X/Y               = ?
-    # 1/1 (MALE)        = 1
-    # 2/noise (FEMALE)  = [4,8]
-    # cut-off 3 -- should be robust vs noise, mosaic large subchromosomal duplication/deletions, and male pregnancies
-
-    if X / Y < 3:
+    if Y_reads / tot_reads > args.ycutoff:
         return "M"
     else:
         return "F"
@@ -413,7 +402,6 @@ def get_reference(corrected_data, chromosome_bins, chromosome_bin_sums,
 def try_sample(test_data, test_copy, indexes, distances, chromosome_bins,
                chromosome_bin_sums, cutoff):
     bincount = chromosome_bin_sums[-1]
-
     results_z = np.zeros(bincount)
     results_r = np.zeros(bincount)
     ref_sizes = np.zeros(bincount)
@@ -523,24 +511,30 @@ def generate_txt_output(args, out_dict):
     statistics_file = open(args.outid + "_chr_statistics.txt", "w")
     statistics_file.write("chr\tratio.mean\tratio.median\tzscore\n")
     chrom_scores = []
+
+    stouffer_scores = []
     for chr_i in range(len(results_r)):
+        stouffer = np.sum(np.array(results_z[chr_i]) * np.array(results_w[chr_i])) \
+                   / np.sqrt(np.sum(np.power(np.array(results_w[chr_i]), 2)))
+        stouffer_scores.append(stouffer)
+
+    for chr_i, stouffer_score in enumerate(stouffer_scores):
+
+        zz_score = (stouffer_score - np_mean(np.delete(stouffer_scores, chr_i)))/np_std(np.delete(stouffer_scores, chr_i))
+
         chrom = str(chr_i + 1)
         if chrom == "23":
             chrom = "X"
         if chrom == "24":
             chrom = "Y"
         R = [x for x in results_r[chr_i] if x != 0]
-
-        stouffer = np.sum(np.array(results_z[chr_i]) * np.array(results_w[chr_i])) \
-                   / np.sqrt(np.sum(np.power(np.array(results_w[chr_i]), 2)))
-
         chrom_ratio_mean = np.mean(R)
         chrom_ratio_median = np.median(R)
 
         statistics_file.write(str(chrom)
                               + "\t" + str(chrom_ratio_median)
                               + "\t" + str(chrom_ratio_mean)
-                              + "\t" + str(stouffer)
+                              + "\t" + str(zz_score)
                               + "\n")
         chrom_scores.append(chrom_ratio_mean)
 
@@ -584,15 +578,19 @@ def get_median_within_segment_variance(segments, binratios):
     return np.median([x for x in vars if not np.isnan(x)])
 
 
-def apply_blacklist(args, binsize, results_r, results_z, results_w):
-    blacklist = {}
-
-    for line in open(args.blacklist):
+def import_bed(file, binsize):
+    bed = {}
+    for line in open(file):
         bchr, bstart, bstop = line.strip().split("\t")
         bchr = bchr[3:]
-        if bchr not in blacklist.keys():
-            blacklist[bchr] = []
-        blacklist[bchr].append([int(int(bstart) / binsize), int(int(bstop) / binsize) + 1])
+        if bchr not in bed.keys():
+            bed[bchr] = []
+            bed[bchr].append([int(int(bstart) / binsize), int(int(bstop) / binsize) + 1])
+    return bed
+
+
+def apply_blacklist(args, binsize, results_r, results_z, results_w):
+    blacklist = import_bed(args.blacklist, binsize)
 
     for chrom in blacklist.keys():
         for s_s in blacklist[chrom]:
@@ -650,9 +648,13 @@ def cbs(args, results_r, results_z, results_w, reference_gender, wc_dir):
 
     # Save results
 
+    zz_scores = []
+    for i, stouffer_score in enumerate(stouffer_scores):
+        zz_scores.append((stouffer_score - np_mean(np.delete(stouffer_scores, i)))/np_std(np.delete(stouffer_scores, i)))
+
     cbs_calls = []
     for cbs_call_index in range(len(cbs_data[0])):
         cbs_calls.append(
             [cbs_data[0][cbs_call_index], cbs_data[1][cbs_call_index] - 1, cbs_data[2][cbs_call_index] - 1,
-             stouffer_scores[cbs_call_index], cbs_data[4][cbs_call_index]])
+             zz_scores[cbs_call_index], cbs_data[4][cbs_call_index]])
     return cbs_calls

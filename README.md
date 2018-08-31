@@ -75,7 +75,8 @@ WisecondorX convert input.bam output.npz [--optional arguments]
 `--retdist x` | Max amount of bp's between reads to consider them part of the same tower (default: x=4)  
 `--retthres x` | Threshold for a group of reads to be considered a tower. These will be removed (default: x=4)  
 `--gender x` | When not used (which is recommended), WisecondorX will predict the gender. Manually assigning gender could be useful for highly aberrant samples (choices: x=F, x=M)  
-`--gonmapr x` | Represents the overall mappability ratio between X and Y. Concerning short single-end read mapping, an X bin is twice (default) as mappable compared to a Y bin. Used to predict gender (default: x=2)  
+`--ycutoff x` | A cutoff value representing the ratio 'Y reads/total reads'. Used to predict gender. Might require training for selecting the optimal value (default: x=0.004)
+`--paired` | Enables conversion for paired-end reads  
 
 
 &rarr; Bash recipe (example for NIPT) at `./pipeline/convert.sh`
@@ -153,6 +154,43 @@ fix.convert.npz.py input.npz output.npz
 ```
 
 To get the (predicted) gender of a sample, one can use `WisecondorX gender input.npz`.  
+
+# Interpretation results
+
+## Plots
+
+Every dot represents a bin. The dots range across the X-axis from chromosome 1 to X (or Y, in case of a male). The value 
+of a dot represents the ratio between the observed number of reads and the expected number of reads, the latter being 
+the 'healthy' state. As these values are log2-transformed, healthy dots should be close-to 0. Importantly, notice that 
+the dots are always subject to Gaussian noise. Therefore, segments, indicated by horizontal grey bars, cover bins of 
+predicted equal copy number. Vertical grey bars represent the blacklist, which will match hypervariable loci and repeats. 
+Finally, the vertical colored dotted lines show where the constitutional 1n and 3n states are expected (when constitutional
+DNA is at 100% purity, at least). Often, an aberration does not surpass these limits, which has several potential causes:
+depending on your type of analysis, the sample could be subject to tumor fraction, fetal fraction, mosaicisms, etc ...
+Sometimes, the segments do surpass these limits: here it's likely you are dealing with 4n, 5n, 6n, ...
+
+## Tables
+
+### sample_bins.bed
+
+This file contains all bin-wise information. When data is 'NaN', the corresponding bin is included in the blacklist. 
+The Z-scores are calculated using the within-sample reference bins.
+
+### sample_segments.bed
+
+This file contains all segment-wise information. A combined Z-score is calculated using Stouffer's approach. The final 
+z-score quantifies the difference between a certain segment and the others segments. Note that this score thus does not 
+differentiate significant from non-significant 'aberrations'. This score could be particularly interesting for NIPT, 
+where none (healthy) or one (e.g. tri21) aberrations are often expected.
+
+### sample_aberrations.bed
+
+This file contains segments with a ratio surpassing a certain cutoff value, defined by the `--beta` parameter.
+
+### sample_chr_statistics.bed
+
+This file contains some interesting statistics for each chromosome. The definition of the Z-scores matches the one from
+the 'sample_segments.bed'. Might be interesting for NIPT.
 
 # Dependencies
 
