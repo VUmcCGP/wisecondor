@@ -2,20 +2,8 @@
 # arg
 # -----
 
-arguments = "
-
---infile          - (mandatory argument) input .json file
---outfile         - (mandatory argument) output .json file
-
-"
-
 args <- commandArgs(TRUE)
-
-
-if (all(c(args[1], args[3]) %in% c("--infile", "--outfile"))){
-  in.file <- paste0(args[which(args == "--infile")+1])
-  out.file <- paste0(args[which(args == "--outfile")+1])
-}
+in.file <- paste0(args[which(args == "--infile")+1])
 
 # -----
 # lib
@@ -32,10 +20,10 @@ suppressMessages(library("jsonlite"))
 
 input <- read_json(in.file)
 ratio <- as.numeric(unlist(input$results_r))
-weights <- as.numeric(unlist(input$weights))
-
-gender <- input$reference_gender
-alpha <- input$alpha
+weights <- as.numeric(unlist(input$results_w))
+gender <- input$ref_gender
+alpha <- as.numeric(input$alpha)
+out.file <- as.character(input$outfile)
 
 if (gender == "M"){
     chrs = 1:24
