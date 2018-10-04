@@ -61,7 +61,7 @@ is processed by a separate thread.
 
 def tool_newref_main(args, cpus):
 	if cpus != 1:
-		with futures.ProcessPoolExecutor(max_workers=args.cpus) as executor:
+		with futures.ThreadPoolExecutor(max_workers=args.cpus) as executor:
 			for part in range(1, cpus + 1):
 				if not os.path.isfile('{}_{}.npz'.format(args.partfile, str(part))):
 					this_args = copy.copy(args)
