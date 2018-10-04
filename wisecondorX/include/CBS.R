@@ -97,12 +97,13 @@ for (row.i in 1:nrow(CNA.object)){
   inverse.end.pos <- c(start.pos, end.i)
   
   selection <- inverse.end.pos - inverse.start.pos > 1 # segments should be at least two in length
-  
+  if (length(which(selection)) == 0){
+      next
+  }
   inverse.start.pos <- inverse.start.pos[selection]
   inverse.end.pos <- inverse.end.pos[selection]
   
   sub.frame <- cbind(CNA.object$chr[row.i], inverse.start.pos, inverse.end.pos, CNA.object$r[row.i])
-  
   new.CNA.object <- rbind(new.CNA.object, sub.frame)
   
 }
