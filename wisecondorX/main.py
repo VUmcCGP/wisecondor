@@ -85,7 +85,7 @@ def tool_newref(args):
 		outfiles.append(args.tmpoutfile)
 		tool_newref_prep(args, samples, 'A', total_mask, bins_per_chr)
 		logging.info('This might take a while ...')
-		tool_newref_main(args, args.cpus)
+		tool_newref_main(args)
 	else:
 		logging.critical('Provide at least 10 samples to enable the generation of a reference.')
 		sys.exit()
@@ -96,7 +96,7 @@ def tool_newref(args):
 		outfiles.append(args.tmpoutfile)
 		tool_newref_prep(args, samples[np.array(genders) == 'F'], 'F', total_mask, bins_per_chr)
 		logging.info('This might take a while ...')
-		tool_newref_main(args, 1)
+		tool_newref_main(args)
 	else:
 		logging.warning('Provide at least 5 female samples to enable normalization of female gonosomes.')
 
@@ -105,7 +105,7 @@ def tool_newref(args):
 		args.tmpoutfile = '{}.tmp.M.npz'.format(args.basepath)
 		outfiles.append(args.tmpoutfile)
 		tool_newref_prep(args, samples[np.array(genders) == 'M'], 'M', total_mask, bins_per_chr)
-		tool_newref_main(args, 2)
+		tool_newref_main(args)
 	else:
 		logging.warning('Provide at least 5 male samples to enable normalization of male gonosomes. '
 						'If these are of no interest (e.g. NIPT), ignore this warning.')

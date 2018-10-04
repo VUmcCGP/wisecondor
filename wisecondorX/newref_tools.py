@@ -111,10 +111,6 @@ def get_reference(pca_corrected_data, masked_bins_per_chr, masked_bins_per_chr_c
 			big_indexes.extend(part_indexes)
 			big_distances.extend(part_distances)
 			continue
-
-		logging.info('Thread {} | Working on area {} {} | chr {}'.format(
-			part, masked_bins_per_chr_cum[chr] - masked_bins_per_chr[chr],
-			masked_bins_per_chr_cum[chr], str(chr + 1)))
 		chr_data = np.concatenate((pca_corrected_data[:masked_bins_per_chr_cum[chr] -
 													   masked_bins_per_chr[chr], :],
 									 pca_corrected_data[masked_bins_per_chr_cum[chr]:, :]))

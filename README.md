@@ -161,11 +161,12 @@ position of a dot represents the ratio between the observed number of reads and 
 the 'healthy' state. As these values are log2-transformed, 'healthy dots' should be close-to 0. Importantly, notice that 
 the dots are always subject to Gaussian noise. Therefore, segments, indicated by horizontal grey bars, cover bins of 
 predicted equal copy number. The size of the dots represent the variability at the reference set. Thus, the size increases 
-with the significance of an observation. Vertical grey bars represent the blacklist, which will match hypervariable loci and 
-repeats. Finally, the vertical colored dotted lines show where the constitutional 1n and 3n states are expected (when 
-constitutional DNA is at 100% purity). Often, an aberration does not surpass these limits, which has several potential causes: 
-depending on your type of analysis, the sample could be subject to tumor fraction, fetal fraction, mosaicisms, etc ...
-Sometimes, the segments do surpass these limits: here it's likely you are dealing with 4n, 5n, 6n, ...
+with the certainty of an observation. The same goes for line width of the segments. 
+Vertical grey bars represent the blacklist, which will match hypervariable loci and repeats. Finally, the vertical colored
+dotted lines show where the constitutional 1n and 3n states are expected (when constitutional DNA is at 100% purity).
+Often, an aberration does not surpass these limits, which has several potential causes: depending on your type of analysis, 
+the sample could be subject to tumor fraction, fetal fraction, mosaicisms, etc ... Sometimes, the segments do surpass these 
+limits: here it's likely you are dealing with 4n, 5n, 6n, ...
 
 ## Tables
 

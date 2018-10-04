@@ -59,25 +59,25 @@ Main file is split in 'cpus' subfiles, each subfile
 is processed by a separate thread.
 '''
 
-def tool_newref_main(args, cpus):
-	if cpus != 1:
+def tool_newref_main(args):
+	if args.cpus != 1:
 		with concurrent.futures.ProcessPoolExecutor(max_workers=args.cpus) as executor:
-			for part in range(1, cpus + 1):
+			for part in range(1, args.cpus + 1):
 				if not os.path.isfile('{}_{}.npz'.format(args.partfile, str(part))):
 					this_args = copy.copy(args)
-					this_args.part = [part, cpus]
+					this_args.part = [part, args.cpus]
 					executor.submit(_tool_newref_part, this_args)
 			executor.shutdown(wait=True)
 	else:
-		for part in range(1, cpus + 1):
+		for part in range(1, args.cpus + 1):
 			if not os.path.isfile('{}_{}.npz'.format(args.partfile, str(part))):
-				args.part = [part, cpus]
+				args.part = [part, args.cpus]
 				_tool_newref_part(args)
 
-	tool_newref_post(args, cpus)
+	tool_newref_post(args, args.cpus)
 
 	os.remove(args.prepfile)
-	for part in range(1, cpus + 1):
+	for part in range(1, args.cpus + 1):
 		os.remove('{}_{}.npz'.format(args.partfile, str(part)))
 
 

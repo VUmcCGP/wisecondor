@@ -88,7 +88,7 @@ for (row.i in 1:nrow(CNA.object)){
   start.pos <- which(diff.na == 1) + start.i - 1 # all consecutive NAs (start.pos)
   end.pos <- which(diff.na == -1) + start.i - 1 # all consecutive NAs (end.pos)
   
-  selection <- end.pos - start.pos > as.integer((binsize / 1000000) ** -1) # 100 kb -> 10 NA stretch: split
+  selection <- end.pos - start.pos > as.integer((binsize / 2000000) ** -1) # 100 kb -> 20 NA stretch: split
   
   start.pos <- start.pos[selection]
   end.pos <- end.pos[selection]
