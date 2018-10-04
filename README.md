@@ -202,6 +202,5 @@ the 'sample_segments.bed'. Might be interesting for NIPT.
     - scikit-learn (v0.20.0)
     - pysam (v0.15.1)
     - numpy (v1.15.2)
-    - futures (v3.2.0)
 
 And of course, other versions are very likely to work as well.  
