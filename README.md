@@ -197,7 +197,7 @@ the 'sample_segments.bed'. Might be interesting for NIPT.
     - jsonlite (v1.5)
 - R Bioconductor (v3.5) packages
     - DNAcopy (v1.50.1)
-- Python (v2.7) libraries
+- Python (v3.6) libraries
 	- scipy (v1.1.0)
     - scikit-learn (v0.20.0)
     - pysam (v0.15.1)
