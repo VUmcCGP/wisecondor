@@ -112,7 +112,7 @@ def _generate_chr_statistics_file(rem_input, results):
 
 	for chr, stouffer_score in enumerate(stouffer_scores):
 
-		zz_score = (stouffer_score - np.mean(np.delete(stouffer_scores, chr))) / np.std(
+		zz_score = (stouffer_score - np.nanmean(np.delete(stouffer_scores, chr))) / np.nanstd(
 			np.delete(stouffer_scores, chr))
 
 		chr_name = str(chr + 1)
