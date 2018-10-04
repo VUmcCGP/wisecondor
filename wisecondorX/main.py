@@ -209,6 +209,7 @@ def tool_test(args):
 	log_trans(results)
 
 	if args.blacklist:
+		logging.info('Applying blacklist ...')
 		from predict_tools import apply_blacklist
 		apply_blacklist(rem_input, results)
 

@@ -171,6 +171,8 @@ def apply_blacklist(rem_input, results):
 			for pos in range(s_e[0], s_e[1]):
 				if len(results['results_r']) < 24 and chr == 23:
 					continue
+				if pos >= len(results['results_r'][chr]) or pos < 0:
+					continue
 				results['results_r'][chr][pos] = 0
 				results['results_z'][chr][pos] = 0
 				results['results_w'][chr][pos] = 0

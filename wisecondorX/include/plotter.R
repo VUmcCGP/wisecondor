@@ -203,7 +203,8 @@ box("figure", lwd = 1)
 
 par(mar = c(4,4,4,0), mgp=c(2.2,-0.5,2))
 
-boxplot(box.list[1:22], ylim=c(min(l.whis.per.chr[1:22]), max(h.whis.per.chr[1:22])), bg=black, 
+boxplot(box.list[1:22], ylim=c(min(l.whis.per.chr[1:22], na.rm = T),
+                               max(h.whis.per.chr[1:22], na.rm = T)), bg=black, 
         axes=F, outpch = 16, ylab = expression('log'[2]*'(ratio)'))
 axis(2, tick = T, cex.lab = 2, col = black, las = 1, tcl=0.5)
 par(mar = c(4,4,4,0), mgp=c(1,0.5,2))
