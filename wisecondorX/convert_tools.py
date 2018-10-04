@@ -4,27 +4,26 @@ import pysam
 import logging
 import numpy as np
 
-
 '''
 Converts bam file to numpy array by transforming
 individual reads to counts per bin.
 '''
 
-def convert_bam(bamfile, binsize, min_shift, threshold, demand_pair, mapq=1):
+def convert_bam(args):
 	bins_per_chr = dict()
 	for chr in range(1, 25):
 		bins_per_chr[str(chr)] = None
 
 	def flush(read_buff, counts):
 		stair_size = len(read_buff)
-		if stair_size <= threshold or threshold < 0:
+		if stair_size <= args.retthres or args.retthres < 0:
 			for read in read_buff:
-				location = read.pos / binsize
+				location = read.pos / args.binsize
 				counts[int(location)] += 1
 
 	logging.info('Importing data ...')
 
-	bam_file = pysam.AlignmentFile(bamfile, 'rb')
+	bam_file = pysam.AlignmentFile(args.infile, 'rb')
 
 	reads_seen = 0
 	reads_kept = 0
@@ -45,8 +44,8 @@ def convert_bam(bamfile, binsize, min_shift, threshold, demand_pair, mapq=1):
 			continue
 
 		logging.info('Working at {}; processing {} bins'
-					 .format(chr, int(bam_file.lengths[index] / float(binsize) + 1)))
-		counts = np.zeros(int(bam_file.lengths[index] / float(binsize) + 1), dtype=np.int32)
+					 .format(chr, int(bam_file.lengths[index] / float(args.binsize) + 1)))
+		counts = np.zeros(int(bam_file.lengths[index] / float(args.binsize) + 1), dtype=np.int32)
 
 		read_buff = []
 		bam_chr = bam_file.fetch(chr)
@@ -60,9 +59,9 @@ def convert_bam(bamfile, binsize, min_shift, threshold, demand_pair, mapq=1):
 			prev_read = read
 			break
 
-		if demand_pair:
+		if args.paired:
 			for read in bam_chr:
-				if (int(read.pos) - int(prev_read.pos)) > min_shift:
+				if (int(read.pos) - int(prev_read.pos)) > args.retdist:
 					flush(read_buff, counts)
 					read_buff = []
 
@@ -73,7 +72,7 @@ def convert_bam(bamfile, binsize, min_shift, threshold, demand_pair, mapq=1):
 				if larp == read.pos and larp2 == read.next_reference_start:
 					reads_rmdup += 1
 				else:
-					if read.mapping_quality >= mapq:
+					if read.mapping_quality >= 1:
 						read_buff.append(read)
 						prev_read = read
 					else:
@@ -85,14 +84,14 @@ def convert_bam(bamfile, binsize, min_shift, threshold, demand_pair, mapq=1):
 				larp = read.pos
 		else:
 			for read in bam_chr:
-				if (int(read.pos) - int(prev_read.pos)) > min_shift:
+				if (int(read.pos) - int(prev_read.pos)) > args.retdist:
 					flush(read_buff, counts)
 					read_buff = []
 
 				if larp == read.pos:
 					reads_rmdup += 1
 				else:
-					if read.mapping_quality >= mapq:
+					if read.mapping_quality >= 1:
 						read_buff.append(read)
 						prev_read = read
 					else:

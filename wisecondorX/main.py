@@ -13,9 +13,7 @@ def tool_convert(args):
 	logging.info('Starting conversion')
 
 	from convert_tools import convert_bam
-	sample, qual_info = convert_bam(args.infile, binsize=args.binsize,
-									min_shift=args.retdist, threshold=args.retthres,
-									demand_pair=args.paired)
+	sample, qual_info = convert_bam(args)
 
 	if args.gender:
 		gender = args.gender
@@ -23,7 +21,7 @@ def tool_convert(args):
 	else:
 		logging.info('Predicting gender ...')
 		from convert_tools import get_gender
-		gender = str(get_gender(args, sample), 'utf-8').rstrip('\x00')
+		gender = get_gender(args, sample)
 		logging.info('... {}'.format(gender))
 
 	np.savez_compressed(args.outfile,
@@ -85,7 +83,7 @@ def tool_newref(args):
 		outfiles.append(args.tmpoutfile)
 		tool_newref_prep(args, samples, 'A', total_mask, bins_per_chr)
 		logging.info('This might take a while ...')
-		tool_newref_main(args)
+		tool_newref_main(args, args.cpus)
 	else:
 		logging.critical('Provide at least 10 samples to enable the generation of a reference.')
 		sys.exit()
@@ -96,7 +94,7 @@ def tool_newref(args):
 		outfiles.append(args.tmpoutfile)
 		tool_newref_prep(args, samples[np.array(genders) == 'F'], 'F', total_mask, bins_per_chr)
 		logging.info('This might take a while ...')
-		tool_newref_main(args)
+		tool_newref_main(args, 1)
 	else:
 		logging.warning('Provide at least 5 female samples to enable normalization of female gonosomes.')
 
@@ -105,7 +103,7 @@ def tool_newref(args):
 		args.tmpoutfile = '{}.tmp.M.npz'.format(args.basepath)
 		outfiles.append(args.tmpoutfile)
 		tool_newref_prep(args, samples[np.array(genders) == 'M'], 'M', total_mask, bins_per_chr)
-		tool_newref_main(args)
+		tool_newref_main(args, 1)
 	else:
 		logging.warning('Provide at least 5 male samples to enable normalization of male gonosomes. '
 						'If these are of no interest (e.g. NIPT), ignore this warning.')

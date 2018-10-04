@@ -142,7 +142,7 @@ for (undetectable.index in which(is.na(ratio))){
 
 par(new = T)
 
-dot.cex = (weights / mean(weights, na.rm = T) / pi)**0.5
+dot.cex = (weights / median(weights, na.rm = T) / pi)**0.5
 dot.cols = rep(darker.grey, length(ratio))
 for (ab in input$results_c){
   info = unlist(ab)

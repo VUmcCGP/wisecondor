@@ -198,10 +198,10 @@ the 'sample_segments.bed'. Might be interesting for NIPT.
 - R Bioconductor (v3.5) packages
     - DNAcopy (v1.50.1)
 - Python (v2.7) libraries
-	- scipy (v1.0.0)
-    - scikit-learn (v0.19.1)
-    - pysam (v0.13)
-    - numpy (v1.13.3)
+	- scipy (v1.1.0)
+    - scikit-learn (v0.20.0)
+    - pysam (v0.15.1)
+    - numpy (v1.15.2)
     - futures (v3.2.0)
 
 And of course, other versions are very likely to work as well.  
