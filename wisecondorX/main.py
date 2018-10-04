@@ -120,7 +120,7 @@ def tool_test(args):
 	logging.info('Starting CNA prediction')
 
 	if not args.bed and not args.plot:
-		logging.critical('No output format selected. \n\t'
+		logging.critical('No output format selected. '
 						 'Select at least one of the supported output formats (--bed, --plot)')
 		sys.exit()
 
@@ -133,14 +133,14 @@ def tool_test(args):
 		sys.exit()
 
 	if args.beta < 0.05:
-		logging.warning('Parameter beta seems to be a bit low. \n\t \
-						Have you read https://github.com/CenterForMedicalGeneticsGhent/wisecondorX#parameters \
-						on parameter optimization?')
+		logging.warning('Parameter beta seems to be a bit low. '
+						'Have you read https://github.com/CenterForMedicalGeneticsGhent/wisecondorX#parameters '
+						'on parameter optimization?')
 
 	if args.alpha > 0.1:
-		logging.warning('Parameter alpha seems to be a bit high. \n\t \
-						Have you read https://github.com/CenterForMedicalGeneticsGhent/wisecondorX#parameters \
-						on parameter optimization?')
+		logging.warning('Parameter alpha seems to be a bit high. '
+						'Have you read https://github.com/CenterForMedicalGeneticsGhent/wisecondorX#parameters '
+						'on parameter optimization?')
 
 	logging.info('Importing data ...')
 	ref_file = np.load(args.reference, encoding='latin1')
