@@ -206,6 +206,7 @@ def exec_cbs(rem_input, results):
 		'R_script': str('{}/include/CBS.R'.format(rem_input['wd'])),
 		'ref_gender': str(rem_input['ref_gender']),
 		'alpha': str(rem_input['args'].alpha),
+		'binsize': str(rem_input['binsize']),
 		'results_r': results['results_r'],
 		'results_w': results['results_w'],
 		'infile': str('{}_01.json'.format(json_cbs_dir)),
@@ -216,15 +217,25 @@ def exec_cbs(rem_input, results):
 	json_out = exec_R(json_dict)
 	return _get_processed_cbs(results, json_out)
 
-def _get_processed_cbs(results, json_out):
+def _get_processed_cbs(results, cbs_data):
+	zz_scores = __get_zz_score(results, cbs_data)
 
-	cbs_data = [[float(y.encode('utf-8')) for y in x] for x in json_out]
+	results_c = []
+	for i, segment in enumerate(cbs_data):
+		chr = int(segment["chr"]) - 1
+		s = int(segment["s"])
+		e = int(segment["e"])
+		r = segment["r"]
+		results_c.append([chr, s, e, zz_scores[i], r])
 
+	return results_c
+
+def __get_zz_score(results, cbs_data):
 	stouffer_scores = []
-	for i in range(len(cbs_data[0])):
-		chr = int(cbs_data[0][i]) - 1
-		s = int(cbs_data[1][i]) - 1
-		e = int(cbs_data[2][i])
+	for segment in cbs_data:
+		chr = int(segment["chr"]) - 1
+		s = int(segment["s"])
+		e = int(segment["e"])
 
 		z_segment = np.array(results['results_z'][chr][s:e])
 		w_segment = np.array(results['results_w'][chr][s:e])
@@ -234,14 +245,7 @@ def _get_processed_cbs(results, json_out):
 
 	zz_scores = []
 	for i, stouffer_score in enumerate(stouffer_scores):
-		zz_scores.append((stouffer_score - np.mean(np.delete(stouffer_scores, i)))/np.std(np.delete(stouffer_scores, i)))
+		zz_scores.append(
+			(stouffer_score - np.mean(np.delete(stouffer_scores, i))) / np.std(np.delete(stouffer_scores, i)))
 
-	results_c = []
-	for i in range(len(cbs_data[0])):
-		chr = int(cbs_data[0][i]) - 1
-		s = int(cbs_data[1][i]) - 1
-		e = int(cbs_data[2][i]) - 1
-		r = cbs_data[4][i]
-		results_c.append([chr, s, e, zz_scores[i], r])
-
-	return results_c
+	return(zz_scores)

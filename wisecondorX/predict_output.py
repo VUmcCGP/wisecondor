@@ -79,7 +79,7 @@ def _generate_segments_and_aberrations_bed(rem_input, results):
 			chr_name = 'Y'
 		row = [chr_name,
 			   int(segment[1] * rem_input['binsize'] + 1),
-			   int((segment[2] + 1) * rem_input['binsize']),
+			   int(segment[2] * rem_input['binsize']),
 			   segment[4], segment[3]]
 		segments_file.write('{}\n'.format('\t'.join([str(x) for x in row])))
 		ploidy = 2

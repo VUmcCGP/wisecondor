@@ -156,7 +156,7 @@ def tool_test(args):
 	sample = scale_sample(sample, sample_bin_size, int(ref_file['binsize']))
 	sample = gender_correct(sample, actual_gender)
 
-	logging.info('Normalizing autosomes...')
+	logging.info('Normalizing autosomes ...')
 
 	from predict_control import normalize
 	results_r, results_z, results_w, ref_sizes = normalize(args, sample, ref_file, 'A')
@@ -175,7 +175,7 @@ def tool_test(args):
 						'female samples.')
 		ref_gender = 'M'
 
-	logging.info('Normalizing gonosomes...')
+	logging.info('Normalizing gonosomes ...')
 
 	results_r_2, results_z_2, results_w_2, ref_sizes_2 = normalize(args, sample, ref_file, ref_gender)
 

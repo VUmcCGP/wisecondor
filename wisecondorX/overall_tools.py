@@ -69,6 +69,6 @@ def exec_R(json_dict):
 
 	os.remove(json_dict['infile'])
 	if 'outfile' in json_dict.keys():
-		json_out = json.load(open(json_dict['outfile']))[1:]
+		json_out = json.load(open(json_dict['outfile']))
 		os.remove(json_dict['outfile'])
 		return json_out

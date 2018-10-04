@@ -66,7 +66,7 @@ labels = replace(labels, labels == "chr24", "chrY")
 
 # find chromosome positions
 
-chr.end.pos <- c(1)
+chr.end.pos <- c(0)
 for (chr in chrs){
   l = bins.per.chr[chr]
   chr.end.pos <- c(chr.end.pos, l + chr.end.pos[length(chr.end.pos)])
@@ -121,17 +121,33 @@ plot(1, main = "", axes=F, # plots nothing -- enables segments function
      xlab="", ylab="", col = "white", xlim = c(chr.end.pos[1], chr.end.pos[length(chr.end.pos)]),
      cex = 0.0001, ylim=c(chr.wide.lower.limit,chr.wide.upper.limit))
 
+plot.constitutionals <- function(ploidy, start, end){
+  segments(start, log2(1/ploidy), end, log2(1/ploidy), col=color.B, lwd = 2, lty = 3)
+  segments(start, log2(2/ploidy), end, log2(2/ploidy), col=color.A, lwd = 2, lty = 3)
+  segments(start, log2(3/ploidy), end, log2(3/ploidy), col=color.C, lwd = 2, lty = 3)
+}
+
+genome.len <- chr.end.pos[length(chr.end.pos)]
+autosome.len <- chr.end.pos[23]
+if (gender == "F"){
+  plot.constitutionals(2, -genome.len * 0.025, genome.len * 1.025)
+} else {
+  plot.constitutionals(2, -genome.len * 0.025, autosome.len)
+  plot.constitutionals(1, autosome.len, genome.len * 1.025)
+}
+
 for (undetectable.index in which(is.na(ratio))){
   segments(undetectable.index, chr.wide.lower.limit, undetectable.index, chr.wide.upper.limit, col=lighter.grey, lwd = 0.1, lty = 1)
 }
+
 par(new = T)
 
-dot.cex = weights / mean(weights, na.rm = T) * 2/3
+dot.cex = (weights / mean(weights, na.rm = T) / pi)**0.5
 dot.cols = rep(darker.grey, length(ratio))
 for (ab in input$results_c){
   info = unlist(ab)
   chr = as.integer(info[1]) + 1
-  start = as.integer(info[2]) + chr.end.pos[chr]
+  start = as.integer(info[2]) + chr.end.pos[chr] + 1
   end = as.integer(info[3]) + chr.end.pos[chr]
   height = as.double(info[5])
   ploidy = 2
@@ -152,21 +168,6 @@ plot(ratio, main = "", axes=F,
 
 axis(1, at=mid.chr, labels=labels, tick = F, cex.lab = 3)
 axis(2, tick = T, cex.lab = 2, col = black, las = 1, tcl=0.5)
-
-plot.constitutionals <- function(ploidy, start, end){
-  segments(start, log2(1/ploidy), end, log2(1/ploidy), col=color.B, lwd = 2, lty = 3)
-  segments(start, log2(2/ploidy), end, log2(2/ploidy), col=color.A, lwd = 2, lty = 3)
-  segments(start, log2(3/ploidy), end, log2(3/ploidy), col=color.C, lwd = 2, lty = 3)
-}
-
-genome.len <- chr.end.pos[length(chr.end.pos)]
-autosome.len <- chr.end.pos[23]
-if (gender == "F"){
-  plot.constitutionals(2, -genome.len * 0.025, genome.len * 1.025)
-} else {
-  plot.constitutionals(2, -genome.len * 0.025, autosome.len)
-  plot.constitutionals(1, autosome.len, genome.len * 1.025)
-}
 
 for (x in chr.end.pos){
   segments(x, chr.wide.lower.limit * 1.03, x, chr.wide.upper.limit * 1.03, col=black, lwd = 1.2, lty = 3)
@@ -191,10 +192,10 @@ par(xpd=FALSE)
 for (ab in input$results_c){
   info = unlist(ab)
   chr = as.integer(info[1]) + 1
-  start = as.integer(info[2]) + chr.end.pos[chr]
+  start = as.integer(info[2]) + chr.end.pos[chr] + 1
   end = as.integer(info[3]) + chr.end.pos[chr]
   height = as.double(info[5])
-  segments(start, height, end, height, col=lighter.grey, lwd = 3, lty = 1)
+  segments(start, height, end, height, col=lighter.grey, lwd = 5 * mean(dot.cex[start:end], na.rm = T), lty = 1)
 }
 
 box("figure", lwd = 1)
@@ -268,7 +269,17 @@ for (c in chrs){
   plot(1, main = "", axes=F, # plots nothing -- enables segments function
        xlab="", ylab="", col = "white", 
        cex = 0.0001, ylim=c(lower.limit,upper.limit), xlim = margins)
-  
+
+  if (gender == "F"){
+    plot.constitutionals(2, chr.end.pos[c] - bins.per.chr[c] * 0.02, chr.end.pos[c+1] + bins.per.chr[c] * 0.02)
+  } else {
+    if (c == 23 | c == 24){
+      plot.constitutionals(1, chr.end.pos[c] - bins.per.chr[c] * 0.02, chr.end.pos[c+1] + bins.per.chr[c] * 0.02)
+    } else {
+      plot.constitutionals(2, chr.end.pos[c] - bins.per.chr[c] * 0.02, chr.end.pos[c+1] + bins.per.chr[c] * 0.02)
+    }
+  }
+
   for (undetectable.index in which(is.na(ratio))){
     segments(undetectable.index, lower.limit, undetectable.index, upper.limit,
              col=darker.grey, lwd = 1/len * 200, lty = 1)
@@ -283,10 +294,10 @@ for (c in chrs){
   for (ab in input$results_c){
     info = unlist(ab)
     chr = as.integer(info[1]) + 1
-    start = as.integer(info[2]) + chr.end.pos[chr]
+    start = as.integer(info[2]) + chr.end.pos[chr] + 1
     end = as.integer(info[3]) + chr.end.pos[chr]
     height = as.double(info[5])
-    segments(start, height, end, height, col=lighter.grey, lwd = 5, lty = 1)
+    segments(start, height, end, height, col=lighter.grey, lwd = 6 * mean(dot.cex[start:end], na.rm = T), lty = 1)
   }
 
   rect(0, lower.limit - 10, chr.end.pos[c], upper.limit + 10, col="white", border=NA)
@@ -294,16 +305,6 @@ for (c in chrs){
   
   axis(1, at=x.labels.at, labels=x.labels, tick = F, cex.axis=0.8)
   axis(2, tick = T, cex.lab = 2, col = black, las = 1, tcl=0.5)
-  
-  if (gender == "F"){
-    plot.constitutionals(2, chr.end.pos[c] - bins.per.chr[c] * 0.02, chr.end.pos[c+1] + bins.per.chr[c] * 0.02)
-  } else {
-    if (c == 23 | c == 24){
-      plot.constitutionals(1, chr.end.pos[c] - bins.per.chr[c] * 0.02, chr.end.pos[c+1] + bins.per.chr[c] * 0.02)
-    } else {
-      plot.constitutionals(2, chr.end.pos[c] - bins.per.chr[c] * 0.02, chr.end.pos[c+1] + bins.per.chr[c] * 0.02)
-    }
-  }
   
   for (x in chr.end.pos){
     segments(x, lower.limit * 1.03, x, upper.limit * 1.03, col=black, lwd = 2, lty = 3)
