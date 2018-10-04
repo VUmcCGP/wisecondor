@@ -192,7 +192,8 @@ def tool_test(args):
 
 	results_r = np.append(results_r, results_r_2)
 	results_z = np.append(results_z, results_z_2)
-	results_w = np.append(results_w * np.nanmean(results_w_2), results_w_2 * np.nanmean(results_w))
+	results_w = np.append(results_w * np.nanmedian(results_w_2), results_w_2 * np.nanmedian(results_w))
+	results_w = results_w / np.nanmedian(results_w)
 	ref_sizes = np.append(ref_sizes, ref_sizes_2)
 
 	results = {'results_r': results_r,
