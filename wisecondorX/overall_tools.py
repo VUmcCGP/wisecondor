@@ -72,3 +72,26 @@ def exec_R(json_dict):
 		json_out = json.load(open(json_dict['outfile']))
 		os.remove(json_dict['outfile'])
 		return json_out
+
+
+'''
+Calculates zz-score. The null set is derived by
+iteratively removing the outer z scores.
+'''
+
+def get_zz_score(z_scores):
+	ab_set = []
+	zz_scores = np.zeros(len(z_scores))
+	for repeat in range(3):
+		for i, z_score in enumerate(z_scores):
+			z_scores_tmp = z_scores.copy()
+			this_ab_set = list(set([i] + ab_set))
+			zz_scores[i] = (z_score - np.mean(np.delete(z_scores_tmp, this_ab_set)))\
+								   / np.std(np.delete(z_scores_tmp, this_ab_set))
+
+		gains = np.where(zz_scores > np.nanmean(zz_scores) + 3 * np.nanstd(zz_scores))[0].tolist()
+		losses = np.where(zz_scores < np.nanmean(zz_scores) - 3 * np.nanstd(zz_scores))[0].tolist()
+		ab_set += gains + losses
+		ab_set = list(set(ab_set))
+
+	return zz_scores.tolist()

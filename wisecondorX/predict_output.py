@@ -110,10 +110,10 @@ def _generate_chr_statistics_file(rem_input, results):
 				   / np.sqrt(np.sum(np.power(np.array(results['results_w'][chr]), 2)))
 		stouffer_scores.append(stouffer)
 
-	for chr, stouffer_score in enumerate(stouffer_scores):
+	from overall_tools import get_zz_score
+	zz_scores = get_zz_score(stouffer_scores)
 
-		zz_score = (stouffer_score - np.nanmean(np.delete(stouffer_scores, chr))) / np.nanstd(
-			np.delete(stouffer_scores, chr))
+	for chr in range(len(zz_scores)):
 
 		chr_name = str(chr + 1)
 		if chr_name == '23':
@@ -127,7 +127,7 @@ def _generate_chr_statistics_file(rem_input, results):
 		row = [chr_name,
 			   chr_ratio_median,
 			   chr_ratio_mean,
-			   zz_score]
+			   zz_scores[chr]]
 
 		stats_file.write('\t'.join([str(x) for x in row]) + '\n')
 

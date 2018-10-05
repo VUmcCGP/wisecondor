@@ -218,7 +218,7 @@ def exec_cbs(rem_input, results):
 	return _get_processed_cbs(results, json_out)
 
 def _get_processed_cbs(results, cbs_data):
-	zz_scores = __get_zz_score(results, cbs_data)
+	zz_scores = __get_stouffer_zz(results, cbs_data)
 
 	results_c = []
 	for i, segment in enumerate(cbs_data):
@@ -230,7 +230,7 @@ def _get_processed_cbs(results, cbs_data):
 
 	return results_c
 
-def __get_zz_score(results, cbs_data):
+def __get_stouffer_zz(results, cbs_data):
 	stouffer_scores = []
 	for segment in cbs_data:
 		chr = int(segment["chr"]) - 1
@@ -243,9 +243,6 @@ def __get_zz_score(results, cbs_data):
 		stouffer = np.sum(z_segment * w_segment) / np.sqrt(np.sum(np.power(w_segment, 2)))
 		stouffer_scores.append(stouffer)
 
-	zz_scores = []
-	for i, stouffer_score in enumerate(stouffer_scores):
-		zz_scores.append(
-			(stouffer_score - np.mean(np.delete(stouffer_scores, i))) / np.std(np.delete(stouffer_scores, i)))
+	from overall_tools import get_zz_score
 
-	return(zz_scores)
+	return(get_zz_score(stouffer_scores))
