@@ -48,12 +48,8 @@ Defines cutoff that will add bins to a blacklist
 depending on the within reference distances.
 '''
 
-def get_optimal_cutoff(ref_file, repeats, ap):
-	if ap == '':
-		start_index = 0
-	else:
-		start_index = sum(ref_file['masked_bins_per_chr{}'.format(ap)][:22])
-	distances = ref_file['distances{}'.format(ap)][start_index:]
+def get_optimal_cutoff(ref_file, repeats, ct, ap):
+	distances = ref_file['distances{}'.format(ap)][ct:]
 	cutoff = float('inf')
 	for i in range(0, repeats):
 		mask = distances < cutoff
@@ -71,44 +67,46 @@ as 'normal' in a sample (in most cases this means
 reference for the other bins.
 '''
 
-def normalize_repeat(test_data, ref_file, optimal_cutoff, repeats, ap):
+def normalize_repeat(test_data, ref_file, optimal_cutoff, repeats, ct, cp, ap):
 	results_z = None
 	results_r = None
 	test_copy = np.copy(test_data)
 	for i in range(repeats):
 		results_z, results_r, ref_sizes = _normalize_once(test_data, test_copy, ref_file,
-														  optimal_cutoff, ap)
+														  optimal_cutoff, ct, cp, ap)
 
-		test_copy[np.abs(results_z) >= norm.ppf(0.975)] = -1
+		test_copy[ct:][np.abs(results_z) >= norm.ppf(0.975)] = -1
 	return results_z, results_r, ref_sizes
 
 
-def _normalize_once(test_data, test_copy, ref_file, optimal_cutoff, ap):
+def _normalize_once(test_data, test_copy, ref_file, optimal_cutoff, ct, cp, ap):
 	masked_bins_per_chr = ref_file['masked_bins_per_chr{}'.format(ap)]
 	masked_bins_per_chr_cum = ref_file['masked_bins_per_chr_cum{}'.format(ap)]
-	results_z = np.zeros(masked_bins_per_chr_cum[-1])
-	results_r = np.zeros(masked_bins_per_chr_cum[-1])
-	ref_sizes = np.zeros(masked_bins_per_chr_cum[-1])
-	reference = ref_file['indexes{}'.format(ap)]
+	results_z = np.zeros(masked_bins_per_chr_cum[-1])[ct:]
+	results_r = np.zeros(masked_bins_per_chr_cum[-1])[ct:]
+	ref_sizes = np.zeros(masked_bins_per_chr_cum[-1])[ct:]
+	indexes = ref_file['indexes{}'.format(ap)]
 	distances = ref_file['distances{}'.format(ap)]
-	i = 0
 
-	for chr in range(len(masked_bins_per_chr)):
+	i = ct
+	i2 = 0
+	for chr in list(range(len(masked_bins_per_chr)))[cp:]:
 		start = masked_bins_per_chr_cum[chr] - masked_bins_per_chr[chr]
 		end = masked_bins_per_chr_cum[chr]
 		chr_data = np.concatenate(
 			(test_copy[:masked_bins_per_chr_cum[chr] - masked_bins_per_chr[chr]],
 			 test_copy[masked_bins_per_chr_cum[chr]:]))
 
-		for index in reference[start:end]:
+		for index in indexes[start:end]:
 			ref_data = chr_data[index[distances[i] < optimal_cutoff]]
 			ref_data = ref_data[ref_data >= 0]
 			ref_mean = np.mean(ref_data)
 			ref_stdev = np.std(ref_data)
-			results_z[i] = (test_data[i] - ref_mean) / ref_stdev
-			results_r[i] = test_data[i] / ref_mean
-			ref_sizes[i] = ref_data.shape[0]
+			results_z[i2] = (test_data[i] - ref_mean) / ref_stdev
+			results_r[i2] = test_data[i] / ref_mean
+			ref_sizes[i2] = ref_data.shape[0]
 			i += 1
+			i2 += 1
 
 	return results_z, results_r, ref_sizes
 
@@ -222,10 +220,10 @@ def _get_processed_cbs(results, cbs_data):
 
 	results_c = []
 	for i, segment in enumerate(cbs_data):
-		chr = int(segment["chr"]) - 1
-		s = int(segment["s"])
-		e = int(segment["e"])
-		r = segment["r"]
+		chr = int(segment['chr']) - 1
+		s = int(segment['s'])
+		e = int(segment['e'])
+		r = segment['r']
 		results_c.append([chr, s, e, zz_scores[i], r])
 
 	return results_c
@@ -233,9 +231,9 @@ def _get_processed_cbs(results, cbs_data):
 def __get_stouffer_zz(results, cbs_data):
 	stouffer_scores = []
 	for segment in cbs_data:
-		chr = int(segment["chr"]) - 1
-		s = int(segment["s"])
-		e = int(segment["e"])
+		chr = int(segment['chr']) - 1
+		s = int(segment['s'])
+		e = int(segment['e'])
 
 		z_segment = np.array(results['results_z'][chr][s:e])
 		w_segment = np.array(results['results_w'][chr][s:e])
