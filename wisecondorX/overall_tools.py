@@ -75,23 +75,42 @@ def exec_R(json_dict):
 
 
 '''
-Calculates zz-score. The null set is derived by
-iteratively removing the outer z scores.
+Calculates z-score.
 '''
 
-def get_zz_score(z_scores):
-	ab_set = []
-	zz_scores = np.zeros(len(z_scores))
-	for repeat in range(3):
-		for i, z_score in enumerate(z_scores):
-			z_scores_tmp = z_scores.copy()
-			this_ab_set = list(set([i] + ab_set))
-			zz_scores[i] = (z_score - np.mean(np.delete(z_scores_tmp, this_ab_set)))\
-								   / np.std(np.delete(z_scores_tmp, this_ab_set))
+def get_z_score(results_c, results_rlm):
+	zs = []
+	for i in range(len(results_c)):
+		segment_rlm = results_rlm[results_c[i][0]][results_c[i][1]:results_c[i][2]]
+		null_sd = np.std([x for x in segment_rlm if x != 0])
+		zs.append(results_c[i][3] / null_sd)
+	return zs
 
-		gains = np.where(zz_scores > np.nanmean(zz_scores) + 3 * np.nanstd(zz_scores))[0].tolist()
-		losses = np.where(zz_scores < np.nanmean(zz_scores) - 3 * np.nanstd(zz_scores))[0].tolist()
-		ab_set += gains + losses
-		ab_set = list(set(ab_set))
 
-	return zz_scores.tolist()
+'''
+Returns MSV, measure for sample-wise noise.
+'''
+
+def get_median_segment_variance(results_c, results_r):
+	vars = []
+	for segment in results_c:
+		segment_r = results_r[segment[0]][int(segment[1]):int(segment[2])]
+		segment_r = [x for x in segment_r if x != 0]
+		if segment_r:
+			var = np.var(segment_r)
+			vars.append(var)
+
+	return np.nanmedian(vars)
+
+
+'''
+Converts to string, across different python versions
+-- tested on py2.7 vs py3.6
+'''
+
+def my_str(chars):
+	try:
+		chars = str(chars, 'utf-8').rstrip('\x00')
+	except:
+		chars = str(chars).format('utf-8')
+	return chars

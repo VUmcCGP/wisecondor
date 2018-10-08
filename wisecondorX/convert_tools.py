@@ -1,7 +1,7 @@
 # WisecondorX
 
-import pysam
 import logging
+import pysam
 import numpy as np
 
 '''

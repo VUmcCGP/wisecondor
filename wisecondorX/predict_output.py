@@ -100,52 +100,39 @@ def __get_aberration_cutoff(beta, ploidy):
 	return loss_cutoff, gain_cutoff
 
 def _generate_chr_statistics_file(rem_input, results):
+
 	stats_file = open('{}_chr_statistics.txt'.format(rem_input['args'].outid), 'w')
 	stats_file.write('chr\tratio.mean\tratio.median\tzscore\n')
-	chr_scores = []
+	chr_ratio_means = [np.average(results['results_r'][chr], weights=results['results_w'][chr])
+					   for chr in range(len(results['results_r']))]
+	chr_ratio_medians = [np.median([x for x in results['results_r'][chr] if x != 0])
+						 for chr in range(len(results['results_r']))]
 
-	stouffer_scores = []
-	for chr in range(len(results['results_z'])):
-		stouffer = np.sum(np.array(results['results_z'][chr]) * np.array(results['results_w'][chr])) \
-				   / np.sqrt(np.sum(np.power(np.array(results['results_w'][chr]), 2)))
-		stouffer_scores.append(stouffer)
+	from overall_tools import get_z_score, get_median_segment_variance
 
-	from overall_tools import get_zz_score
-	zz_scores = get_zz_score(stouffer_scores)
+	results_c_chr = [[x, 0, rem_input['masked_bins_per_chr'][x], chr_ratio_means[x]]
+					 for x in range(len(results['results_r']))]
 
-	for chr in range(len(zz_scores)):
+	chr_z_scores = get_z_score(results_c_chr, results['results_rlm'])
+
+	for chr in range(len(results['results_r'])):
 
 		chr_name = str(chr + 1)
 		if chr_name == '23':
 			chr_name = 'X'
 		if chr_name == '24':
 			chr_name = 'Y'
-		R = [x for x in results['results_r'][chr] if x != 0]
-		chr_ratio_mean = np.mean(R)
-		chr_ratio_median = np.median(R)
 
 		row = [chr_name,
-			   chr_ratio_median,
-			   chr_ratio_mean,
-			   zz_scores[chr]]
+			   chr_ratio_means[chr],
+			   chr_ratio_medians[chr],
+			   chr_z_scores[chr]]
 
 		stats_file.write('\t'.join([str(x) for x in row]) + '\n')
 
-		chr_scores.append(chr_ratio_mean)
-
 	stats_file.write('Standard deviation ratios (per chromosome): {}\n'
-					 .format(str(np.std([x for x in chr_scores if not np.isnan(x)]))))
+					 .format(str(np.nanstd(chr_ratio_means))))
 
 	stats_file.write('Median segment variance (per bin): {}\n'
-					 .format(str(__get_median_within_segment_variance(results['results_c'], results['results_r']))))
+					 .format(str(get_median_segment_variance(results['results_c'], results['results_r']))))
 	stats_file.close()
-
-def __get_median_within_segment_variance(results_c, results_r):
-	vars = []
-	for segment in results_c:
-		segment_ratios = results_r[segment[0]][int(segment[1]):int(segment[2])]
-		segment_ratios = [x for x in segment_ratios if x != 0]
-		if segment_ratios:
-			var = np.var(segment_ratios)
-			vars.append(var)
-	return np.median([x for x in vars if not np.isnan(x)])

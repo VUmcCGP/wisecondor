@@ -72,11 +72,11 @@ def normalize_repeat(test_data, ref_file, optimal_cutoff, repeats, ct, cp, ap):
 	results_r = None
 	test_copy = np.copy(test_data)
 	for i in range(repeats):
-		results_z, results_r, ref_sizes = _normalize_once(test_data, test_copy, ref_file,
+		results_z, results_r, ref_sizes, ref_log_means = _normalize_once(test_data, test_copy, ref_file,
 														  optimal_cutoff, ct, cp, ap)
 
 		test_copy[ct:][np.abs(results_z) >= norm.ppf(0.975)] = -1
-	return results_z, results_r, ref_sizes
+	return results_z, results_r, ref_sizes, ref_log_means
 
 
 def _normalize_once(test_data, test_copy, ref_file, optimal_cutoff, ct, cp, ap):
@@ -85,6 +85,7 @@ def _normalize_once(test_data, test_copy, ref_file, optimal_cutoff, ct, cp, ap):
 	results_z = np.zeros(masked_bins_per_chr_cum[-1])[ct:]
 	results_r = np.zeros(masked_bins_per_chr_cum[-1])[ct:]
 	ref_sizes = np.zeros(masked_bins_per_chr_cum[-1])[ct:]
+	ref_log_means = np.zeros(masked_bins_per_chr_cum[-1])[ct:]
 	indexes = ref_file['indexes{}'.format(ap)]
 	distances = ref_file['distances{}'.format(ap)]
 
@@ -105,10 +106,11 @@ def _normalize_once(test_data, test_copy, ref_file, optimal_cutoff, ct, cp, ap):
 			results_z[i2] = (test_data[i] - ref_mean) / ref_stdev
 			results_r[i2] = test_data[i] / ref_mean
 			ref_sizes[i2] = ref_data.shape[0]
+			ref_log_means[i2] = np.log2(ref_mean)
 			i += 1
 			i2 += 1
 
-	return results_z, results_r, ref_sizes
+	return results_z, results_r, ref_sizes, ref_log_means
 
 
 '''
@@ -143,7 +145,7 @@ all corresponding possible positions (at results_r, results_z
 and results_w are set to 0 (blacklist)).
 '''
 
-def log_trans(results):
+def log_trans(results, log_r_median, log_z_median):
 	for chr in range(len(results['results_r'])):
 		results['results_r'][chr] = np.log2(results['results_r'][chr])
 
@@ -155,6 +157,10 @@ def log_trans(results):
 				results['results_r'][c][i] = 0
 				results['results_z'][c][i] = 0
 				results['results_w'][c][i] = 0
+			if results['results_r'][c][i] != 0:
+				results['results_r'][c][i] = results['results_r'][c][i] - log_r_median
+			if results['results_z'][c][i] != 0:
+				results['results_z'][c][i] = results['results_z'][c][i] - log_z_median
 
 '''
 Applies additional blacklist to results_r, results_z
@@ -211,12 +217,13 @@ def exec_cbs(rem_input, results):
 		'outfile': str('{}_02.json'.format(json_cbs_dir))
 	}
 
-	from overall_tools import exec_R
-	json_out = exec_R(json_dict)
-	return _get_processed_cbs(results, json_out)
+	from overall_tools import exec_R, get_z_score
+	results_c = _get_processed_cbs(exec_R(json_dict))
+	segment_z = get_z_score(results_c, results["results_rlm"])
+	results_c = [results_c[i][:3] + [segment_z[i]] + [results_c[i][3]] for i in range(len(results_c))]
+	return results_c
 
-def _get_processed_cbs(results, cbs_data):
-	zz_scores = __get_stouffer_zz(results, cbs_data)
+def _get_processed_cbs(cbs_data):
 
 	results_c = []
 	for i, segment in enumerate(cbs_data):
@@ -224,23 +231,6 @@ def _get_processed_cbs(results, cbs_data):
 		s = int(segment['s'])
 		e = int(segment['e'])
 		r = segment['r']
-		results_c.append([chr, s, e, zz_scores[i], r])
+		results_c.append([chr, s, e, r])
 
 	return results_c
-
-def __get_stouffer_zz(results, cbs_data):
-	stouffer_scores = []
-	for segment in cbs_data:
-		chr = int(segment['chr']) - 1
-		s = int(segment['s'])
-		e = int(segment['e'])
-
-		z_segment = np.array(results['results_z'][chr][s:e])
-		w_segment = np.array(results['results_w'][chr][s:e])
-
-		stouffer = np.sum(z_segment * w_segment) / np.sqrt(np.sum(np.power(w_segment, 2)))
-		stouffer_scores.append(stouffer)
-
-	from overall_tools import get_zz_score
-
-	return(get_zz_score(stouffer_scores))

@@ -25,9 +25,9 @@ def normalize(args, sample, ref_file, ref_gender):
 	sample = project_pc(sample, ref_file, ap)
 	results_w = get_weights(ref_file, ap)[ct:]
 	optimal_cutoff = get_optimal_cutoff(ref_file, args.maskrepeats, ct, ap)
-	results_z, results_r, ref_sizes = normalize_repeat(sample, ref_file, optimal_cutoff, 5, ct, cp, ap)
+	results_z, results_r, ref_sizes, ref_log_means = normalize_repeat(sample, ref_file, optimal_cutoff, 5, ct, cp, ap)
 
-	return results_r, results_z, results_w, ref_sizes
+	return results_r, results_z, results_w, ref_sizes, ref_log_means
 
 
 '''

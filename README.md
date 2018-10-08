@@ -30,7 +30,7 @@ bins from non-informative ones.
 ### Installation
 
 Stable releases can be installed using [Conda](https://conda.io/docs/). This is the preferred option since
-Conda takes care of all necessary dependencies. Whilst doing this, make sure you are in a Python 3.6 environment.
+Conda takes care of all necessary dependencies.
 ```bash
 
 conda install -f -c conda-forge -c bioconda wisecondorx
@@ -170,26 +170,24 @@ limits: here it's likely you are dealing with 4n, 5n, 6n, ...
 
 ## Tables
 
-### sample_bins.bed
+### ID_bins.bed
 
 This file contains all bin-wise information. When data is 'NaN', the corresponding bin is included in the blacklist. 
 The Z-scores are calculated as default using the within-sample reference bins as a null set.
 
-### sample_segments.bed
+### ID_segments.bed
 
-This file contains all segment-wise information. A combined Z-score is calculated using Stouffer's approach. The final 
-z-score quantifies the difference between a certain segment and the others segments. Note that this score thus does not 
-differentiate significant from non-significant 'aberrations'. This score could be particularly interesting for NIPT, 
-where none (healthy) or one (e.g. tri21) aberrations are often expected.
+This file contains all segment-wise information. A combined Z-score is calculated using all within-reference bins
+enclosed by a segments' within-reference set as a null set.
 
-### sample_aberrations.bed
+### ID_aberrations.bed
 
 This file contains segments with a ratio surpassing a certain cutoff value, defined by the `--beta` parameter.
 
-### sample_chr_statistics.bed
+### ID_chr_statistics.bed
 
 This file contains some interesting statistics for each chromosome. The definition of the Z-scores matches the one from 
-the 'sample_segments.bed'. Might be interesting for NIPT.
+the 'ID_segments.bed'. Particularly interesting for NIPT.
 
 # Dependencies
 
