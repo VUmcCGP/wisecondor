@@ -138,20 +138,6 @@ Numerous adaptations to this algorithm have been made, yet the central principle
 prediction algorithm, gender handling prior to normalization (ultimately enabling X and Y predictions), extensive
 blacklisting options, inclusion of a weighted CBS algorithm and improved codes for outputting tables and plots.
 
-# Additional scripts & features
-
-Some files might not be compatible between versions. A small script (`./additional.scripts/fix_convert_npz.py`) enables reformatting
-.npz files resulting from the `convert` stage to files that are compatible with the newest version. This can also be used
-to transform original WISECONDOR .npz files. Note that the `newref` function requires a re-run to make `predict` functional
-between versions.  
-
-```bash
-
-fix.convert.npz.py input.npz output.npz
-```
-
-To get the (predicted) gender of a sample, one can use `WisecondorX gender input.npz`.  
-
 # Interpretation results
 
 ## Plots
