@@ -219,7 +219,7 @@ def exec_cbs(rem_input, results):
 
 	from overall_tools import exec_R, get_z_score
 	results_c = _get_processed_cbs(exec_R(json_dict))
-	segment_z = get_z_score(results_c, results["results_rlm"])
+	segment_z = get_z_score(results_c, results['results_rlm'])
 	results_c = [results_c[i][:3] + [segment_z[i]] + [results_c[i][3]] for i in range(len(results_c))]
 	return results_c
 
