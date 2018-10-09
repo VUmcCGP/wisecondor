@@ -72,11 +72,11 @@ def normalize_repeat(test_data, ref_file, optimal_cutoff, repeats, ct, cp, ap):
 	results_r = None
 	test_copy = np.copy(test_data)
 	for i in range(repeats):
-		results_z, results_r, ref_sizes, ref_log_means = _normalize_once(test_data, test_copy, ref_file,
+		results_z, results_r, ref_sizes = _normalize_once(test_data, test_copy, ref_file,
 														  optimal_cutoff, ct, cp, ap)
 
 		test_copy[ct:][np.abs(results_z) >= norm.ppf(0.975)] = -1
-	return results_z, results_r, ref_sizes, ref_log_means
+	return results_z, results_r, ref_sizes
 
 
 def _normalize_once(test_data, test_copy, ref_file, optimal_cutoff, ct, cp, ap):
@@ -85,7 +85,6 @@ def _normalize_once(test_data, test_copy, ref_file, optimal_cutoff, ct, cp, ap):
 	results_z = np.zeros(masked_bins_per_chr_cum[-1])[ct:]
 	results_r = np.zeros(masked_bins_per_chr_cum[-1])[ct:]
 	ref_sizes = np.zeros(masked_bins_per_chr_cum[-1])[ct:]
-	ref_log_means = np.zeros(masked_bins_per_chr_cum[-1])[ct:]
 	indexes = ref_file['indexes{}'.format(ap)]
 	distances = ref_file['distances{}'.format(ap)]
 
@@ -106,11 +105,10 @@ def _normalize_once(test_data, test_copy, ref_file, optimal_cutoff, ct, cp, ap):
 			results_z[i2] = (test_data[i] - ref_mean) / ref_stdev
 			results_r[i2] = test_data[i] / ref_mean
 			ref_sizes[i2] = ref_data.shape[0]
-			ref_log_means[i2] = np.log2(ref_mean)
 			i += 1
 			i2 += 1
 
-	return results_z, results_r, ref_sizes, ref_log_means
+	return results_z, results_r, ref_sizes
 
 
 '''
@@ -120,7 +118,7 @@ CBS and Stouffer's z-scoring.
 '''
 
 def get_weights(ref_file, ap):
-	inverse_weights = [np.mean(x) for x in ref_file['distances{}'.format(ap)]]
+	inverse_weights = [np.mean(np.sqrt(x)) for x in ref_file['distances{}'.format(ap)]]
 	weights = np.array([1 / x for x in inverse_weights])
 	return weights
 
@@ -130,7 +128,7 @@ Unmasks results array.
 '''
 
 def inflate_results(results, rem_input):
-	temp = np.zeros(rem_input['mask'].shape[0])
+	temp = [0 for x in rem_input['mask']]
 	j = 0
 	for i, val in enumerate(rem_input['mask']):
 		if val:
@@ -217,9 +215,9 @@ def exec_cbs(rem_input, results):
 		'outfile': str('{}_02.json'.format(json_cbs_dir))
 	}
 
-	from overall_tools import exec_R, get_z_score
+	from overall_tools import exec_R, get_z_score, get_median_segment_variance
 	results_c = _get_processed_cbs(exec_R(json_dict))
-	segment_z = get_z_score(results_c, results['results_rlm'])
+	segment_z = get_z_score(results_c, results['results_nr'], results['results_r'])
 	results_c = [results_c[i][:3] + [segment_z[i]] + [results_c[i][3]] for i in range(len(results_c))]
 	return results_c
 

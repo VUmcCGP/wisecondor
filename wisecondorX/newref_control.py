@@ -102,12 +102,13 @@ def _tool_newref_part(args):
 
 	from newref_tools import get_reference
 
-	indexes, distances = get_reference(pca_corrected_data, masked_bins_per_chr, masked_bins_per_chr_cum,
+	indexes, distances, null_ratios = get_reference(pca_corrected_data, masked_bins_per_chr, masked_bins_per_chr_cum,
 									   ref_size=args.refsize, part=args.part[0], split_parts=args.part[1])
 
 	np.savez_compressed('{}_{}.npz'.format(args.partfile, str(args.part[0])),
 						indexes=indexes,
-						distances=distances)
+						distances=distances,
+						null_ratios=null_ratios)
 
 
 '''
@@ -121,14 +122,17 @@ def tool_newref_post(args, cpus):
 
 	big_indexes = []
 	big_distances = []
+	big_null_ratios = []
 	for part in range(1, cpus + 1):
 		infile = '{}_{}.npz'.format(args.partfile, str(part))
 		npzdata_part = np.load(infile, encoding='latin1')
 		big_indexes.extend(npzdata_part['indexes'])
 		big_distances.extend(npzdata_part['distances'])
+		big_null_ratios.extend(npzdata_part['null_ratios'])
 
 	indexes = np.array(big_indexes)
 	distances = np.array(big_distances)
+	null_ratios = np.array(big_null_ratios)
 
 	np.savez_compressed(args.tmpoutfile,
 						binsize=npzdata_prep['binsize'].item(),
@@ -144,7 +148,8 @@ def tool_newref_post(args, cpus):
 						pca_mean=npzdata_prep['pca_mean'],
 
 						indexes=indexes,
-						distances=distances)
+						distances=distances,
+						null_ratios=null_ratios)
 
 
 '''

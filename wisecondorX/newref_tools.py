@@ -123,8 +123,15 @@ def get_reference(pca_corrected_data, masked_bins_per_chr, masked_bins_per_chr_c
 
 	index_array = np.array(big_indexes)
 	distance_array = np.array(big_distances)
+	null_ratio_array = np.zeros((len(distance_array), len(pca_corrected_data[0])))
 
-	return index_array, distance_array
+	for si, sample in enumerate(np.transpose(pca_corrected_data)):
+		for i in list(range(len(sample)))[start_num:end_num]:
+			ref = sample[index_array[i - start_num]]
+			r = np.log2(sample[i] / np.mean(ref))
+			null_ratio_array[i - start_num][si] = r
+
+	return index_array, distance_array, null_ratio_array
 
 def _split_by_chr(start, end, chr_bin_sums):
 	areas = []

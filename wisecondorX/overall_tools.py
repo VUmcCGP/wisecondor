@@ -78,12 +78,14 @@ def exec_R(json_dict):
 Calculates z-score.
 '''
 
-def get_z_score(results_c, results_rlm):
+def get_z_score(results_c, results_nr, results_r):
 	zs = []
-	for i in range(len(results_c)):
-		segment_rlm = results_rlm[results_c[i][0]][results_c[i][1]:results_c[i][2]]
-		null_sd = np.std([x for x in segment_rlm if x != 0])
-		zs.append(results_c[i][3] / null_sd)
+	for segment in results_c:
+		segment_nr = results_nr[segment[0]][segment[1]:segment[2]]
+		segment_rr = results_r[segment[0]][segment[1]:segment[2]]
+		segment_nr = [segment_nr[i] for i in range(len(segment_nr)) if segment_rr[i] != 0]
+		null_segments = [np.mean(x) for x in np.transpose(segment_nr)]
+		zs.append((segment[3] - np.mean(null_segments)) / np.std(null_segments))
 	return zs
 
 
@@ -99,8 +101,7 @@ def get_median_segment_variance(results_c, results_r):
 		if segment_r:
 			var = np.var(segment_r)
 			vars.append(var)
-
-	return np.nanmedian(vars)
+	return np.median(vars)
 
 
 '''

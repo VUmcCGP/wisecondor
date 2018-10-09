@@ -113,7 +113,7 @@ def _generate_chr_statistics_file(rem_input, results):
 	results_c_chr = [[x, 0, rem_input['masked_bins_per_chr'][x], chr_ratio_means[x]]
 					 for x in range(len(results['results_r']))]
 
-	chr_z_scores = get_z_score(results_c_chr, results['results_rlm'])
+	chr_z_scores = get_z_score(results_c_chr, results['results_nr'], results['results_r'])
 
 	for chr in range(len(results['results_r'])):
 

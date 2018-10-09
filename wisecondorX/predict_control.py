@@ -25,9 +25,9 @@ def normalize(args, sample, ref_file, ref_gender):
 	sample = project_pc(sample, ref_file, ap)
 	results_w = get_weights(ref_file, ap)[ct:]
 	optimal_cutoff = get_optimal_cutoff(ref_file, args.maskrepeats, ct, ap)
-	results_z, results_r, ref_sizes, ref_log_means = normalize_repeat(sample, ref_file, optimal_cutoff, 5, ct, cp, ap)
+	results_z, results_r, ref_sizes = normalize_repeat(sample, ref_file, optimal_cutoff, 5, ct, cp, ap)
 
-	return results_r, results_z, results_w, ref_sizes, ref_log_means
+	return results_r, results_z, results_w, ref_sizes
 
 
 '''
@@ -46,7 +46,5 @@ def get_post_processed_result(args, result, ref_sizes, rem_input):
 	for chr in range(len(rem_input['bins_per_chr'])):
 		chr_data = inflated_results[sum(rem_input['bins_per_chr'][:chr]):sum(rem_input['bins_per_chr'][:chr + 1])]
 		final_results.append(chr_data)
-
-	final_results = [x.tolist() for x in final_results]
 
 	return final_results
