@@ -163,8 +163,8 @@ The Z-scores are calculated as default using the within-sample reference bins as
 
 ### ID_segments.bed
 
-This file contains all segment-wise information. A combined Z-score is calculated using all within-reference bins
-enclosed by a segments' within-reference set as a null set.
+This file contains all segment-wise information. A combined Z-score is calculated using a between-sample z-scoring
+technique (the test case vs the reference cases).
 
 ### ID_aberrations.bed
 
