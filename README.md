@@ -48,7 +48,7 @@ There are three main stages (converting, reference creating & predicting) for us
 - Convert .bam files to .npz files (both reference and test samples)  
 - Create a reference (using reference .npz files)  
     - **Important notes**
-        - WisecondorX will internally generate a male and female gonosomal reference. It is advisable that both male and female
+        - WisecondorX will internally generate a male and female gonosomal reference. It is advised that both male and female
         samples are represented in the reference set. If e.g. no male samples are included, the Y chromosome will not be
         part of the analysis when testing male cases.  
         - For NIPT analysis, it is advised that both male and female feti are (more or less) equally included.
@@ -88,7 +88,7 @@ WisecondorX newref reference_input_dir/*.npz reference_output.npz [--optional ar
 
 <br>Optional argument<br><br> | Function
 :--- | :---  
-`--nipt` | **Always include this flag for correction generation of a NIPT reference**  
+`--nipt` | **Always include this flag for the generation of a NIPT reference**  
 `--binsize x` | Size per bin in bp, defines the resolution of the output (default: x=1e5)  
 `--refsize x` | Amount of reference locations per target (default: x=300)  
 `--cpus x` | Number of threads requested (default: x=1)  
