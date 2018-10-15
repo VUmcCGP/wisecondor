@@ -113,6 +113,7 @@ def _generate_chr_statistics_file(rem_input, results):
 	results_c_chr = [[x, 0, rem_input['masked_bins_per_chr'][x], chr_ratio_means[x]]
 					 for x in range(len(results['results_r']))]
 
+	msv = get_median_segment_variance(results['results_c'], results['results_r'])
 	chr_z_scores = get_z_score(results_c_chr, results['results_nr'], results['results_r'])
 
 	for chr in range(len(results['results_r'])):
@@ -134,5 +135,5 @@ def _generate_chr_statistics_file(rem_input, results):
 					 .format(str(np.nanstd(chr_ratio_means))))
 
 	stats_file.write('Median segment variance (per bin): {}\n'
-					 .format(str(get_median_segment_variance(results['results_c'], results['results_r']))))
+					 .format(str(msv)))
 	stats_file.close()

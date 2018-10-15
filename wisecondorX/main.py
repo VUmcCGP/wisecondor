@@ -64,8 +64,11 @@ def tool_newref(args):
 
 		genders.append(gender)
 		samples.append(corrected_sample)
-
 	samples = np.array(samples)
+
+	if args.nipt:
+		from newref_tools import redefine_nipt_genders
+		genders = redefine_nipt_genders(genders, samples)
 
 	from newref_tools import get_mask
 	total_mask, bins_per_chr = get_mask(samples)
@@ -99,15 +102,15 @@ def tool_newref(args):
 	else:
 		logging.warning('Provide at least 5 female samples to enable normalization of female gonosomes.')
 
-	if genders.count('M') > 4:
-		logging.info('Starting male gonosomal reference creation ...')
-		args.tmpoutfile = '{}.tmp.M.npz'.format(args.basepath)
-		outfiles.append(args.tmpoutfile)
-		tool_newref_prep(args, samples[np.array(genders) == 'M'], 'M', total_mask, bins_per_chr)
-		tool_newref_main(args, 1)
-	else:
-		logging.warning('Provide at least 5 male samples to enable normalization of male gonosomes. '
-						'If these are of no interest (e.g. NIPT), ignore this warning.')
+	if not args.nipt:
+		if genders.count('M') > 4:
+			logging.info('Starting male gonosomal reference creation ...')
+			args.tmpoutfile = '{}.tmp.M.npz'.format(args.basepath)
+			outfiles.append(args.tmpoutfile)
+			tool_newref_prep(args, samples[np.array(genders) == 'M'], 'M', total_mask, bins_per_chr)
+			tool_newref_main(args, 1)
+		else:
+			logging.warning('Provide at least 5 male samples to enable normalization of male gonosomes.')
 
 	tool_newref_merge(args, outfiles)
 
@@ -310,6 +313,10 @@ def main():
 	parser_newref.add_argument('outfile',
 							   type=str,
 							   help='Path and filename for the reference output (e.g. path/to/myref.npz)')
+	parser_newref.add_argument('--nipt',
+							   action='store_true',
+							   help='Use only for NIPT! (e.g. path/to/reference/*.npz)'
+							   )
 	parser_newref.add_argument('--refsize',
 							   type=int,
 							   default=300,

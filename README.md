@@ -51,14 +51,12 @@ There are three main stages (converting, reference creating & predicting) for us
         - WisecondorX will internally generate a male and female gonosomal reference. It is advisable that both male and female
         samples are represented in the reference set. If e.g. no male samples are included, the Y chromosome will not be
         part of the analysis when testing male cases.  
-        - For NIPT analysis, an important exception on previous rule holds: only pregnancies of female feti should be used to 
-        generate the reference. This implies that for NIPT, WisecondorX is not able to analyse the Y chromosome. Additionally,
-        this goes without saying, make sure you do not manually annotate samples as male during the convert phase.  
+        - For NIPT analysis, it is advised that both male and female feti are (more or less) equally included.
         - It is of paramount importance that the reference set consists of exclusively healthy samples that originate from
         the same sequencer, mapper, reference genome, type of material, ... etc, as the test samples. As a rule of thumb,
         think of all laboratory and in silico pre-processing steps: the more sources of bias that can be omitted,
         the better.  
-        - Try to include at least 50 samples per reference. The more the better, yet, from 300 on it is unlikely to observe
+        - Try to include at least 50 samples per reference. The more the better, yet, from 500 on it is unlikely to observe
         additional improvement concerning normalization.  
 - Predict CNAs (using the reference and test .npz cases of interest)  
 
@@ -90,6 +88,7 @@ WisecondorX newref reference_input_dir/*.npz reference_output.npz [--optional ar
 
 <br>Optional argument<br><br> | Function
 :--- | :---  
+`--nipt` | **Always include this flag for correction generation of a NIPT reference**  
 `--binsize x` | Size per bin in bp, defines the resolution of the output (default: x=1e5)  
 `--refsize x` | Amount of reference locations per target (default: x=300)  
 `--cpus x` | Number of threads requested (default: x=1)  

@@ -67,15 +67,15 @@ as 'normal' in a sample (in most cases this means
 reference for the other bins.
 '''
 
-def normalize_repeat(test_data, ref_file, optimal_cutoff, repeats, ct, cp, ap):
+def normalize_repeat(test_data, ref_file, optimal_cutoff, ct, cp, ap):
 	results_z = None
 	results_r = None
 	test_copy = np.copy(test_data)
-	for i in range(repeats):
+	for i in range(3):
 		results_z, results_r, ref_sizes = _normalize_once(test_data, test_copy, ref_file,
 														  optimal_cutoff, ct, cp, ap)
 
-		test_copy[ct:][np.abs(results_z) >= norm.ppf(0.975)] = -1
+		test_copy[ct:][np.abs(results_z) >= norm.ppf(0.99)] = -1
 	return results_z, results_r, ref_sizes
 
 
@@ -100,10 +100,9 @@ def _normalize_once(test_data, test_copy, ref_file, optimal_cutoff, ct, cp, ap):
 		for index in indexes[start:end]:
 			ref_data = chr_data[index[distances[i] < optimal_cutoff]]
 			ref_data = ref_data[ref_data >= 0]
-			ref_mean = np.mean(ref_data)
 			ref_stdev = np.std(ref_data)
-			results_z[i2] = (test_data[i] - ref_mean) / ref_stdev
-			results_r[i2] = test_data[i] / ref_mean
+			results_z[i2] = (test_data[i] - np.mean(ref_data)) / ref_stdev
+			results_r[i2] = test_data[i] / np.median(ref_data)
 			ref_sizes[i2] = ref_data.shape[0]
 			i += 1
 			i2 += 1

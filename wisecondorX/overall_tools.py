@@ -75,7 +75,7 @@ def exec_R(json_dict):
 
 
 '''
-Calculates z-score.
+Calculates between sample z-score.
 '''
 
 def get_z_score(results_c, results_nr, results_r):

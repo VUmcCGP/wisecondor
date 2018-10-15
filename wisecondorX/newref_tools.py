@@ -4,6 +4,7 @@ import logging
 import bisect
 import numpy as np
 from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
 
 
 '''
@@ -123,9 +124,9 @@ def get_reference(pca_corrected_data, masked_bins_per_chr, masked_bins_per_chr_c
 
 	index_array = np.array(big_indexes)
 	distance_array = np.array(big_distances)
-	null_ratio_array = np.zeros((len(distance_array), len(pca_corrected_data[0])))
+	null_ratio_array = np.zeros((len(distance_array), min(len(pca_corrected_data[0]), 100)))
 
-	for si, sample in enumerate(np.transpose(pca_corrected_data)):
+	for si, sample in enumerate(np.transpose(pca_corrected_data)[:min(len(pca_corrected_data[0]), 100)]):
 		for i in list(range(len(sample)))[start_num:end_num]:
 			ref = sample[index_array[i - start_num]]
 			r = np.log2(sample[i] / np.mean(ref))
@@ -183,3 +184,32 @@ def get_ref_for_bins(ref_size, start, end, pca_corrected_data, chr_data):
 		ref_indexes[this_bin - start, :] = this_indexes
 		ref_distances[this_bin - start, :] = this_distances
 	return ref_indexes, ref_distances
+
+
+'''
+The term 'gender' refers to the gender of a
+studied case. Pregnant woman will therefore
+always be 'F', irrespective of the fetal
+gender. However, when the --nipt argument is
+included, 'gender' will be redefined based
+on a cluster analysis.
+'''
+
+def redefine_nipt_genders(genders, samples):
+	genders = np.array(genders)
+	y_fractions = []
+	for sample in samples:
+		y_fractions.append(np.sum(sample['24']) / np.sum([np.sum(sample[x]) for x in sample.keys()]))
+	y_fractions = np.array(y_fractions)
+	kmeans = KMeans(n_clusters=2).fit(y_fractions.reshape(-1, 1))
+	labels = kmeans.labels_
+	gender_A = np.where(labels == 0)[0]
+	gender_B = np.where(labels == 1)[0]
+	if np.mean(y_fractions[gender_A]) > np.mean(y_fractions[gender_B]):
+		genders[gender_A] = "M"
+		genders[gender_B] = "F"
+	else:
+		genders[gender_A] = "F"
+		genders[gender_B] = "M"
+
+	return genders.tolist()
