@@ -146,7 +146,7 @@ def tool_test(args):
 		sample = gender_correct(sample, actual_gender)
 	else:
 		actual_gender = 'F'
-		
+
 	ref_gender = actual_gender
 
 	logging.info('Normalizing autosomes ...')
@@ -307,7 +307,7 @@ def main():
 
 	parser_gender = subparsers.add_parser('gender',
 										  description='Returns the gender of a .npz resulting from convert, '
-													  'based on a multimodel model trained during the newref phase',
+													  'based on a Gaussian mixture model trained during the newref phase',
 										  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 	parser_gender.add_argument('infile',
 							   type=str,

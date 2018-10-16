@@ -6,18 +6,14 @@ import random
 import numpy as np
 from sklearn.decomposition import PCA
 from scipy.signal import argrelextrema
-from scipy.stats import kde
-
+from sklearn.mixture import GaussianMixture
 
 '''
-A multimodel (bimodel) fit will be created
-using one-dimensional y-fraction unprocessed
-data, by kernel density estimation (KDE).
-To two highest peaks of the KDE fit are expected
-to correspond to those of the males and the females.
-The minimum between these peaks represents the
-desired cut-off value, which enables separating
-males form females.
+A Gaussian mixture model is fitted against
+all one-dimensional reference y-fractions.
+Two components are expected: one for males,
+and one for females. The local minimum will
+serve as the cut-off point.
 '''
 
 def train_gender_model(samples):
@@ -27,44 +23,28 @@ def train_gender_model(samples):
 		y_fractions.append(float(np.sum(sample['24'])) / float(np.sum([np.sum(sample[x]) for x in sample.keys()])))
 	y_fractions = np.array(y_fractions)
 
-	nparam_density = kde.gaussian_kde(y_fractions, 0.1)
-	x = np.linspace(0.001, 0.01, len(genders) * 2)
-	nparam_density = nparam_density(x)
-
-	sort_idd = np.argsort(x)
-	sorted_nparam_density = nparam_density[sort_idd]
-
-	local_max_i = argrelextrema(sorted_nparam_density, np.greater)
-
-	first_max = np.max(sorted_nparam_density[local_max_i])
-	second_max = np.max([m for m in sorted_nparam_density[local_max_i] if m != first_max])
-
-	highest_peak_i = np.where(nparam_density == first_max)[0][0]
-	second_highest_peak_i = np.where(nparam_density == second_max)[0][0]
-
-	nparam_density = nparam_density[min(highest_peak_i,second_highest_peak_i):
-	(max(highest_peak_i, second_highest_peak_i) + 1)]
-	x = x[min(highest_peak_i,second_highest_peak_i):
-	(max(highest_peak_i,second_highest_peak_i) + 1)]
-
-	sort_idd = np.argsort(x)
-	sorted_nparam_density = nparam_density[sort_idd]
-
-	local_min_i = argrelextrema(sorted_nparam_density, np.less)
-
-	first_min = np.min(sorted_nparam_density[local_min_i])
-	lowest_point_i = np.where(nparam_density == first_min)[0][0]
-	cut_off = x[lowest_point_i]
-
-	genders[y_fractions > cut_off] = 'M'
-	genders[y_fractions < cut_off] = 'F'
+	gmm = GaussianMixture(n_components=2, covariance_type='full', reg_covar=1e-50)
+	gmm.fit(X=y_fractions.reshape(-1, 1))
+	gmm_x = np.linspace(0, 0.02, 5000)
+	gmm_y = np.exp(gmm.score_samples(gmm_x.reshape(-1, 1)))
 
 	#import matplotlib.pyplot as plt
 	#fig, ax = plt.subplots(figsize=(10, 6))
-	#ax.hist(y_fractions, bins=60, normed=True)
-	#ax.plot(x, nparam_density, 'r-', label='non-parametric density (smoothed by Gaussian kernel)')
+	#ax.hist(y_fractions, bins=50, normed=True)
+	#ax.plot(gmm_x, gmm_y, 'r-', label='Gaussian mixture fit')
+	#ax.set_xlim([0.001, 0.01])
 	#ax.legend(loc='best')
 	#plt.show()
+
+	sort_idd = np.argsort(gmm_x)
+	sorted_gmm_y = gmm_y[sort_idd]
+
+	local_min_i = argrelextrema(sorted_gmm_y, np.less)
+
+	cut_off = gmm_x[local_min_i][0]
+
+	genders[y_fractions > cut_off] = 'M'
+	genders[y_fractions < cut_off] = 'F'
 
 	return genders.tolist(), cut_off
 

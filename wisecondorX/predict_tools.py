@@ -7,8 +7,8 @@ from scipy.stats import norm
 
 
 '''
-Returns gender based on bimodel model fitted
-during newref phase.
+Returns gender based on Gaussian mixture
+model trained during newref phase.
 '''
 
 def predict_gender(sample, trained_cutoff):
