@@ -142,12 +142,12 @@ def tool_test(args):
 	if not ref_file['is_nipt']:
 		from predict_tools import predict_gender
 		actual_gender = predict_gender(sample, ref_file['trained_cutoff'])
+		from overall_tools import gender_correct
+		sample = gender_correct(sample, actual_gender)
 	else:
 		actual_gender = 'F'
+		
 	ref_gender = actual_gender
-
-	from overall_tools import scale_sample, gender_correct
-	sample = gender_correct(sample, actual_gender)
 
 	logging.info('Normalizing autosomes ...')
 
