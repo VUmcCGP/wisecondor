@@ -113,18 +113,3 @@ def convert_bam(args):
 				 'post_retro': reads_kept,
 				 'pair_fail': reads_pairf}
 	return bins_per_chr, qual_info
-
-
-'''
-Predicts gender based on a Y chromosome fraction
-cutoff.
-'''
-
-def get_gender(args, sample):
-	tot_reads = float(sum([sum(sample[str(x)]) for x in range(1, 25)]))
-	Y_reads = float(sum(sample['24']))
-
-	if Y_reads / tot_reads > args.ycutoff:
-		return 'M'
-	else:
-		return 'F'

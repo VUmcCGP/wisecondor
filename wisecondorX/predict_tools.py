@@ -7,6 +7,19 @@ from scipy.stats import norm
 
 
 '''
+Returns gender based on bimodel model fitted
+during newref phase.
+'''
+
+def predict_gender(sample, trained_cutoff):
+	Y_fraction = float(np.sum(sample['24'])) / float(np.sum([np.sum(sample[x]) for x in sample.keys()]))
+	if Y_fraction > trained_cutoff:
+		return 'M'
+	else:
+		return 'F'
+
+
+'''
 Normalize sample for read depth and apply mask.
 '''
 

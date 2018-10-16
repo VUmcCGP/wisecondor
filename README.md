@@ -6,9 +6,10 @@ WISECONDOR appeared to normalize sWGS copy number data in the most consistent wa
 as is the case with every tool, WISECONDOR has limitations of its own: the Stouffer's z-score approach is error-prone when
 dealing with large amounts of aberrations, the algorithm is extremely slow (24h) when using small bin sizes (15 kb) and
 sex chromosomes are not included in the analysis. Here, I present WisecondorX, an evolved WISECONDOR that aims at dealing with
-previous difficulties. Main adaptations include the additional (and consistent) analysis of the X and Y chromosomes,
-a weighted CBS-based segmentation technique and a custom plotter, resulting in overall superior results and significantly lower computing times,
-allowing daily diagnostic use. WisecondorX is meant to be applicable not only to NIPT, but also to gDNA, PGD, FFPE, LQB, ... etc.
+previous difficulties. Main adaptations include the additional (and consistent) analysis of the X and Y chromosomes (for
+NIPT exclusively X), a weighted CBS-based segmentation technique, a gender prediction algorithm and a custom plotter, resulting
+in overall superior results and significantly lower computing times, allowing daily diagnostic use. WisecondorX is meant
+to be applicable not only to NIPT, but also to gDNA, PGD, FFPE, LQB, ... etc.
 
 # Manual
 
@@ -49,14 +50,16 @@ There are three main stages (converting, reference creating & predicting) for us
 - Create a reference (using reference .npz files)  
     - **Important notes**
         - WisecondorX will internally generate a male and female gonosomal reference. It is advised that both male and female
-        samples are represented in the reference set. If e.g. no male samples are included, the Y chromosome will not be
-        part of the analysis when testing male cases.  
-        - For NIPT analysis, it is advised that both male and female feti are (more or less) equally included.
+        samples are represented in the reference set.  
+        - It is also advised that both male and female samples (for NIPT, this means male and female feti) are (more or less)
+        equally included.  
+        - Gender prediction is based on multimodel modeling of the Y-read fraction. This means that, if only few samples (<50)
+        are included, this process will not be accurate, and gonosomal predictions will fail.  
         - It is of paramount importance that the reference set consists of exclusively healthy samples that originate from
         the same sequencer, mapper, reference genome, type of material, ... etc, as the test samples. As a rule of thumb,
         think of all laboratory and in silico pre-processing steps: the more sources of bias that can be omitted,
         the better.  
-        - Try to include at least 50 samples per reference. The more the better, yet, from 500 on it is unlikely to observe
+        - Try to include at least 100 samples per reference. The more the better, yet, from 500 on it is unlikely to observe
         additional improvement concerning normalization.  
 - Predict CNAs (using the reference and test .npz cases of interest)  
 
@@ -116,18 +119,28 @@ WisecondorX predict test_input.npz reference_input.npz output_id [--optional arg
 
 &rarr; Bash recipe (example for NIPT) at `./pipeline/predict.sh`
 
+### Additional functionality
+
+```bash
+
+WisecondorX gender test_input.npz reference_input.npz
+```
+
+Returns gender based Gaussian bimodel trained during reference creation.
+
 # Parameters
 
 The default parameters are optimized for shallow whole-genome sequencing data (0.1x - 1x depth; sWGS) and reference bin sizes 
 ranging from 50 to 500 kb. When increasing the reference bin size (`--binsize`), I recommend lowering the reference locations 
 per target (`--refsize`) and the minimum amount of sensible reference bins per target bin (`--minrefbins`). Further note that a
-reference bin size lower than 15 kb is not advisable.  
+reference bin size lower than 15 kb is not advised.  
 **Important note**  
 Concerning the vast majority of applications, the `--alpha` parameter should not be tweaked. The `--beta` parameter on the contrary
 should depend on your type of analysis. For NIPT, its default value should be fine. However, for gDNA, when mosaicisms are of no interest,
 it could be increased to its maximum, being 1. When the fetal (NIPT) or tumor (LQB, fresh material, FFPE, ...) fraction is known, this parameter is optimally
 close to this fraction. If you have any doubts about this argument, a default `--beta` should still be fine when a good and large reference set was created,
 irrespective of the type of analysis.  
+If the interest is research, and not diagnostics, feel free to use the z-scores by defining a cut-off of interest.
 
 # Underlying algorithm
 

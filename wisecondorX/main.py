@@ -14,20 +14,9 @@ def tool_convert(args):
 
 	from convert_tools import convert_bam
 	sample, qual_info = convert_bam(args)
-
-	if args.gender:
-		gender = args.gender
-		logging.info('Gender {}'.format(gender))
-	else:
-		logging.info('Predicting gender ...')
-		from convert_tools import get_gender
-		gender = get_gender(args, sample)
-		logging.info('... {}'.format(gender))
-
 	np.savez_compressed(args.outfile,
 						binsize=args.binsize,
 						sample=sample,
-						gender=gender,
 						quality=qual_info)
 
 	logging.info('Finished conversion')
@@ -47,35 +36,31 @@ def tool_newref(args):
 	args.partfile = '{}_part'.format(base_path)
 
 	samples = []
-	genders = []
 	logging.info('Importing data ...')
 	for infile in args.infiles:
 		logging.info('Loading: {}'.format(infile))
 		npzdata = np.load(infile, encoding='latin1')
 		sample = npzdata['sample'].item()
 		binsize = int(npzdata['binsize'])
-		from overall_tools import my_str
-		gender = my_str(npzdata['gender'])
-		logging.info('Binsize: {} | Gender : {}'.format(int(binsize), gender))
+		logging.info('Binsize: {}'.format(int(binsize)))
+		from overall_tools import scale_sample
+		samples.append(scale_sample(sample, binsize, args.binsize))
 
-		from overall_tools import scale_sample, gender_correct
-		scaled_sample = scale_sample(sample, binsize, args.binsize)
-		corrected_sample = gender_correct(scaled_sample, gender)
-
-		genders.append(gender)
-		samples.append(corrected_sample)
 	samples = np.array(samples)
+	from newref_tools import train_gender_model
+	genders, trained_cutoff = train_gender_model(samples)
 
-	if args.nipt:
-		from newref_tools import redefine_nipt_genders
-		genders = redefine_nipt_genders(genders, samples)
+	if not args.nipt:
+		from overall_tools import gender_correct
+		for i, sample in enumerate(samples):
+			samples[i] = gender_correct(sample, genders[i])
 
 	from newref_tools import get_mask
 	total_mask, bins_per_chr = get_mask(samples)
 	if genders.count('F') > 4:
 		mask_F, _ = get_mask(samples[np.array(genders) == 'F'])
 		total_mask = total_mask & mask_F
-	if genders.count('M') > 4:
+	if genders.count('M') > 4 and not args.nipt:
 		mask_M, _ = get_mask(samples[np.array(genders) == 'M'])
 		total_mask = total_mask & mask_M
 
@@ -112,7 +97,7 @@ def tool_newref(args):
 		else:
 			logging.warning('Provide at least 5 male samples to enable normalization of male gonosomes.')
 
-	tool_newref_merge(args, outfiles)
+	tool_newref_merge(args, outfiles, trained_cutoff)
 
 	logging.info('Finished creating reference')
 
@@ -150,13 +135,18 @@ def tool_test(args):
 
 	sample = sample_file['sample'].item()
 	n_reads = sum([sum(sample[x]) for x in sample.keys()])
-	from overall_tools import my_str
-	actual_gender = my_str(sample_file['gender'])
+
+	from overall_tools import scale_sample
+	sample = scale_sample(sample, int(sample_file['binsize'].item()), int(ref_file['binsize']))
+
+	if not ref_file['is_nipt']:
+		from predict_tools import predict_gender
+		actual_gender = predict_gender(sample, ref_file['trained_cutoff'])
+	else:
+		actual_gender = 'F'
 	ref_gender = actual_gender
 
 	from overall_tools import scale_sample, gender_correct
-	sample_bin_size = int(sample_file['binsize'].item())
-	sample = scale_sample(sample, sample_bin_size, int(ref_file['binsize']))
 	sample = gender_correct(sample, actual_gender)
 
 	logging.info('Normalizing autosomes ...')
@@ -242,9 +232,10 @@ def tool_test(args):
 
 
 def output_gender(args):
-
-	npzdata = np.load(args.infile, encoding='latin1')
-	gender = str(npzdata['gender'])
+	ref_file = np.load(args.reference, encoding='latin1')
+	sample_file = np.load(args.infile, encoding='latin1')
+	from predict_tools import predict_gender
+	gender = predict_gender(sample_file['sample'].item(), ref_file['trained_cutoff'])
 	if gender == 'M':
 		print('male')
 	else:
@@ -281,27 +272,10 @@ def main():
 								type=int,
 								default=4,
 								help='Threshold for when a group of reads is considered a tower and will be removed')
-	parser_convert.add_argument('--gender',
-								type=str,
-								choices=['F', 'M'],
-								help='Gender of the case. If not given, WisecondorX will predict it')
 	parser_convert.add_argument('--paired',
 								action='store_true',
 								help='Use paired-end reads | default is single-end')
-	parser_convert.add_argument('--ycutoff',
-								type=float,
-								default=0.004,
-								help='A cutoff value representing the ratio \'Y reads/total reads\'. '
-									 'Used to predict gender. Might require training for selecting the optimal value')
 	parser_convert.set_defaults(func=tool_convert)
-
-	parser_gender = subparsers.add_parser('gender',
-										  description='Returns the gender of a .npz resulting from convert',
-										  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-	parser_gender.add_argument('infile',
-							   type=str,
-							   help='.npz input file')
-	parser_gender.set_defaults(func=output_gender)
 
 	parser_newref = subparsers.add_parser('newref',
 										  description='Create a new reference using healthy reference samples',
@@ -330,6 +304,18 @@ def main():
 							   default=1,
 							   help='Use multiple cores to find reference bins')
 	parser_newref.set_defaults(func=tool_newref)
+
+	parser_gender = subparsers.add_parser('gender',
+										  description='Returns the gender of a .npz resulting from convert, '
+													  'based on a multimodel model trained during the newref phase',
+										  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+	parser_gender.add_argument('infile',
+							   type=str,
+							   help='.npz input file')
+	parser_gender.add_argument('reference',
+							   type=str,
+							   help='Reference .npz, as previously created with newref')
+	parser_gender.set_defaults(func=output_gender)
 
 	parser_test = subparsers.add_parser('predict',
 										description='Find copy number aberrations',

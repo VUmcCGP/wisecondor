@@ -102,16 +102,3 @@ def get_median_segment_variance(results_c, results_r):
 			var = np.var(segment_r)
 			vars.append(var)
 	return np.median(vars)
-
-
-'''
-Converts to string, across different python versions
--- tested on py2.7 vs py3.6
-'''
-
-def my_str(chars):
-	try:
-		chars = str(chars, 'utf-8').rstrip('\x00')
-	except:
-		chars = str(chars).format('utf-8')
-	return chars

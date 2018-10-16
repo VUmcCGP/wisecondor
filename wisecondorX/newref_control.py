@@ -63,16 +63,14 @@ def tool_newref_main(args, cpus):
 	if cpus != 1:
 		with futures.ThreadPoolExecutor(max_workers=args.cpus) as executor:
 			for part in range(1, cpus + 1):
-				if not os.path.isfile('{}_{}.npz'.format(args.partfile, str(part))):
-					this_args = copy.copy(args)
-					this_args.part = [part, cpus]
-					executor.submit(_tool_newref_part, this_args)
+				this_args = copy.copy(args)
+				this_args.part = [part, cpus]
+				executor.submit(_tool_newref_part, this_args)
 			executor.shutdown(wait=True)
 	else:
 		for part in range(1, cpus + 1):
-			if not os.path.isfile('{}_{}.npz'.format(args.partfile, str(part))):
-				args.part = [part, cpus]
-				_tool_newref_part(args)
+			args.part = [part, cpus]
+			_tool_newref_part(args)
 
 	tool_newref_post(args, cpus)
 
@@ -157,7 +155,7 @@ Merges separate subfiles (A, F, M) to one final
 reference file.
 '''
 
-def tool_newref_merge(args, outfiles):
+def tool_newref_merge(args, outfiles, trained_cutoff):
 
 	final_ref = {'has_female': False, 'has_male': False}
 	for file_id in outfiles:
@@ -173,4 +171,5 @@ def tool_newref_merge(args, outfiles):
 			else:
 				final_ref[str(component)] = npz_file[component]
 		os.remove(file_id)
+	final_ref['is_nipt'] = args.nipt ; final_ref['trained_cutoff'] = trained_cutoff
 	np.savez_compressed(args.outfile, **final_ref)
