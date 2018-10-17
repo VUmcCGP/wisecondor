@@ -193,8 +193,7 @@ def tool_test(args):
 	results_w = results_w / np.nanmedian(results_w)
 	ref_sizes = np.append(ref_sizes, ref_sizes_2)
 
-	log_r_median = np.nanmedian(np.log2(results_r))
-	log_z_median = np.nanmedian(np.log2(results_z))
+	log_r_median = np.nanmedian(np.log2(results_r[:rem_input['masked_bins_per_chr_cum'][21]]))
 
 	results = {'results_r': results_r,
 			   'results_z': results_z,
@@ -206,7 +205,7 @@ def tool_test(args):
 		results[result] = get_post_processed_result(args, results[result], ref_sizes, rem_input)
 
 	from predict_tools import log_trans
-	log_trans(results, log_r_median, log_z_median)
+	log_trans(results, log_r_median)
 
 	if args.blacklist:
 		logging.info('Applying blacklist ...')

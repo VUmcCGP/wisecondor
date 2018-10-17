@@ -78,8 +78,9 @@ def exec_R(json_dict):
 Calculates between sample z-score.
 '''
 
-def get_z_score(results_c, results_nr, results_r, msv):
+def get_z_score(results_c, results, msv):
 
+	results_nr, results_r, results_w = results['results_nr'], results['results_r'], results['results_w']
 	zs = []
 	tmp_results_nr = []
 	null_vars = []
@@ -95,7 +96,9 @@ def get_z_score(results_c, results_nr, results_r, msv):
 		segment_nr = results_nr[segment[0]][segment[1]:segment[2]]
 		segment_rr = results_r[segment[0]][segment[1]:segment[2]]
 		segment_nr = [segment_nr[i] for i in range(len(segment_nr)) if segment_rr[i] != 0]
-		null_segments = [np.mean(x) for x in np.transpose(segment_nr)]
+		segment_w = results_w[segment[0]][segment[1]:segment[2]]
+		segment_w = [segment_w[i] for i in range(len(segment_w)) if segment_rr[i] != 0]
+		null_segments = [np.average(x, weights=segment_w) for x in np.transpose(segment_nr)]
 		zs.append((segment[3] - np.mean(null_segments)) / (np.std(null_segments) * sd_correct))
 	return zs
 

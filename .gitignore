@@ -3,8 +3,7 @@
 .git
 .idea/
 __pycache__
-triarray.pyc
-wisetools.pyc
 /WisecondorX.egg-info/
 /build/
 /dist/
+**.pyc
