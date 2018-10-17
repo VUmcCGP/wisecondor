@@ -90,8 +90,8 @@ def normalize_repeat(test_data, ref_file, optimal_cutoff, ct, cp, ap):
 														  optimal_cutoff, ct, cp, ap)
 
 		test_copy[ct:][np.abs(results_z) >= norm.ppf(0.99)] = -1
-	m_lr = np.nanmedian(np.log2(results_r[np.abs(results_z) < norm.ppf(0.95)]))
-	m_z = np.nanmedian(results_z[np.abs(results_z) < norm.ppf(0.95)])
+	m_lr = np.nanmedian(np.log2(results_r))
+	m_z = np.nanmedian(results_z)
 
 	return results_z, results_r, ref_sizes, m_lr, m_z
 
@@ -232,7 +232,7 @@ def exec_cbs(rem_input, results):
 
 	from overall_tools import exec_R, get_z_score, get_median_segment_variance
 	results_c = _get_processed_cbs(exec_R(json_dict))
-	segment_z = get_z_score(results_c, results)
+	segment_z = get_z_score(results_c, results, rem_input['null_m_lr'])
 	results_c = [results_c[i][:3] + [segment_z[i]] + [results_c[i][3]] for i in range(len(results_c))]
 	return results_c
 

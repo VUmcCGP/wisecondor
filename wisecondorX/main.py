@@ -193,6 +193,12 @@ def tool_test(args):
 	results_w = results_w / np.nanmedian(results_w)
 	ref_sizes = np.append(ref_sizes, ref_sizes_2)
 
+	null_ratios_autosomes = [x[:rem_input['masked_bins_per_chr_cum'][21]] for x in np.transpose(null_ratios)]
+	part_mask = np.array([not x for x in list(np.isnan(results_r[:rem_input['masked_bins_per_chr_cum'][21]]))],
+						 dtype=bool)
+	null_m_lr = [np.nanmedian(x[part_mask]) for x in null_ratios_autosomes]
+	rem_input['null_m_lr'] = null_m_lr
+
 	results = {'results_r': results_r,
 			   'results_z': results_z,
 			   'results_w': results_w,
