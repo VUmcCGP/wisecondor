@@ -155,7 +155,7 @@ all corresponding possible positions (at results_r, results_z
 and results_w are set to 0 (blacklist)).
 '''
 
-def log_trans(results, log_r_median):
+def log_trans(results):
 	for chr in range(len(results['results_r'])):
 		results['results_r'][chr] = np.log2(results['results_r'][chr])
 
@@ -167,8 +167,7 @@ def log_trans(results, log_r_median):
 				results['results_r'][c][i] = 0
 				results['results_z'][c][i] = 0
 				results['results_w'][c][i] = 0
-			if results['results_r'][c][i] != 0:
-				results['results_r'][c][i] = results['results_r'][c][i] - log_r_median
+
 
 '''
 Applies additional blacklist to results_r, results_z
@@ -227,8 +226,7 @@ def exec_cbs(rem_input, results):
 
 	from overall_tools import exec_R, get_z_score, get_median_segment_variance
 	results_c = _get_processed_cbs(exec_R(json_dict))
-	msv = get_median_segment_variance(results_c, results['results_r'])
-	segment_z = get_z_score(results_c, results, msv)
+	segment_z = get_z_score(results_c, results)
 	results_c = [results_c[i][:3] + [segment_z[i]] + [results_c[i][3]] for i in range(len(results_c))]
 	return results_c
 

@@ -78,20 +78,10 @@ def exec_R(json_dict):
 Calculates between sample z-score.
 '''
 
-def get_z_score(results_c, results, msv):
+def get_z_score(results_c, results):
 
 	results_nr, results_r, results_w = results['results_nr'], results['results_r'], results['results_w']
 	zs = []
-	tmp_results_nr = []
-	null_vars = []
-	for chr in range(len(np.transpose(results_nr))):
-		tmp_results_nr.extend([results_nr[chr][i] for i in range(len(results_nr[chr])) if results_r[chr][i] != 0])
-	for sample in np.transpose(tmp_results_nr):
-		null_vars.append(np.var(sample))
-	null_msv = np.median(null_vars)
-
-	sd_correct = np.sqrt(msv) / np.sqrt(null_msv)
-
 	for segment in results_c:
 		segment_nr = results_nr[segment[0]][segment[1]:segment[2]]
 		segment_rr = results_r[segment[0]][segment[1]:segment[2]]
@@ -99,7 +89,7 @@ def get_z_score(results_c, results, msv):
 		segment_w = results_w[segment[0]][segment[1]:segment[2]]
 		segment_w = [segment_w[i] for i in range(len(segment_w)) if segment_rr[i] != 0]
 		null_segments = [np.average(x, weights=segment_w) for x in np.transpose(segment_nr)]
-		zs.append((segment[3] - np.mean(null_segments)) / (np.std(null_segments) * sd_correct))
+		zs.append((segment[3] - np.mean(null_segments)) / np.std(null_segments))
 	return zs
 
 
