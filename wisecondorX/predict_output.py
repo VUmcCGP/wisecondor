@@ -103,7 +103,7 @@ def _generate_chr_statistics_file(rem_input, results):
 
 	stats_file = open('{}_chr_statistics.txt'.format(rem_input['args'].outid), 'w')
 	stats_file.write('chr\tratio.mean\tratio.median\tzscore\n')
-	chr_ratio_means = [np.average(results['results_r'][chr], weights=results['results_w'][chr])
+	chr_ratio_means = [np.ma.average(results['results_r'][chr], weights=results['results_w'][chr])
 					   for chr in range(len(results['results_r']))]
 	chr_ratio_medians = [np.median([x for x in results['results_r'][chr] if x != 0])
 						 for chr in range(len(results['results_r']))]
