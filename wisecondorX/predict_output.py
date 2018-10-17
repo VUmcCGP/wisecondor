@@ -114,7 +114,7 @@ def _generate_chr_statistics_file(rem_input, results):
 					 for x in range(len(results['results_r']))]
 
 	msv = get_median_segment_variance(results['results_c'], results['results_r'])
-	chr_z_scores = get_z_score(results_c_chr, results, rem_input['null_m_lr'])
+	chr_z_scores = get_z_score(results_c_chr, results)
 
 	for chr in range(len(results['results_r'])):
 

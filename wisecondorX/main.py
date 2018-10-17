@@ -170,7 +170,8 @@ def tool_test(args):
 
 	logging.info('Normalizing gonosomes ...')
 
-	null_ratios = np.append(ref_file['null_ratios'], ref_file['null_ratios.{}'.format(ref_gender)][len(ref_file['null_ratios']):], axis=0)
+	null_ratios_aut_per_bin = ref_file['null_ratios']
+	null_ratios_gon_per_bin = ref_file['null_ratios.{}'.format(ref_gender)][len(null_ratios_aut_per_bin):]
 
 	results_r_2, results_z_2, results_w_2, ref_sizes_2, _, _ = normalize(args, sample, ref_file, ref_gender)
 
@@ -193,11 +194,13 @@ def tool_test(args):
 	results_w = results_w / np.nanmedian(results_w)
 	ref_sizes = np.append(ref_sizes, ref_sizes_2)
 
-	null_ratios_autosomes = [x[:rem_input['masked_bins_per_chr_cum'][21]] for x in np.transpose(null_ratios)]
-	part_mask = np.array([not x for x in list(np.isnan(results_r[:rem_input['masked_bins_per_chr_cum'][21]]))],
-						 dtype=bool)
-	null_m_lr = [np.nanmedian(x[part_mask]) for x in null_ratios_autosomes]
-	rem_input['null_m_lr'] = null_m_lr
+	null_ratios_aut_per_sample = np.transpose(null_ratios_aut_per_bin)
+	part_mask = np.array([not x for x in list(np.isnan(results_r))], dtype=bool)
+	null_m_lr_aut = np.array([np.nanmedian(x[part_mask[:len(null_ratios_aut_per_bin)]])
+							  for x in null_ratios_aut_per_sample])
+
+	null_ratios_aut_per_bin = null_ratios_aut_per_bin - null_m_lr_aut
+	null_ratios = np.array([x.tolist() for x in null_ratios_aut_per_bin] + [x.tolist() for x in null_ratios_gon_per_bin])
 
 	results = {'results_r': results_r,
 			   'results_z': results_z,
