@@ -152,7 +152,7 @@ def tool_test(args):
 	logging.info('Normalizing autosomes ...')
 
 	from predict_control import normalize
-	results_r, results_z, results_w, ref_sizes = normalize(args, sample, ref_file, 'A')
+	results_r, results_z, results_w, ref_sizes, m_lr, m_z = normalize(args, sample, ref_file, 'A')
 
 	if not ref_file['has_male'] and actual_gender == 'M':
 		logging.warning('This sample is male, whilst the reference is created with fewer than 5 males. '
@@ -172,7 +172,7 @@ def tool_test(args):
 
 	null_ratios = np.append(ref_file['null_ratios'], ref_file['null_ratios.{}'.format(ref_gender)][len(ref_file['null_ratios']):], axis=0)
 
-	results_r_2, results_z_2, results_w_2, ref_sizes_2 = normalize(args, sample, ref_file, ref_gender)
+	results_r_2, results_z_2, results_w_2, ref_sizes_2, _, _ = normalize(args, sample, ref_file, ref_gender)
 
 	rem_input = {'args': args,
 				 'wd' : str(os.path.dirname(os.path.realpath(__file__))),
@@ -188,7 +188,7 @@ def tool_test(args):
 	del ref_file
 
 	results_r = np.append(results_r, results_r_2)
-	results_z = np.append(results_z, results_z_2)
+	results_z = np.append(results_z, results_z_2) - m_z
 	results_w = np.append(results_w * np.nanmedian(results_w_2), results_w_2 * np.nanmedian(results_w))
 	results_w = results_w / np.nanmedian(results_w)
 	ref_sizes = np.append(ref_sizes, ref_sizes_2)
@@ -203,7 +203,7 @@ def tool_test(args):
 		results[result] = get_post_processed_result(args, results[result], ref_sizes, rem_input)
 
 	from predict_tools import log_trans
-	log_trans(results)
+	log_trans(results, m_lr)
 
 	if args.blacklist:
 		logging.info('Applying blacklist ...')

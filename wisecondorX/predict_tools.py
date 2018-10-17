@@ -83,13 +83,17 @@ reference for the other bins.
 def normalize_repeat(test_data, ref_file, optimal_cutoff, ct, cp, ap):
 	results_z = None
 	results_r = None
+	ref_sizes = None
 	test_copy = np.copy(test_data)
 	for i in range(3):
 		results_z, results_r, ref_sizes = _normalize_once(test_data, test_copy, ref_file,
 														  optimal_cutoff, ct, cp, ap)
 
 		test_copy[ct:][np.abs(results_z) >= norm.ppf(0.99)] = -1
-	return results_z, results_r, ref_sizes
+	m_lr = np.nanmedian(np.log2(results_r[np.abs(results_z) < norm.ppf(0.9)]))
+	m_z = np.nanmedian(results_z[np.abs(results_z) < norm.ppf(0.9)])
+
+	return results_z, results_r, ref_sizes, m_lr, m_z
 
 
 def _normalize_once(test_data, test_copy, ref_file, optimal_cutoff, ct, cp, ap):
@@ -155,7 +159,7 @@ all corresponding possible positions (at results_r, results_z
 and results_w are set to 0 (blacklist)).
 '''
 
-def log_trans(results):
+def log_trans(results, log_r_median):
 	for chr in range(len(results['results_r'])):
 		results['results_r'][chr] = np.log2(results['results_r'][chr])
 
@@ -167,6 +171,8 @@ def log_trans(results):
 				results['results_r'][c][i] = 0
 				results['results_z'][c][i] = 0
 				results['results_w'][c][i] = 0
+			if results['results_r'][c][i] != 0:
+				results['results_r'][c][i] = results['results_r'][c][i] - log_r_median
 
 
 '''
