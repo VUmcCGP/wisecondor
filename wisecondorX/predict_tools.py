@@ -90,8 +90,8 @@ def normalize_repeat(test_data, ref_file, optimal_cutoff, ct, cp, ap):
 														  optimal_cutoff, ct, cp, ap)
 
 		test_copy[ct:][np.abs(results_z) >= norm.ppf(0.99)] = -1
-	m_lr = np.nanmedian(np.log2(results_r[np.abs(results_z) < norm.ppf(0.9)]))
-	m_z = np.nanmedian(results_z[np.abs(results_z) < norm.ppf(0.9)])
+	m_lr = np.nanmedian(np.log2(results_r[np.abs(results_z) < norm.ppf(0.95)]))
+	m_z = np.nanmedian(results_z[np.abs(results_z) < norm.ppf(0.95)])
 
 	return results_z, results_r, ref_sizes, m_lr, m_z
 
