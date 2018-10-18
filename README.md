@@ -73,8 +73,6 @@ WisecondorX convert input.bam output.npz [--optional arguments]
 <br>Optional argument &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Function  
 :--- | :---  
 `--binsize x` | Size per bin in bp, the reference bin size should be a multiple of this value (default: x=5e3)  
-`--retdist x` | Max amount of bp's between reads to consider them part of the same tower (default: x=4)  
-`--retthres x` | Threshold for a group of reads to be considered a tower. These will be removed (default: x=4)  
 `--gender x` | When not used (which is recommended), WisecondorX will predict the gender. Manually assigning gender could be useful for highly aberrant samples (choices: x=F, x=M)  
 `--ycutoff x` | A cutoff value representing the ratio 'Y reads/total reads'. Used to predict gender. Might require training for selecting the optimal value (default: x=0.004)
 `--paired` | Enables conversion for paired-end reads  

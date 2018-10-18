@@ -263,7 +263,8 @@ for (c in chrs){
 
   upper.limit <- 0.6 + whis[2]
   lower.limit <- -1.05 + whis[1]
-  
+  upper.limit <- max(upper.limit, max(ratio[margins[1]:margins[2]], na.rm = T))
+  lower.limit <- min(lower.limit, min(ratio[margins[1]:margins[2]], na.rm = T))
   par(mar = c(4,4,4,0), mgp=c(2.2,-0.2,2))
   
   plot(1, main = "", axes=F, # plots nothing -- enables segments function

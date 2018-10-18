@@ -15,11 +15,9 @@ def convert_bam(args):
 		bins_per_chr[str(chr)] = None
 
 	def flush(read_buff, counts):
-		stair_size = len(read_buff)
-		if stair_size <= args.retthres or args.retthres < 0:
-			for read in read_buff:
-				location = read.pos / args.binsize
-				counts[int(location)] += 1
+		for read in read_buff:
+			location = read.pos / args.binsize
+			counts[int(location)] += 1
 
 	logging.info('Importing data ...')
 
@@ -46,8 +44,6 @@ def convert_bam(args):
 		logging.info('Working at {}; processing {} bins'
 					 .format(chr, int(bam_file.lengths[index] / float(args.binsize) + 1)))
 		counts = np.zeros(int(bam_file.lengths[index] / float(args.binsize) + 1), dtype=np.int32)
-
-		read_buff = []
 		bam_chr = bam_file.fetch(chr)
 
 		if chr_name == 'X':
@@ -55,15 +51,8 @@ def convert_bam(args):
 		if chr_name == 'Y':
 			chr_name = '24'
 
-		for read in bam_chr:
-			prev_read = read
-			break
-
 		if args.paired:
 			for read in bam_chr:
-				if (int(read.pos) - int(prev_read.pos)) > args.retdist:
-					flush(read_buff, counts)
-					read_buff = []
 
 				if not (read.is_proper_pair and read.is_read1):
 					reads_pairf += 1
@@ -73,8 +62,8 @@ def convert_bam(args):
 					reads_rmdup += 1
 				else:
 					if read.mapping_quality >= 1:
-						read_buff.append(read)
-						prev_read = read
+						location = read.pos / args.binsize
+						counts[int(location)] += 1
 					else:
 						reads_mapq += 1
 
@@ -84,23 +73,18 @@ def convert_bam(args):
 				larp = read.pos
 		else:
 			for read in bam_chr:
-				if (int(read.pos) - int(prev_read.pos)) > args.retdist:
-					flush(read_buff, counts)
-					read_buff = []
-
 				if larp == read.pos:
 					reads_rmdup += 1
 				else:
 					if read.mapping_quality >= 1:
-						read_buff.append(read)
-						prev_read = read
+						location = read.pos / args.binsize
+						counts[int(location)] += 1
 					else:
 						reads_mapq += 1
 
 				reads_seen += 1
 				larp = read.pos
 
-		flush(read_buff, counts)
 		bins_per_chr[chr_name] = counts
 		reads_kept += sum(counts)
 

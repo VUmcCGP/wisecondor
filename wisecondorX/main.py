@@ -269,15 +269,6 @@ def main():
 								type=float,
 								default=5e3,
 								help='Bin size (bp)')
-	parser_convert.add_argument('--retdist',
-								type=int,
-								default=4,
-								help='Maximum amount of base pairs difference between sequential reads '
-									 'to consider them part of the same tower')
-	parser_convert.add_argument('--retthres',
-								type=int,
-								default=4,
-								help='Threshold for when a group of reads is considered a tower and will be removed')
 	parser_convert.add_argument('--paired',
 								action='store_true',
 								help='Use paired-end reads | default is single-end')
