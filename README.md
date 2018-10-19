@@ -70,11 +70,9 @@ There are three main stages (converting, reference creating & predicting) for us
 WisecondorX convert input.bam output.npz [--optional arguments]
 ```
 
-<br>Optional argument &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Function  
+<br>Optional argument &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Function  
 :--- | :---  
 `--binsize x` | Size per bin in bp, the reference bin size should be a multiple of this value (default: x=5e3)  
-`--gender x` | When not used (which is recommended), WisecondorX will predict the gender. Manually assigning gender could be useful for highly aberrant samples (choices: x=F, x=M)  
-`--ycutoff x` | A cutoff value representing the ratio 'Y reads/total reads'. Used to predict gender. Might require training for selecting the optimal value (default: x=0.004)
 `--paired` | Enables conversion for paired-end reads  
 
 
