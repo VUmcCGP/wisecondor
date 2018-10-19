@@ -52,12 +52,11 @@ def convert_bam(args):
 			chr_name = '24'
 
 		if args.paired:
-			for read in bam_chr:
 
+			for read in bam_chr:
 				if not (read.is_proper_pair and read.is_read1):
 					reads_pairf += 1
 					continue
-
 				if larp == read.pos and larp2 == read.next_reference_start:
 					reads_rmdup += 1
 				else:
@@ -68,10 +67,10 @@ def convert_bam(args):
 						reads_mapq += 1
 
 				larp2 = read.next_reference_start
-
 				reads_seen += 1
 				larp = read.pos
 		else:
+
 			for read in bam_chr:
 				if larp == read.pos:
 					reads_rmdup += 1

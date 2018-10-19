@@ -110,7 +110,7 @@ Executes PCA. Rotations are saved which enable
 between sample normalization in the test phase.
 '''
 
-def train_pca(ref_data, pcacomp=3):
+def train_pca(ref_data, pcacomp=5):
 	t_data = ref_data.T
 	pca = PCA(n_components=pcacomp)
 	pca.fit(t_data)

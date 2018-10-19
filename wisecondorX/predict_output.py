@@ -110,7 +110,7 @@ def _generate_chr_statistics_file(rem_input, results):
 
 	from overall_tools import get_z_score, get_median_segment_variance
 
-	results_c_chr = [[x, 0, rem_input['masked_bins_per_chr'][x], chr_ratio_means[x]]
+	results_c_chr = [[x, 0, rem_input['bins_per_chr'][x] - 1, chr_ratio_means[x]]
 					 for x in range(len(results['results_r']))]
 
 	msv = get_median_segment_variance(results['results_c'], results['results_r'])
