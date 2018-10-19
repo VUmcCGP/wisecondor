@@ -70,7 +70,7 @@ There are three main stages (converting, reference creating & predicting) for us
 WisecondorX convert input.bam output.npz [--optional arguments]
 ```
 
-<br>Optional argument &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Function  
+<br>Optional argument <br><br> | Function  
 :--- | :---  
 `--binsize x` | Size per bin in bp, the reference bin size should be a multiple of this value (default: x=5e3)  
 `--paired` | Enables conversion for paired-end reads  
