@@ -6,9 +6,10 @@ WISECONDOR appeared to normalize sWGS copy number data in the most consistent wa
 as is the case with every tool, WISECONDOR has limitations of its own: the Stouffer's z-score approach is error-prone when
 dealing with large amounts of aberrations, the algorithm is extremely slow (24h) when using small bin sizes (15 kb) and
 sex chromosomes are not included in the analysis. Here, I present WisecondorX, an evolved WISECONDOR that aims at dealing with
-previous difficulties. Main adaptations include the additional (and consistent) analysis of the X and Y chromosomes,
-a weighted CBS-based segmentation technique and a custom plotter, resulting in overall superior results and significantly lower computing times,
-allowing daily diagnostic use. WisecondorX is meant to be applicable not only to NIPT, but also to gDNA, PGD, FFPE, LQB, ... etc.
+previous difficulties. Main adaptations include the additional (and consistent) analysis of the X and Y chromosomes (for
+NIPT exclusively X), a weighted CBS-based segmentation technique, a gender prediction algorithm and a custom plotter, resulting
+in overall superior results and significantly lower computing times, allowing daily diagnostic use. WisecondorX is meant
+to be applicable not only to NIPT, but also to gDNA, PGD, FFPE, LQB, ... etc.
 
 # Manual
 
@@ -30,7 +31,7 @@ bins from non-informative ones.
 ### Installation
 
 Stable releases can be installed using [Conda](https://conda.io/docs/). This is the preferred option since
-Conda takes care of all necessary dependencies. Whilst doing this, make sure you are in a Python 2.7 environment.
+Conda takes care of all necessary dependencies.
 ```bash
 
 conda install -f -c conda-forge -c bioconda wisecondorx
@@ -48,17 +49,17 @@ There are three main stages (converting, reference creating & predicting) for us
 - Convert .bam files to .npz files (both reference and test samples)  
 - Create a reference (using reference .npz files)  
     - **Important notes**
-        - WisecondorX will internally generate a male and female gonosomal reference. It is advisable that both male and female
-        samples are represented in the reference set. If e.g. no male samples are included, the Y chromosome will not be
-        part of the analysis when testing male cases.  
-        - For NIPT analysis, an important exception on previous rule holds: only pregnancies of female feti should be used to 
-        generate the reference. This implies that for NIPT, WisecondorX is not able to analyse the Y chromosome. Additionally,
-        this goes without saying, make sure you do not manually annotate samples as male during the convert phase.  
+        - WisecondorX will internally generate a male and female gonosomal reference. It is advised that both male and female
+        samples are represented in the reference set.  
+        - It is also advised that both male and female samples (for NIPT, this means male and female feti) are (more or less)
+        equally included.  
+        - Gender prediction is based on a Gaussian mixture model of the Y-read fraction. This means that, if only few samples (<30)
+        are included during reference creation, this process will not be accurate, and gonosomal predictions could fail.  
         - It is of paramount importance that the reference set consists of exclusively healthy samples that originate from
         the same sequencer, mapper, reference genome, type of material, ... etc, as the test samples. As a rule of thumb,
         think of all laboratory and in silico pre-processing steps: the more sources of bias that can be omitted,
         the better.  
-        - Try to include at least 50 samples per reference. The more the better, yet, from 300 on it is unlikely to observe
+        - Try to include at least 100 samples per reference. The more the better, yet, from 500 on it is unlikely to observe
         additional improvement concerning normalization.  
 - Predict CNAs (using the reference and test .npz cases of interest)  
 
@@ -69,13 +70,9 @@ There are three main stages (converting, reference creating & predicting) for us
 WisecondorX convert input.bam output.npz [--optional arguments]
 ```
 
-<br>Optional argument &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Function  
+<br>Optional argument <br><br> | Function  
 :--- | :---  
 `--binsize x` | Size per bin in bp, the reference bin size should be a multiple of this value (default: x=5e3)  
-`--retdist x` | Max amount of bp's between reads to consider them part of the same tower (default: x=4)  
-`--retthres x` | Threshold for a group of reads to be considered a tower. These will be removed (default: x=4)  
-`--gender x` | When not used (which is recommended), WisecondorX will predict the gender. Manually assigning gender could be useful for highly aberrant samples (choices: x=F, x=M)  
-`--ycutoff x` | A cutoff value representing the ratio 'Y reads/total reads'. Used to predict gender. Might require training for selecting the optimal value (default: x=0.004)
 `--paired` | Enables conversion for paired-end reads  
 
 
@@ -90,6 +87,7 @@ WisecondorX newref reference_input_dir/*.npz reference_output.npz [--optional ar
 
 <br>Optional argument<br><br> | Function
 :--- | :---  
+`--nipt` | **Always include this flag for the generation of a NIPT reference**  
 `--binsize x` | Size per bin in bp, defines the resolution of the output (default: x=1e5)  
 `--refsize x` | Amount of reference locations per target (default: x=300)  
 `--cpus x` | Number of threads requested (default: x=1)  
@@ -109,7 +107,7 @@ WisecondorX predict test_input.npz reference_input.npz output_id [--optional arg
 `--maskrepeats x` | Regions with distances > mean + sd * 3 in the reference will be masked, number of masking cycles (default: x=5)  
 `--alpha x` | P-value cut-off for calling a CBS breakpoint (default: x=1e-4)  
 `--beta x` | Number between 0 and 1, defines the linear trade-off between sensitivity and specificity for aberration calling. If beta=0, all segments will be called as aberrations. If beta=1, the cut-off (at copy number 1.5 and 2.5) is optimized to capture all constitutional aberrations (default: x=0.1)  
-`--blacklist x` | Blacklist that masks additional regions in output, requires header-less .bed file. This is particularly useful when the reference set is a too small to recognize some obvious regions (such as centromeres; example at `./blacklist/centromere.hg38.txt`) (default: x=None)  
+`--blacklist x` | Blacklist that masks additional regions in output, requires header-less .bed file. This is particularly useful when the reference set is a too small to recognize some obvious regions (such as centromeres; example at `./example.blacklist/centromere.hg38.txt`) (default: x=None)  
 `--bed` | Outputs tab-delimited .bed files (trisomy 21 NIPT example at `./example.bed`), containing all necessary information  **(\*)**
 `--plot` | Outputs custom .png plots (trisomy 21 NIPT example at `./example.plot`), directly interpretable  **(\*)**  
 
@@ -117,18 +115,28 @@ WisecondorX predict test_input.npz reference_input.npz output_id [--optional arg
 
 &rarr; Bash recipe (example for NIPT) at `./pipeline/predict.sh`
 
+### Additional functionality
+
+```bash
+
+WisecondorX gender test_input.npz reference_input.npz
+```
+
+Returns gender based Gaussian bimodel trained during reference creation.
+
 # Parameters
 
 The default parameters are optimized for shallow whole-genome sequencing data (0.1x - 1x depth; sWGS) and reference bin sizes 
 ranging from 50 to 500 kb. When increasing the reference bin size (`--binsize`), I recommend lowering the reference locations 
 per target (`--refsize`) and the minimum amount of sensible reference bins per target bin (`--minrefbins`). Further note that a
-reference bin size lower than 15 kb is not advisable.  
+reference bin size lower than 15 kb is not advised.  
 **Important note**  
 Concerning the vast majority of applications, the `--alpha` parameter should not be tweaked. The `--beta` parameter on the contrary
 should depend on your type of analysis. For NIPT, its default value should be fine. However, for gDNA, when mosaicisms are of no interest,
 it could be increased to its maximum, being 1. When the fetal (NIPT) or tumor (LQB, fresh material, FFPE, ...) fraction is known, this parameter is optimally
 close to this fraction. If you have any doubts about this argument, a default `--beta` should still be fine when a good and large reference set was created,
 irrespective of the type of analysis.  
+If the interest is research, and not diagnostics, feel free to use the z-scores by defining a cut-off of interest.
 
 # Underlying algorithm
 
@@ -136,74 +144,55 @@ To understand the underlying algorithm, I highly recommend reading [Straver et a
 update shortly introduced in [Huijsdens-van Amsterdam et al (2018)](https://www.nature.com/articles/gim201832.epdf).
 Numerous adaptations to this algorithm have been made, yet the central principles remain. Changes include e.g. the inclusion of a gender
 prediction algorithm, gender handling prior to normalization (ultimately enabling X and Y predictions), extensive
-blacklisting options, inclusion of a weighted CBS algorithm, improved codes for output tables and plots, and &mdash; last but
-not least &mdash; restrictions on within-sample referencing, an important feature for NIPT:  
-
-![Alt text](./figures/within-sample-normalization-2.png?raw=true "Within-sample normalization in WisecondorX")
-
-# Additional scripts & features
-
-Some files might not be compatible between versions. A small script (`fix_convert_npz.py`) enables reformatting
-.npz files resulting from the `convert` stage to files that are compatible with the newest version. This can also be used
-to transform original WISECONDOR .npz files. Note that the `newref` function might require a re-run to make `predict` functional
-between versions.  
-
-```bash
-
-fix.convert.npz.py input.npz output.npz
-```
-
-To get the (predicted) gender of a sample, one can use `WisecondorX gender input.npz`.  
+blacklisting options, inclusion of a weighted CBS algorithm and improved codes for outputting tables and plots.
 
 # Interpretation results
 
 ## Plots
 
-Every dot represents a bin. The dots range across the X-axis from chromosome 1 to X (or Y, in case of a male). The value 
-of a dot represents the ratio between the observed number of reads and the expected number of reads, the latter being 
-the 'healthy' state. As these values are log2-transformed, healthy dots should be close-to 0. Importantly, notice that 
+Every dot represents a bin. The dots range across the X-axis from chromosome 1 to X (or Y, in case of a male). The vertical 
+position of a dot represents the ratio between the observed number of reads and the expected number of reads, the latter being 
+the 'healthy' state. As these values are log2-transformed, 'healthy dots' should be close-to 0. Importantly, notice that 
 the dots are always subject to Gaussian noise. Therefore, segments, indicated by horizontal grey bars, cover bins of 
-predicted equal copy number. Vertical grey bars represent the blacklist, which will match hypervariable loci and repeats. 
-Finally, the vertical colored dotted lines show where the constitutional 1n and 3n states are expected (when constitutional
-DNA is at 100% purity, at least). Often, an aberration does not surpass these limits, which has several potential causes:
-depending on your type of analysis, the sample could be subject to tumor fraction, fetal fraction, mosaicisms, etc ...
-Sometimes, the segments do surpass these limits: here it's likely you are dealing with 4n, 5n, 6n, ...
+predicted equal copy number. The size of the dots represent the variability at the reference set. Thus, the size increases 
+with the certainty of an observation. The same goes for line width of the segments. 
+Vertical grey bars represent the blacklist, which will match hypervariable loci and repeats. Finally, the vertical colored
+dotted lines show where the constitutional 1n and 3n states are expected (when constitutional DNA is at 100% purity).
+Often, an aberration does not surpass these limits, which has several potential causes: depending on your type of analysis, 
+the sample could be subject to tumor fraction, fetal fraction, mosaicisms, etc ... Sometimes, the segments do surpass these 
+limits: here it's likely you are dealing with 4n, 5n, 6n, ...
 
 ## Tables
 
-### sample_bins.bed
+### ID_bins.bed
 
 This file contains all bin-wise information. When data is 'NaN', the corresponding bin is included in the blacklist. 
-The Z-scores are calculated using the within-sample reference bins.
+The Z-scores are calculated as default using the within-sample reference bins as a null set.
 
-### sample_segments.bed
+### ID_segments.bed
 
-This file contains all segment-wise information. A combined Z-score is calculated using Stouffer's approach. The final 
-z-score quantifies the difference between a certain segment and the others segments. Note that this score thus does not 
-differentiate significant from non-significant 'aberrations'. This score could be particularly interesting for NIPT, 
-where none (healthy) or one (e.g. tri21) aberrations are often expected.
+This file contains all segment-wise information. A combined Z-score is calculated using a between-sample z-scoring
+technique (the test case vs the reference cases).
 
-### sample_aberrations.bed
+### ID_aberrations.bed
 
 This file contains segments with a ratio surpassing a certain cutoff value, defined by the `--beta` parameter.
 
-### sample_chr_statistics.bed
+### ID_chr_statistics.bed
 
-This file contains some interesting statistics for each chromosome. The definition of the Z-scores matches the one from
-the 'sample_segments.bed'. Might be interesting for NIPT.
+This file contains some interesting statistics for each chromosome. The definition of the Z-scores matches the one from 
+the 'ID_segments.bed'. Particularly interesting for NIPT.
 
 # Dependencies
 
 - R (v3.4) packages
     - jsonlite (v1.5)
-    - png (v0.1-7)
 - R Bioconductor (v3.5) packages
     - DNAcopy (v1.50.1)
-- Python (v2.7) libraries
-	- scipy (v1.0.0)
-    - scikit-learn (v0.19.1)
-    - pysam (v0.13)
-    - numpy (v1.13.3)
-    - futures (v3.2.0)
+- Python (v3.6) libraries
+	- scipy (v1.1.0)
+    - scikit-learn (v0.20.0)
+    - pysam (v0.15.1)
+    - numpy (v1.15.2)
 
 And of course, other versions are very likely to work as well.  
