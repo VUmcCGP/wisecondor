@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 from setuptools import setup, find_packages
 
-version = '0.2.1'
+version = '1.0.0'
 dl_version = 'master' if 'dev' in version else '{}'.format(version)
 
 setup(
@@ -16,10 +16,11 @@ setup(
     download_url='https://github.com/CenterForMedicalGeneticsGhent/WisecondorX/archive/v{}.tar.gz'.format(dl_version),
     license='Attribution-NonCommercial-ShareAlike CC BY-NC-SA',
     packages=find_packages('.'),
-    python_requires='==2.7',
+    python_requires='>a=2.7',
     include_package_data=True,
     zip_safe=False,
     install_requires=[
+        'futures',
         'scipy',
         'scikit-learn',
         'pysam',
@@ -39,6 +40,8 @@ setup(
         'Operating System :: Unix',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.6',
         'Topic :: Scientific/Engineering',
         'Topic :: Scientific/Engineering :: Bio-Informatics'
     ]
