@@ -145,6 +145,9 @@ def tool_test(args):
     else:
         actual_gender = 'F'
 
+    if args.gender:
+        actual_gender = args.gender
+
     ref_gender = actual_gender
 
     logging.info('Normalizing autosomes ...')
@@ -346,6 +349,10 @@ def main():
                              default=None,
                              help='Blacklist that masks regions in output, structure of header-less '
                                   'file: chr...(/t)startpos(/t)endpos(/n)')
+    parser_test.add_argument('--gender',
+                             type=str,
+                             choices=["F", "M"],
+                             help='Force WisecondorX to analyze this case as a male (M) or a female (F)')
     parser_test.add_argument('--bed',
                              action='store_true',
                              help='Outputs tab-delimited .bed files, containing the most important information')
