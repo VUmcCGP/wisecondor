@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 from setuptools import setup, find_packages
 
-version = '1.0.0-dev'
+version = '1.0.1'
 dl_version = 'master' if 'dev' in version else '{}'.format(version)
 
 setup(
