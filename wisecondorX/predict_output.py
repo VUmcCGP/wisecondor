@@ -1,8 +1,8 @@
 # WisecondorX
 
 import os
-
 import numpy as np
+from wisecondorX.overall_tools import exec_R, get_z_score, get_median_segment_variance
 
 '''
 Writes plots.
@@ -24,7 +24,6 @@ def exec_write_plots(rem_input, results):
         'out_dir': str('{}.plots'.format(rem_input['args'].outid)),
     }
 
-    from wisecondorX.overall_tools import exec_R
     exec_R(json_dict)
 
 
@@ -111,8 +110,6 @@ def _generate_chr_statistics_file(rem_input, results):
                        for chr in range(len(results['results_r']))]
     chr_ratio_medians = [np.median([x for x in results['results_r'][chr] if x != 0])
                          for chr in range(len(results['results_r']))]
-
-    from wisecondorX.overall_tools import get_z_score, get_median_segment_variance
 
     results_c_chr = [[x, 0, rem_input['bins_per_chr'][x] - 1, chr_ratio_means[x]]
                      for x in range(len(results['results_r']))]
