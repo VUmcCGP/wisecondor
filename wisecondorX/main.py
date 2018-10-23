@@ -8,11 +8,18 @@ import warnings
 
 import numpy as np
 
+from wisecondorX.convert_tools import convert_bam
+from wisecondorX.newref_control import tool_newref_prep, tool_newref_main, tool_newref_merge
+from wisecondorX.newref_tools import train_gender_model, get_mask
+from wisecondorX.overall_tools import gender_correct, scale_sample
+from wisecondorX.predict_control import normalize, get_post_processed_result
+from wisecondorX.predict_output import generate_output_tables, exec_write_plots
+from wisecondorX.predict_tools import log_trans, exec_cbs, apply_blacklist, predict_gender
+
 
 def tool_convert(args):
     logging.info('Starting conversion')
 
-    from convert_tools import convert_bam
     sample, qual_info = convert_bam(args)
     np.savez_compressed(args.outfile,
                         binsize=args.binsize,
@@ -42,19 +49,15 @@ def tool_newref(args):
         sample = npzdata['sample'].item()
         binsize = int(npzdata['binsize'])
         logging.info('Binsize: {}'.format(int(binsize)))
-        from overall_tools import scale_sample
         samples.append(scale_sample(sample, binsize, args.binsize))
 
     samples = np.array(samples)
-    from newref_tools import train_gender_model
     genders, trained_cutoff = train_gender_model(samples)
 
     if not args.nipt:
-        from overall_tools import gender_correct
         for i, sample in enumerate(samples):
             samples[i] = gender_correct(sample, genders[i])
 
-    from newref_tools import get_mask
     total_mask, bins_per_chr = get_mask(samples)
     if genders.count('F') > 4:
         mask_F, _ = get_mask(samples[np.array(genders) == 'F'])
@@ -63,7 +66,6 @@ def tool_newref(args):
         mask_M, _ = get_mask(samples[np.array(genders) == 'M'])
         total_mask = total_mask & mask_M
 
-    from newref_control import tool_newref_prep, tool_newref_main, tool_newref_merge
     outfiles = []
     if len(genders) > 9:
         logging.info('Starting autosomal reference creation ...')
@@ -134,13 +136,10 @@ def tool_test(args):
     sample = sample_file['sample'].item()
     n_reads = sum([sum(sample[x]) for x in sample.keys()])
 
-    from overall_tools import scale_sample
     sample = scale_sample(sample, int(sample_file['binsize'].item()), int(ref_file['binsize']))
 
     if not ref_file['is_nipt']:
-        from predict_tools import predict_gender
         actual_gender = predict_gender(sample, ref_file['trained_cutoff'])
-        from overall_tools import gender_correct
         sample = gender_correct(sample, actual_gender)
     else:
         actual_gender = 'F'
@@ -152,7 +151,6 @@ def tool_test(args):
 
     logging.info('Normalizing autosomes ...')
 
-    from predict_control import normalize
     results_r, results_z, results_w, ref_sizes, m_lr, m_z = normalize(args, sample, ref_file, 'A')
 
     if not ref_file['has_male'] and actual_gender == 'M':
@@ -209,31 +207,25 @@ def tool_test(args):
                'results_w': results_w,
                'results_nr': null_ratios}
 
-    from predict_control import get_post_processed_result
     for result in results.keys():
         results[result] = get_post_processed_result(args, results[result], ref_sizes, rem_input)
 
-    from predict_tools import log_trans
     log_trans(results, m_lr)
 
     if args.blacklist:
         logging.info('Applying blacklist ...')
-        from predict_tools import apply_blacklist
         apply_blacklist(rem_input, results)
 
     logging.info('Executing circular binary segmentation ...')
 
-    from predict_tools import exec_cbs
     results['results_c'] = exec_cbs(rem_input, results)
 
     if args.bed:
         logging.info('Writing tables ...')
-        from predict_output import generate_output_tables
         generate_output_tables(rem_input, results)
 
     if args.plot:
         logging.info('Writing plots ...')
-        from predict_output import exec_write_plots
         exec_write_plots(rem_input, results)
 
     logging.info('Finished prediction')
@@ -242,7 +234,6 @@ def tool_test(args):
 def output_gender(args):
     ref_file = np.load(args.reference, encoding='latin1')
     sample_file = np.load(args.infile, encoding='latin1')
-    from predict_tools import predict_gender
     gender = predict_gender(sample_file['sample'].item(), ref_file['trained_cutoff'])
     if gender == 'M':
         print('male')

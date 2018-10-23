@@ -6,6 +6,8 @@ import numpy as np
 from scipy.stats import norm
 from sklearn.decomposition import PCA
 
+from wisecondorX.overall_tools import exec_R, get_z_score
+
 '''
 Returns gender based on Gaussian mixture
 model trained during newref phase.
@@ -241,7 +243,6 @@ def exec_cbs(rem_input, results):
         'outfile': str('{}_02.json'.format(json_cbs_dir))
     }
 
-    from overall_tools import exec_R, get_z_score
     results_c = _get_processed_cbs(exec_R(json_dict))
     segment_z = get_z_score(results_c, results)
     results_c = [results_c[i][:3] + [segment_z[i]] + [results_c[i][3]] for i in range(len(results_c))]
