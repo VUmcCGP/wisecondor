@@ -50,11 +50,10 @@ There are three main stages (converting, reference creating & predicting) for us
 - Create a reference (using reference .npz files)  
     - **Important notes**
         - WisecondorX will internally generate a male and female gonosomal reference. It is advised that both male and female
-        samples are represented in the reference set.  
-        - It is also advised that both male and female samples (for NIPT, this means male and female feti) are (more or less)
-        equally included.  
+        samples (for NIPT, this means male and female feti) are represented in the reference set. Furthermore, they
+        should be more or less equally included.  
         - Gender prediction is based on a Gaussian mixture model of the Y-read fraction. This means that, if only few samples (<30)
-        are included during reference creation, this process will not be accurate, and gonosomal predictions could fail.  
+        are included during reference creation, this process might not be accurate, and gonosomal predictions could fail.  
         - It is of paramount importance that the reference set consists of exclusively healthy samples that originate from
         the same sequencer, mapper, reference genome, type of material, ... etc, as the test samples. As a rule of thumb,
         think of all laboratory and in silico pre-processing steps: the more sources of bias that can be omitted,
@@ -108,6 +107,7 @@ WisecondorX predict test_input.npz reference_input.npz output_id [--optional arg
 `--alpha x` | P-value cut-off for calling a CBS breakpoint (default: x=1e-4)  
 `--beta x` | Number between 0 and 1, defines the linear trade-off between sensitivity and specificity for aberration calling. If beta=0, all segments will be called as aberrations. If beta=1, the cut-off (at copy number 1.5 and 2.5) is optimized to capture all constitutional aberrations (default: x=0.1)  
 `--blacklist x` | Blacklist that masks additional regions in output, requires header-less .bed file. This is particularly useful when the reference set is a too small to recognize some obvious regions (such as centromeres; example at `./example.blacklist/centromere.hg38.txt`) (default: x=None)  
+`--gender x` | Force WisecondorX to analyze this file as a male (M) or female (F). Useful when dealing with a whole-chromosome Y-deletion (choices: x=F or x=M)
 `--bed` | Outputs tab-delimited .bed files (trisomy 21 NIPT example at `./example.bed`), containing all necessary information  **(\*)**
 `--plot` | Outputs custom .png plots (trisomy 21 NIPT example at `./example.plot`), directly interpretable  **(\*)**  
 
