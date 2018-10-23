@@ -16,7 +16,7 @@ setup(
     download_url='https://github.com/CenterForMedicalGeneticsGhent/WisecondorX/archive/v{}.tar.gz'.format(dl_version),
     license='Attribution-NonCommercial-ShareAlike CC BY-NC-SA',
     packages=find_packages('.'),
-    python_requires='>a=2.7',
+    python_requires='>=2.7',
     include_package_data=True,
     zip_safe=False,
     install_requires=[
