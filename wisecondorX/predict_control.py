@@ -19,7 +19,7 @@ def normalize(args, sample, ref_file, ref_gender):
         cp = 22
         ct = ref_file['masked_bins_per_chr_cum{}'.format(ap)][cp - 1]
 
-    from predict_tools import coverage_normalize_and_mask, project_pc, \
+    from wisecondorX.predict_tools import coverage_normalize_and_mask, project_pc, \
         get_optimal_cutoff, get_weights, normalize_repeat
     sample = coverage_normalize_and_mask(sample, ref_file, ap)
     sample = project_pc(sample, ref_file, ap)
@@ -40,7 +40,7 @@ information are set to 0.
 def get_post_processed_result(args, result, ref_sizes, rem_input):
     infinite_mask = (ref_sizes < args.minrefbins)
     result[infinite_mask] = 0
-    from predict_tools import inflate_results
+    from wisecondorX.predict_tools import inflate_results
     inflated_results = inflate_results(result, rem_input)
 
     final_results = []

@@ -29,7 +29,7 @@ def tool_newref_prep(args, samples, gender, mask, bins_per_chr):
     bins_per_chr = bins_per_chr[:last_chr]
     mask = mask[:np.sum(bins_per_chr)]
 
-    from newref_tools import normalize_and_mask, train_pca
+    from wisecondorX.newref_tools import normalize_and_mask, train_pca
     masked_data = normalize_and_mask(samples, range(1, last_chr + 1), mask)
     pca_corrected_data, pca = train_pca(masked_data)
 
@@ -101,7 +101,7 @@ def _tool_newref_part(args):
     masked_bins_per_chr = npzdata['masked_bins_per_chr']
     masked_bins_per_chr_cum = npzdata['masked_bins_per_chr_cum']
 
-    from newref_tools import get_reference
+    from wisecondorX.newref_tools import get_reference
 
     indexes, distances, null_ratios = get_reference(pca_corrected_data, masked_bins_per_chr, masked_bins_per_chr_cum,
                                                     ref_size=args.refsize, part=args.part[0], split_parts=args.part[1])
