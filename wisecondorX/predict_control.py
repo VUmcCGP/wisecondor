@@ -1,7 +1,7 @@
 # WisecondorX
 
 from wisecondorX.predict_tools import coverage_normalize_and_mask, project_pc, \
-        get_optimal_cutoff, get_weights, normalize_repeat, inflate_results
+    get_optimal_cutoff, get_weights, normalize_repeat, inflate_results
 
 '''
 Control function that executes following

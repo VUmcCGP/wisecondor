@@ -5,15 +5,16 @@ import logging
 import os
 import sys
 import warnings
+
 import numpy as np
 
-from wisecondorX.newref_tools import train_gender_model, get_mask
-from wisecondorX.newref_control import tool_newref_prep, tool_newref_main, tool_newref_merge
-from wisecondorX.overall_tools import gender_correct, scale_sample
 from wisecondorX.convert_tools import convert_bam
+from wisecondorX.newref_control import tool_newref_prep, tool_newref_main, tool_newref_merge
+from wisecondorX.newref_tools import train_gender_model, get_mask
+from wisecondorX.overall_tools import gender_correct, scale_sample
 from wisecondorX.predict_control import normalize, get_post_processed_result
-from wisecondorX.predict_tools import log_trans, exec_cbs, apply_blacklist, predict_gender
 from wisecondorX.predict_output import generate_output_tables, exec_write_plots
+from wisecondorX.predict_tools import log_trans, exec_cbs, apply_blacklist, predict_gender
 
 
 def tool_convert(args):

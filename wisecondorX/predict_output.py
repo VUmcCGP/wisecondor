@@ -1,7 +1,9 @@
 # WisecondorX
 
 import os
+
 import numpy as np
+
 from wisecondorX.overall_tools import exec_R, get_z_score, get_median_segment_variance
 
 '''

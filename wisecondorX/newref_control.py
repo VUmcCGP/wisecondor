@@ -102,7 +102,6 @@ def _tool_newref_part(args):
     masked_bins_per_chr = npzdata['masked_bins_per_chr']
     masked_bins_per_chr_cum = npzdata['masked_bins_per_chr_cum']
 
-
     indexes, distances, null_ratios = get_reference(pca_corrected_data, masked_bins_per_chr, masked_bins_per_chr_cum,
                                                     ref_size=args.refsize, part=args.part[0], split_parts=args.part[1])
 
