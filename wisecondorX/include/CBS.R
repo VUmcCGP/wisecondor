@@ -96,7 +96,7 @@ for (row.i in 1:nrow(CNA.object)){
   inverse.start.pos <- c(start.i, end.pos)
   inverse.end.pos <- c(start.pos, end.i)
   
-  selection <- inverse.end.pos - inverse.start.pos > 1 # segments should be at least two in length
+  selection <- inverse.end.pos - inverse.start.pos > 0 # segments should be at least two in length
   if (length(which(selection)) == 0){
       next
   }
