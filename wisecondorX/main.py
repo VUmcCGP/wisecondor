@@ -242,6 +242,8 @@ def output_gender(args):
 
 
 def main():
+    warnings.filterwarnings('ignore')
+    
     parser = argparse.ArgumentParser(description='wisecondorX')
     parser.add_argument('--loglevel',
                         type=str,
@@ -362,5 +364,4 @@ def main():
 
 
 if __name__ == '__main__':
-    warnings.filterwarnings('ignore')
     main()

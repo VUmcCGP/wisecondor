@@ -25,7 +25,7 @@ def train_gender_model(samples):
         y_fractions.append(float(np.sum(sample['24'])) / float(np.sum([np.sum(sample[x]) for x in sample.keys()])))
     y_fractions = np.array(y_fractions)
 
-    gmm = GaussianMixture(n_components=2, covariance_type='full', reg_covar=1e-50)
+    gmm = GaussianMixture(n_components=2, covariance_type='full', reg_covar=1e-99, max_iter=10000, tol=1e-99)
     gmm.fit(X=y_fractions.reshape(-1, 1))
     gmm_x = np.linspace(0, 0.02, 5000)
     gmm_y = np.exp(gmm.score_samples(gmm_x.reshape(-1, 1)))
