@@ -5,7 +5,7 @@ After extensively comparing different (shallow) WGS-based CNA tools, including [
 WISECONDOR appeared to normalize sWGS copy number data in the most consistent way &mdash; by far. Nevertheless,
 as is the case with every tool, WISECONDOR has limitations of its own: the Stouffer's z-score approach is error-prone when
 dealing with large amounts of aberrations, the algorithm is extremely slow (24h) when using small bin sizes (15 kb) and
-sex chromosomes are not included in the analysis. Here, I present WisecondorX, an evolved WISECONDOR that aims at dealing with
+sex chromosomes are not included in the analysis. Here, we present [WisecondorX](https://academic.oup.com/nar/advance-article/doi/10.1093/nar/gky1263/5253050), an evolved WISECONDOR that aims at dealing with
 previous difficulties. Main adaptations include the additional (and consistent) analysis of the X and Y chromosomes (for
 NIPT exclusively X), a weighted CBS-based segmentation technique, a gender prediction algorithm and a custom plotter, resulting
 in overall superior results and significantly lower computing times, allowing daily diagnostic use. WisecondorX is meant
