@@ -67,8 +67,8 @@ depending on the within reference distances.
 '''
 
 
-def get_optimal_cutoff(ref_file, repeats, ct, ap):
-    distances = ref_file['distances{}'.format(ap)][ct:]
+def get_optimal_cutoff(ref_file, repeats):
+    distances = ref_file['distances']
     cutoff = float('inf')
     for i in range(0, repeats):
         mask = distances < cutoff
