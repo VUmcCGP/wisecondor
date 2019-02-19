@@ -1,4 +1,4 @@
-options(warn=-1) ; options(bitmapType="cairo")
+options(warn=-1, bitmapType="cairo")
 
 # -----
 # arg
