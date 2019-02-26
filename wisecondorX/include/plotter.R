@@ -27,6 +27,7 @@ dir.create(out.dir, showWarnings=F)
 
 gender = input$ref_gender
 beta = as.numeric(input$beta)
+ylim = input$ylim
 
 # aberration_cutoff
 
@@ -83,9 +84,15 @@ for (chr in chrs){
   l.whis.per.chr = c(l.whis.per.chr, whis[1])
   h.whis.per.chr = c(h.whis.per.chr, whis[2])
 }
-
 chr.wide.upper.limit <- max(0.65, max(h.whis.per.chr), na.rm=T) * 1.25
 chr.wide.lower.limit <- min(-0.95, min(l.whis.per.chr), na.rm=T) * 1.25
+
+if (ylim != 'def'){
+  ylim=gsub('[', '', ylim, fixed=T) ; ylim=gsub(']', '', ylim, fixed=T)
+  ylim=as.numeric(strsplit(ylim, ',', fixed=T)[[1]])
+  chr.wide.lower.limit = ylim[1]
+  chr.wide.upper.limit = ylim[2]
+}
 
 # plot chromosome wide plot
 
@@ -157,8 +164,10 @@ plot(ratio, main="", axes=F,
      xlab="", ylab=expression('log'[2]*'(ratio)'), col=dot.cols, pch=16,
      ylim=c(chr.wide.lower.limit,chr.wide.upper.limit), cex=dot.cex)
 
-text(chr.mids, par("usr")[3], labels=labels, srt=45, pos=1, xpd=T)
+par(xpd=NA)
+text(chr.mids, par("usr")[3], labels=labels, srt=45, pos=1)
 axis(2, tick=T, cex.lab=2, col=black, las=1, tcl=0.5)
+par(xpd=F)
 
 for (x in chr.ends){
   segments(x, chr.wide.lower.limit * 1.03, x, chr.wide.upper.limit * 1.03, col=black, lwd=1.2, lty=3)
@@ -172,7 +181,7 @@ par(xpd=F)
 # Legends
 
 par(xpd=NA)
-legend(x=chr.ends[length(chr.ends)] * 0.2,
+legend(x=chr.ends[length(chr.ends)] * 0.3,
        y=chr.wide.upper.limit + (abs(chr.wide.upper.limit) + abs(chr.wide.lower.limit)) * 0.23,
        legend=c("Constitutional triploid", "Constitutional diploid", "Constitutional monoploid"),
        text.col=c(color.C, color.A, color.B), cex=1.3, bty="n", lty=c(3,3,3), lwd=1.5,
@@ -200,8 +209,11 @@ par(mgp=c(2.2,0,2))
 boxplot(box.list[1:22], ylim=c(min(l.whis.per.chr[1:22], na.rm=T),
                                max(h.whis.per.chr[1:22], na.rm=T)), bg=black,
         axes=F, outpch=16, ylab=expression('log'[2]*'(ratio)'))
-text(1:22, par("usr")[3], labels=labels[1:22], srt=45, pos=1, xpd=T)
+
+par(xpd=NA)
+text(1:22, par("usr")[3], labels=labels[1:22], srt=45, pos=1)
 axis(2, tick=T, cex.lab=2, col=black, las=1, tcl=0.5)
+par(xpd=F)
 
 plot.constitutionals(2, 0, 23)
 
@@ -216,8 +228,11 @@ if(any(is.infinite(c(y.sex.down, y.sex.up)))){
 par(mar=c(2.5,3,1,1))
 boxplot(box.list[23:length(chrs)], ylim=c(y.sex.down, y.sex.up), 
         bg=black, axes=F, outpch=16, ylab=expression('log'[2]*'(ratio)'))
+
+par(xpd=NA)
+text(1:(length(chrs) - 22), par("usr")[3], labels=labels[23:length(chrs)], srt=45, pos=1)
 axis(2, tick=T, cex.lab=2, col=black, las=1, tcl=0.5)
-text(1:(length(chrs) - 22), par("usr")[3], labels=labels[23:length(chrs)], srt=45, pos=1, xpd=T)
+par(xpd=F)
 
 if (gender == "F"){
   plot.constitutionals(2, 0.6, 1.5)
@@ -252,6 +267,9 @@ for (c in chrs){
   lower.limit <- -1.05 + whis[1]
   upper.limit <- max(upper.limit, max(ratio[margins[1]:margins[2]], na.rm = T))
   lower.limit <- min(lower.limit, min(ratio[margins[1]:margins[2]], na.rm = T))
+  if (ylim != 'def'){
+    lower.limit = ylim[1] ; upper.limit = ylim[2]
+  }
   par(mar=c(2.5,4,1,0), mgp=c(2.2,0,2))
   
   plot(1, main="", axes=F, # plots nothing -- enables segments function
@@ -290,10 +308,12 @@ for (c in chrs){
 
   rect(0, lower.limit - 10, chr.ends[c], upper.limit + 10, col="white", border=NA)
   rect(chr.ends[c+1], lower.limit - 10, chr.ends[length(chr.ends)], upper.limit + 10, col="white", border=NA)
-  
-  text(x.labels.at, par("usr")[3], labels=x.labels, srt=45, pos=1, xpd=T)
+
+  par(xpd=NA)
+  text(x.labels.at, par("usr")[3], labels=x.labels, srt=45, pos=1)
   axis(2, tick=T, cex.lab=2, col=black, las=1, tcl=0.5)
-  
+  par(xpd=F)
+
   for (x in chr.ends){
     segments(x, lower.limit * 1.03, x, upper.limit * 1.03, col=black, lwd=2, lty=3)
   }
