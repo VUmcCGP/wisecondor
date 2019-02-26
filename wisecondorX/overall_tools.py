@@ -67,7 +67,7 @@ def exec_R(json_dict):
     try:
         subprocess.check_call(r_cmd)
     except subprocess.CalledProcessError as e:
-        logging.critical('CBS failed with error {}'.format(e))
+        logging.critical('Rscript failed: {}'.format(e))
         sys.exit()
 
     os.remove(json_dict['infile'])

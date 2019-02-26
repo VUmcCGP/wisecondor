@@ -346,6 +346,10 @@ def main():
                              type=str,
                              choices=["F", "M"],
                              help='Force WisecondorX to analyze this case as a male (M) or a female (F)')
+    parser_test.add_argument('--ylim',
+                             type=str,
+                             default='def',
+                             help='y-axis limits for plotting. e.g. -2,2')
     parser_test.add_argument('--bed',
                              action='store_true',
                              help='Outputs tab-delimited .bed files, containing the most important information')
