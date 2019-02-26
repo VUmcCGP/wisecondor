@@ -349,7 +349,7 @@ def main():
     parser_test.add_argument('--ylim',
                              type=str,
                              default='def',
-                             help='y-axis limits for plotting. e.g. -2,2')
+                             help='y-axis limits for plotting. e.g. [-2,2]')
     parser_test.add_argument('--bed',
                              action='store_true',
                              help='Outputs tab-delimited .bed files, containing the most important information')
