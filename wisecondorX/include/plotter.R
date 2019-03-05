@@ -98,11 +98,16 @@ if (ylim != 'def'){
 
 black = "#3f3f3f"
 lighter.grey = "#e0e0e0"
-darker.grey = "#545454"
 
-color.A = darker.grey
+color.A = rgb(84, 84, 84, maxColorValue=255)
 color.B = rgb(227, 200, 138, maxColorValue=255)
 color.C = rgb(141, 209, 198, maxColorValue=255)
+color.X <- c(color.A, color.B, color.C)
+
+color.AA = rgb(84, 84, 84, 80, maxColorValue=255)
+color.BB = rgb(227, 200, 138, 80, maxColorValue=255)
+color.CC = rgb(141, 209, 198, 80, maxColorValue=255)
+color.XX = c(color.AA, color.BB, color.CC)
 
 png(paste0(out.dir, "/genome_wide.png"), width=14,height=10,units="in",res=512,pointsize=18)
 
@@ -139,7 +144,7 @@ for (undetectable.index in which(is.na(ratio))){
 }
 
 dot.cex = (weights / pi)**0.5 * .8
-dot.cols = rep(darker.grey, length(ratio))
+dot.cols = rep(color.A, length(ratio))
 for (ab in input$results_c){
   info = unlist(ab)
   chr = as.integer(info[1]) + 1
@@ -184,8 +189,7 @@ par(xpd=NA)
 legend(x=chr.ends[length(chr.ends)] * 0.3,
        y=chr.wide.upper.limit + (abs(chr.wide.upper.limit) + abs(chr.wide.lower.limit)) * 0.23,
        legend=c("Constitutional triploid", "Constitutional diploid", "Constitutional monoploid"),
-       text.col=c(color.C, color.A, color.B), cex=1.3, bty="n", lty=c(3,3,3), lwd=1.5,
-       col=c(color.C, color.A, color.B))
+       text.col=color.X, cex=1.3, bty="n", lty=c(3,3,3), lwd=1.5, col=color.X)
 legend(x=0,
        y=chr.wide.upper.limit + (abs(chr.wide.upper.limit) + abs(chr.wide.lower.limit)) * 0.23,
        legend=c("Gain", "Loss", paste0("Number of reads: ", n.reads)), text.col=c(color.C, color.B, black),
@@ -201,6 +205,7 @@ for (ab in input$results_c){
   end = as.integer(info[3]) + chr.ends[chr]
   height = as.double(info[5])
   segments(start, height, end, height, col=lighter.grey, lwd=5 * mean(dot.cex[start:end], na.rm=T), lty=1)
+  rect(start, height, end, 0, col=color.XX[dot.cols[start] == color.X], border=NA)
 }
 
 # boxplots
@@ -288,7 +293,7 @@ for (c in chrs){
 
   for (undetectable.index in which(is.na(ratio))){
     segments(undetectable.index, lower.limit, undetectable.index, upper.limit,
-             col=darker.grey, lwd=1/len * 200, lty=1)
+             col=color.A, lwd=1/len * 200, lty=1)
   }
 
   par(new=T)
@@ -303,6 +308,7 @@ for (c in chrs){
     start = as.integer(info[2]) + chr.ends[chr] + 1
     end = as.integer(info[3]) + chr.ends[chr]
     height = as.double(info[5])
+    rect(start, height, end, 0, col=color.XX[dot.cols[start] == color.X], border=NA)
     segments(start, height, end, height, col=lighter.grey, lwd=6 * mean(dot.cex[start:end], na.rm=T), lty=1)
   }
 
