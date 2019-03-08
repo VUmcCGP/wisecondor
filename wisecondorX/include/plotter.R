@@ -204,8 +204,8 @@ for (ab in input$results_c){
   start = as.integer(info[2]) + chr.ends[chr] + 1
   end = as.integer(info[3]) + chr.ends[chr]
   height = as.double(info[5])
+  rect(start, height, end, 0, col=color.XX[dot.cols[start] == color.X], border=color.XX[dot.cols[start] == color.X], lwd=0.1)
   segments(start, height, end, height, col=lighter.grey, lwd=5 * mean(dot.cex[start:end], na.rm=T), lty=1)
-  rect(start, height, end, 0, col=color.XX[dot.cols[start] == color.X], border=NA)
 }
 
 # boxplots
@@ -232,7 +232,7 @@ if(any(is.infinite(c(y.sex.down, y.sex.up)))){
 
 par(mar=c(2.5,3,1,1))
 boxplot(box.list[23:length(chrs)], ylim=c(y.sex.down, y.sex.up), 
-        bg=black, axes=F, outpch=16, ylab=expression('log'[2]*'(ratio)'))
+        bg=black, axes=F, outpch=16, ylab='')
 
 par(xpd=NA)
 text(1:(length(chrs) - 22), par("usr")[3], labels=labels[23:length(chrs)], srt=45, pos=1)
@@ -308,7 +308,7 @@ for (c in chrs){
     start = as.integer(info[2]) + chr.ends[chr] + 1
     end = as.integer(info[3]) + chr.ends[chr]
     height = as.double(info[5])
-    rect(start, height, end, 0, col=color.XX[dot.cols[start] == color.X], border=NA)
+    rect(start, height, end, 0, col=color.XX[dot.cols[start] == color.X],border=color.XX[dot.cols[start] == color.X], lwd=0.1)
     segments(start, height, end, height, col=lighter.grey, lwd=6 * mean(dot.cex[start:end], na.rm=T), lty=1)
   }
 
