@@ -140,6 +140,8 @@ def tool_test(args):
 
     if not ref_file['is_nipt']:
         actual_gender = predict_gender(sample, ref_file['trained_cutoff'])
+        if args.gender:
+            actual_gender = args.gender
         sample = gender_correct(sample, actual_gender)
     else:
         actual_gender = 'F'

@@ -30,17 +30,18 @@ bins from non-informative ones.
 
 ### Installation
 
-Stable releases can be installed using [Conda](https://conda.io/docs/). This is the preferred option since
-Conda takes care of all necessary dependencies.
+Stable releases can be installed using [Conda](https://conda.io/docs/). This option takes care of all necessary
+dependencies.
 ```bash
 
 conda install -f -c conda-forge -c bioconda wisecondorx
 ```
 
-Alternatively, WisecondorX can be installed using the python Setuptools library.
+Alternatively, WisecondorX can be installed through pip install. This option ascertains the latest version is downloaded,
+yet it does not install R dependencies.  
 ```bash
 
-python setup.py install
+pip install -U git+https://github.com/CenterForMedicalGeneticsGhent/WisecondorX
 ```
 
 ### Running WisecondorX
