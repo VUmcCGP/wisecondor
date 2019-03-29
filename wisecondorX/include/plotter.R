@@ -1,4 +1,4 @@
-options(warn=-1, bitmapType="cairo")
+options(warn=-1)
 
 # -----
 # arg
@@ -27,7 +27,10 @@ dir.create(out.dir, showWarnings=F)
 
 gender = input$ref_gender
 beta = as.numeric(input$beta)
+zcutoff = as.numeric(input$zscore)
 ylim = input$ylim
+
+if (input$cairo) options(bitmaptype='cairo')
 
 # aberration_cutoff
 
@@ -102,12 +105,12 @@ lighter.grey = "#e0e0e0"
 color.A = rgb(84, 84, 84, maxColorValue=255)
 color.B = rgb(227, 200, 138, maxColorValue=255)
 color.C = rgb(141, 209, 198, maxColorValue=255)
-color.X <- c(color.A, color.B, color.C)
+color.X <- c(color.C, color.A, color.B)
 
 color.AA = rgb(84, 84, 84, 80, maxColorValue=255)
 color.BB = rgb(227, 200, 138, 80, maxColorValue=255)
 color.CC = rgb(141, 209, 198, 80, maxColorValue=255)
-color.XX = c(color.AA, color.BB, color.CC)
+color.XX = c(color.CC, color.AA, color.BB)
 
 png(paste0(out.dir, "/genome_wide.png"), width=14,height=10,units="in",res=512,pointsize=18)
 
@@ -118,7 +121,7 @@ for (i in 1:7){
 
 layout(l.matrix)
 
-par(mar=c(2.5,4,1,0), mgp=c(2.2,0,2), oma=c(0,0,3,0))
+par(mar=c(2.5,4,1,0), mgp=c(2.4,0.5,0), oma=c(0,0,3,0))
 
 plot(1, main="", axes=F, # plots nothing -- enables segments function
      xlab="", ylab="", col="white", xlim=c(chr.ends[1], chr.ends[length(chr.ends)]),
@@ -150,17 +153,27 @@ for (ab in input$results_c){
   chr = as.integer(info[1]) + 1
   start = as.integer(info[2]) + chr.ends[chr] + 1
   end = as.integer(info[3]) + chr.ends[chr]
+  z = as.double(info[4])
   height = as.double(info[5])
   ploidy = 2
   if ((chr == 23 | chr == 24) & gender == "M"){
     ploidy = 1
   }
 
-  if (height < get.aberration.cutoff(beta, ploidy)[1]){
+  if (!is.na(beta)){
+    if (height < get.aberration.cutoff(beta, ploidy)[1]){
     dot.cols[start:end] = color.B
-  }
-  if (height > get.aberration.cutoff(beta, ploidy)[2]){
-    dot.cols[start:end] = color.C
+    }
+    if (height > get.aberration.cutoff(beta, ploidy)[2]){
+      dot.cols[start:end] = color.C
+    }
+  } else {
+    if (z < -zcutoff){
+      dot.cols[start:end] = color.B
+    }
+    if (z > zcutoff){
+      dot.cols[start:end] = color.C
+    }
   }
 }
 
@@ -210,7 +223,7 @@ for (ab in input$results_c){
 
 # boxplots
 
-par(mgp=c(2.2,0,2))
+par(mgp=c(2.4,0.5,0))
 boxplot(box.list[1:22], ylim=c(min(l.whis.per.chr[1:22], na.rm=T),
                                max(h.whis.per.chr[1:22], na.rm=T)), bg=black,
         axes=F, outpch=16, ylab=expression('log'[2]*'(ratio)'))
@@ -231,7 +244,7 @@ if(any(is.infinite(c(y.sex.down, y.sex.up)))){
 }
 
 par(mar=c(2.5,3,1,1))
-boxplot(box.list[23:length(chrs)], ylim=c(y.sex.down, y.sex.up), 
+boxplot(box.list[23:length(chrs)], ylim=c(y.sex.down, y.sex.up),
         bg=black, axes=F, outpch=16, ylab='')
 
 par(xpd=NA)
@@ -252,16 +265,16 @@ invisible(dev.off())
 # create chr specific plots
 
 for (c in chrs){
-  
+
   margins <- c(chr.ends[c], chr.ends[c+1])
   len <- chr.ends[c+1] - chr.ends[c]
   x.labels <- seq(0, bins.per.chr[c] * binsize, bins.per.chr[c] * binsize / 10)
   x.labels.at <- seq(0, bins.per.chr[c], bins.per.chr[c] / 10) + chr.ends[c]
   x.labels <- x.labels[2:(length(x.labels) - 1)]
   x.labels.at <- x.labels.at[2:(length(x.labels.at) - 1)]
-  
+
   whis = boxplot(box.list[[c]], plot=F)$stats[c(1,5),]
-  
+
   if (any(is.na(whis))){
     next
   }
@@ -275,7 +288,7 @@ for (c in chrs){
   if (ylim != 'def'){
     lower.limit = ylim[1] ; upper.limit = ylim[2]
   }
-  par(mar=c(2.5,4,1,0), mgp=c(2.2,0,2))
+  par(mar=c(2.5,4,1,0), mgp=c(2.4,0.5,0))
   
   plot(1, main="", axes=F, # plots nothing -- enables segments function
        xlab="", ylab="", col="white",

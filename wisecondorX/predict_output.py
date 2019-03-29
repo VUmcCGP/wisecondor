@@ -17,8 +17,10 @@ def exec_write_plots(rem_input, results):
         'R_script': str('{}/include/plotter.R'.format(rem_input['wd'])),
         'ref_gender': str(rem_input['ref_gender']),
         'beta': str(rem_input['args'].beta),
+        'zscore': str(rem_input['args'].zscore),
         'binsize': str(rem_input['binsize']),
         'n_reads': str(rem_input['n_reads']),
+        'cairo': str(rem_input['args'].cairo),
         'results_r': results['results_r'],
         'results_w': results['results_w'],
         'results_c': results['results_c'],
@@ -26,7 +28,6 @@ def exec_write_plots(rem_input, results):
         'infile': str('{}.json'.format(json_plot_dir)),
         'out_dir': str('{}.plots'.format(rem_input['args'].outid)),
     }
-
     exec_R(json_dict)
 
 
@@ -91,10 +92,16 @@ def _generate_segments_and_aberrations_bed(rem_input, results):
 
         if (chr_name == 'X' or chr_name == 'Y') and rem_input['actual_gender'] == 'M':
             ploidy = 1
-        if float(segment[4]) > __get_aberration_cutoff(rem_input['args'].beta, ploidy)[1]:
-            abberations_file.write('{}\tgain\n'.format('\t'.join([str(x) for x in row])))
-        elif float(segment[4]) < __get_aberration_cutoff(rem_input['args'].beta, ploidy)[0]:
-            abberations_file.write('{}\tloss\n'.format('\t'.join([str(x) for x in row])))
+        if rem_input['args'].beta is not None:
+            if float(segment[4]) > __get_aberration_cutoff(rem_input['args'].beta, ploidy)[1]:
+                abberations_file.write('{}\tgain\n'.format('\t'.join([str(x) for x in row])))
+            elif float(segment[4]) < __get_aberration_cutoff(rem_input['args'].beta, ploidy)[0]:
+                abberations_file.write('{}\tloss\n'.format('\t'.join([str(x) for x in row])))
+        else:
+            if float(segment[3]) > rem_input['args'].zscore:
+                abberations_file.write('{}\tgain\n'.format('\t'.join([str(x) for x in row])))
+            elif float(segment[3]) < - rem_input['args'].zscore:
+                abberations_file.write('{}\tloss\n'.format('\t'.join([str(x) for x in row])))
 
     segments_file.close()
     abberations_file.close()

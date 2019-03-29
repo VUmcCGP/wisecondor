@@ -111,23 +111,17 @@ def tool_test(args):
                          'Select at least one of the supported output formats (--bed, --plot)')
         sys.exit()
 
-    if args.beta <= 0 or args.beta > 1:
-        logging.critical('Parameter beta should be a strictly positive number lower than 1')
+    if args.zscore <= 0:
+        logging.critical('Parameter --zscore should be a strictly positive number')
+        sys.exit()
+
+    if args.beta is not None and args.beta <= 0 or args.beta > 1:
+        logging.critical('Parameter --beta should be a strictly positive number lower than 1')
         sys.exit()
 
     if args.alpha <= 0 or args.alpha > 1:
-        logging.critical('Parameter alpha should be a strictly positive number lower than 1')
+        logging.critical('Parameter --alpha should be a strictly positive number lower than 1')
         sys.exit()
-
-    if args.beta < 0.05:
-        logging.warning('Parameter beta seems to be a bit low. '
-                        'Have you read https://github.com/CenterForMedicalGeneticsGhent/wisecondorX#parameters '
-                        'on parameter optimization?')
-
-    if args.alpha > 0.1:
-        logging.warning('Parameter alpha seems to be a bit high. '
-                        'Have you read https://github.com/CenterForMedicalGeneticsGhent/wisecondorX#parameters '
-                        'on parameter optimization?')
 
     logging.info('Importing data ...')
     ref_file = np.load(args.reference, encoding='latin1')
@@ -335,10 +329,14 @@ def main():
                              type=float,
                              default=1e-4,
                              help='p-value cut-off for calling a CBS breakpoint.')
+    parser_test.add_argument('--zscore',
+                             type=float,
+                             default=3,
+                             help='z-score cut-off for aberration calling.')
     parser_test.add_argument('--beta',
                              type=float,
-                             default=0.1,
-                             help='Number between 0 and 1, defines the sensitivity for aberration calling.')
+                             default=None,
+                             help='When beta is given, --zscore is ignored and a ratio cut-off is used to call aberrations. Beta is a number between 0 (liberal) and 1 (conservative) and is optimally close to the purity.')
     parser_test.add_argument('--blacklist',
                              type=str,
                              default=None,
@@ -358,6 +356,9 @@ def main():
     parser_test.add_argument('--plot',
                              action='store_true',
                              help='Outputs .png plots')
+    parser_test.add_argument('--cairo',
+                             action='store_true',
+                             help='Uses cairo bitmap type for plotting. Might be necessary for certain setups.')
     parser_test.set_defaults(func=tool_test)
 
     args = parser.parse_args(sys.argv[1:])
