@@ -134,13 +134,6 @@ The default parameters are optimized for shallow whole-genome sequencing data (0
 ranging from 50 to 500 kb. When increasing the reference bin size (`--binsize`), I recommend lowering the reference locations 
 per target (`--refsize`) and the minimum amount of sensible reference bins per target bin (`--minrefbins`). Further note that a
 reference bin size lower than 15 kb is not advised.  
-**Important note**  
-Concerning the vast majority of applications, the `--alpha` parameter should not be tweaked. The `--beta` parameter on the contrary
-should depend on your type of analysis. For NIPT, its default value should be fine. However, for gDNA, when mosaicisms are of no interest,
-it could be increased to its maximum, being 1. When the fetal (NIPT) or tumor (LQB, fresh material, FFPE, ...) fraction is known, this parameter is optimally
-close to this fraction. If you have any doubts about this argument, a default `--beta` should still be fine when a good and large reference set was created,
-irrespective of the type of analysis.  
-If the interest is research, and not diagnostics, feel free to use the z-scores by defining a cut-off of interest.
 
 # Underlying algorithm
 
@@ -164,28 +157,28 @@ Vertical grey bars represent the blacklist, which will match hypervariable loci 
 dotted lines show where the constitutional 1n and 3n states are expected (when constitutional DNA is at 100% purity).
 Often, an aberration does not surpass these limits, which has several potential causes: depending on your type of analysis, 
 the sample could be subject to tumor fraction, fetal fraction, mosaicisms, etc ... Sometimes, the segments do surpass these 
-limits: here it's likely you are dealing with 4n, 5n, 6n, ...
+limits: here it's likely you are dealing with 0n, 4n, 5n, 6n, ...
 
 ## Tables
 
 ### ID_bins.bed
 
 This file contains all bin-wise information. When data is 'NaN', the corresponding bin is included in the blacklist. 
-The Z-scores are calculated as default using the within-sample reference bins as a null set.
+The Z-scores are calculated as default using the within-sample reference bins as a null set.  
 
 ### ID_segments.bed
 
 This file contains all segment-wise information. A combined Z-score is calculated using a between-sample z-scoring
-technique (the test case vs the reference cases).
+technique (the test case vs the reference cases).  
 
 ### ID_aberrations.bed
 
-This file contains segments with a ratio surpassing a certain cutoff value, defined by the `--beta` parameter.
+This file contains aberrant segmentsdefined by the `--beta` or `--zscore` parameter.  
 
 ### ID_chr_statistics.bed
 
 This file contains some interesting statistics for each chromosome. The definition of the Z-scores matches the one from 
-the 'ID_segments.bed'. Particularly interesting for NIPT.
+the 'ID_segments.bed'. Particularly interesting for NIPT.  
 
 # Dependencies
 
