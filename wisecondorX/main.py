@@ -358,6 +358,9 @@ def main():
     parser_test.add_argument('--plot',
                              action='store_true',
                              help='Outputs .png plots')
+    parser_test.add_argument('--cairo',
+                             action='store_true',
+                             help='Uses cairo bitmap type for plotting. Might be necessary for certain setups.')
     parser_test.set_defaults(func=tool_test)
 
     args = parser.parse_args(sys.argv[1:])

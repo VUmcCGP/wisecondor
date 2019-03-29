@@ -1,4 +1,4 @@
-options(warn=-1, bitmapType="cairo")
+options(warn=-1)
 
 # -----
 # arg
@@ -28,6 +28,8 @@ dir.create(out.dir, showWarnings=F)
 gender = input$ref_gender
 beta = as.numeric(input$beta)
 ylim = input$ylim
+
+if (input$cairo) options(bitmaptype='cairo')
 
 # aberration_cutoff
 
@@ -118,7 +120,7 @@ for (i in 1:7){
 
 layout(l.matrix)
 
-par(mar=c(2.5,4,1,0), mgp=c(2.2,0,2), oma=c(0,0,3,0))
+par(mar=c(2.5,4,1,0), mgp=c(2.4,0.5,0), oma=c(0,0,3,0))
 
 plot(1, main="", axes=F, # plots nothing -- enables segments function
      xlab="", ylab="", col="white", xlim=c(chr.ends[1], chr.ends[length(chr.ends)]),
@@ -210,7 +212,7 @@ for (ab in input$results_c){
 
 # boxplots
 
-par(mgp=c(2.2,0,2))
+par(mgp=c(2.4,0.5,0))
 boxplot(box.list[1:22], ylim=c(min(l.whis.per.chr[1:22], na.rm=T),
                                max(h.whis.per.chr[1:22], na.rm=T)), bg=black,
         axes=F, outpch=16, ylab=expression('log'[2]*'(ratio)'))
@@ -231,7 +233,7 @@ if(any(is.infinite(c(y.sex.down, y.sex.up)))){
 }
 
 par(mar=c(2.5,3,1,1))
-boxplot(box.list[23:length(chrs)], ylim=c(y.sex.down, y.sex.up), 
+boxplot(box.list[23:length(chrs)], ylim=c(y.sex.down, y.sex.up),
         bg=black, axes=F, outpch=16, ylab='')
 
 par(xpd=NA)
@@ -252,16 +254,16 @@ invisible(dev.off())
 # create chr specific plots
 
 for (c in chrs){
-  
+
   margins <- c(chr.ends[c], chr.ends[c+1])
   len <- chr.ends[c+1] - chr.ends[c]
   x.labels <- seq(0, bins.per.chr[c] * binsize, bins.per.chr[c] * binsize / 10)
   x.labels.at <- seq(0, bins.per.chr[c], bins.per.chr[c] / 10) + chr.ends[c]
   x.labels <- x.labels[2:(length(x.labels) - 1)]
   x.labels.at <- x.labels.at[2:(length(x.labels.at) - 1)]
-  
+
   whis = boxplot(box.list[[c]], plot=F)$stats[c(1,5),]
-  
+
   if (any(is.na(whis))){
     next
   }
@@ -275,7 +277,7 @@ for (c in chrs){
   if (ylim != 'def'){
     lower.limit = ylim[1] ; upper.limit = ylim[2]
   }
-  par(mar=c(2.5,4,1,0), mgp=c(2.2,0,2))
+  par(mar=c(2.5,4,1,0), mgp=c(2.4,0.5,0))
   
   plot(1, main="", axes=F, # plots nothing -- enables segments function
        xlab="", ylab="", col="white",

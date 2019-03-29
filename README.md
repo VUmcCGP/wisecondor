@@ -110,8 +110,9 @@ WisecondorX predict test_input.npz reference_input.npz output_id [--optional arg
 `--blacklist x` | Blacklist that masks additional regions in output, requires header-less .bed file. This is particularly useful when the reference set is a too small to recognize some obvious regions (such as centromeres; example at `./example.blacklist/centromere.hg38.txt`) (default: x=None)  
 `--gender x` | Force WisecondorX to analyze this file as a male (M) or female (F). Useful when dealing with a whole-chromosome Y-deletion (choices: x=F or x=M)
 `--ylim [a,b]` | Force WisecondorX to use y-axis interval [a,b] for plotting, e.g. [-2,2]. (default: a and b selected based on data)  
-`--bed` | Outputs tab-delimited .bed files (trisomy 21 NIPT example at `./example.bed`), containing all necessary information  **(\*)**
+`--bed` | Outputs tab-delimited .bed files (trisomy 21 NIPT example at `./example.bed`), containing all necessary information  **(\*)**  
 `--plot` | Outputs custom .png plots (trisomy 21 NIPT example at `./example.plot`), directly interpretable  **(\*)**  
+`--ciaro` | Some operating systems require the cairo bitmap type to write plots  
 
 <sup>**(\*)** At least one of these output formats should be selected</sup>  
 

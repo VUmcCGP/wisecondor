@@ -19,6 +19,7 @@ def exec_write_plots(rem_input, results):
         'beta': str(rem_input['args'].beta),
         'binsize': str(rem_input['binsize']),
         'n_reads': str(rem_input['n_reads']),
+        'cairo': str(rem_input['args'].cairo),
         'results_r': results['results_r'],
         'results_w': results['results_w'],
         'results_c': results['results_c'],
@@ -26,7 +27,6 @@ def exec_write_plots(rem_input, results):
         'infile': str('{}.json'.format(json_plot_dir)),
         'out_dir': str('{}.plots'.format(rem_input['args'].outid)),
     }
-
     exec_R(json_dict)
 
 
