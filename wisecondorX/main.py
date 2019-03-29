@@ -115,9 +115,10 @@ def tool_test(args):
         logging.critical('Parameter --zscore should be a strictly positive number')
         sys.exit()
 
-    if args.beta is not None and args.beta <= 0 or args.beta > 1:
-        logging.critical('Parameter --beta should be a strictly positive number lower than 1')
-        sys.exit()
+    if args.beta is not None:
+        if args.beta <= 0 or args.beta > 1:
+            logging.critical('Parameter --beta should be a strictly positive number lower than 1')
+            sys.exit()
 
     if args.alpha <= 0 or args.alpha > 1:
         logging.critical('Parameter --alpha should be a strictly positive number lower than 1')
@@ -331,7 +332,7 @@ def main():
                              help='p-value cut-off for calling a CBS breakpoint.')
     parser_test.add_argument('--zscore',
                              type=float,
-                             default=3,
+                             default=5,
                              help='z-score cut-off for aberration calling.')
     parser_test.add_argument('--beta',
                              type=float,
