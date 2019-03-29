@@ -173,7 +173,7 @@ technique (the test case vs the reference cases).
 
 ### ID_aberrations.bed
 
-This file contains aberrant segmentsdefined by the `--beta` or `--zscore` parameter.  
+This file contains aberrant segments, defined by the `--beta` or `--zscore` parameter.  
 
 ### ID_chr_statistics.bed
 
