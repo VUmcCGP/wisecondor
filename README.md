@@ -105,7 +105,7 @@ WisecondorX predict test_input.npz reference_input.npz output_id [--optional arg
 :--- | :---  
 `--minrefbins x` | Minimum amount of sensible reference bins per target bin (default: x=150)  
 `--maskrepeats x` | Regions with distances > mean + sd * 3 in the reference will be masked, number of masking cycles (default: x=5)  
-`--zscore x` | Z-score cut-off to call segments as aberrations (default: x=3)  
+`--zscore x` | Z-score cut-off to call segments as aberrations (default: x=5)  
 `--alpha x` | P-value cut-off for calling a CBS breakpoint (default: x=1e-4)  
 `--beta x` | When beta is given, --zscore is ignored. Beta sets a ratio cut-off for aberration calling. It's a number between 0 (liberal) and 1 (conservative) and is optimally close to the purity (e.g. fetal/tumor fraction) (default: x=None)  
 `--blacklist x` | Blacklist that masks additional regions in output, requires header-less .bed file. This is particularly useful when the reference set is a too small to recognize some obvious regions (such as centromeres; example at `./example.blacklist/centromere.hg38.txt`) (default: x=None)  
