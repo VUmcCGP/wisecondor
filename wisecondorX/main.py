@@ -45,7 +45,7 @@ def tool_newref(args):
     logging.info('Importing data ...')
     for infile in args.infiles:
         logging.info('Loading: {}'.format(infile))
-        npzdata = np.load(infile, encoding='latin1')
+        npzdata = np.load(infile, encoding='latin1', allow_pickle=True)
         sample = npzdata['sample'].item()
         binsize = int(npzdata['binsize'])
         logging.info('Binsize: {}'.format(int(binsize)))
@@ -75,28 +75,33 @@ def tool_newref(args):
         logging.info('This might take a while ...')
         tool_newref_main(args, args.cpus)
     else:
-        logging.critical('Provide at least 10 samples to enable the generation of a reference.')
+        logging.critical(
+            'Provide at least 10 samples to enable the generation of a reference.')
         sys.exit()
 
     if genders.count('F') > 4:
         logging.info('Starting female gonosomal reference creation ...')
         args.tmpoutfile = '{}.tmp.F.npz'.format(args.basepath)
         outfiles.append(args.tmpoutfile)
-        tool_newref_prep(args, samples[np.array(genders) == 'F'], 'F', total_mask, bins_per_chr)
+        tool_newref_prep(args, samples[np.array(
+            genders) == 'F'], 'F', total_mask, bins_per_chr)
         logging.info('This might take a while ...')
         tool_newref_main(args, 1)
     else:
-        logging.warning('Provide at least 5 female samples to enable normalization of female gonosomes.')
+        logging.warning(
+            'Provide at least 5 female samples to enable normalization of female gonosomes.')
 
     if not args.nipt:
         if genders.count('M') > 4:
             logging.info('Starting male gonosomal reference creation ...')
             args.tmpoutfile = '{}.tmp.M.npz'.format(args.basepath)
             outfiles.append(args.tmpoutfile)
-            tool_newref_prep(args, samples[np.array(genders) == 'M'], 'M', total_mask, bins_per_chr)
+            tool_newref_prep(args, samples[np.array(
+                genders) == 'M'], 'M', total_mask, bins_per_chr)
             tool_newref_main(args, 1)
         else:
-            logging.warning('Provide at least 5 male samples to enable normalization of male gonosomes.')
+            logging.warning(
+                'Provide at least 5 male samples to enable normalization of male gonosomes.')
 
     tool_newref_merge(args, outfiles, trained_cutoff)
 
@@ -112,26 +117,30 @@ def tool_test(args):
         sys.exit()
 
     if args.zscore <= 0:
-        logging.critical('Parameter --zscore should be a strictly positive number')
+        logging.critical(
+            'Parameter --zscore should be a strictly positive number')
         sys.exit()
 
     if args.beta is not None:
         if args.beta <= 0 or args.beta > 1:
-            logging.critical('Parameter --beta should be a strictly positive number lower than 1')
+            logging.critical(
+                'Parameter --beta should be a strictly positive number lower than 1')
             sys.exit()
 
     if args.alpha <= 0 or args.alpha > 1:
-        logging.critical('Parameter --alpha should be a strictly positive number lower than 1')
+        logging.critical(
+            'Parameter --alpha should be a strictly positive number lower than 1')
         sys.exit()
 
     logging.info('Importing data ...')
-    ref_file = np.load(args.reference, encoding='latin1')
-    sample_file = np.load(args.infile, encoding='latin1')
+    ref_file = np.load(args.reference, encoding='latin1', allow_pickle=True)
+    sample_file = np.load(args.infile, encoding='latin1', allow_pickle=True)
 
     sample = sample_file['sample'].item()
     n_reads = sum([sum(sample[x]) for x in sample.keys()])
 
-    sample = scale_sample(sample, int(sample_file['binsize'].item()), int(ref_file['binsize']))
+    sample = scale_sample(sample, int(
+        sample_file['binsize'].item()), int(ref_file['binsize']))
 
     if not ref_file['is_nipt']:
         actual_gender = predict_gender(sample, ref_file['trained_cutoff'])
@@ -148,7 +157,8 @@ def tool_test(args):
 
     logging.info('Normalizing autosomes ...')
 
-    results_r, results_z, results_w, ref_sizes, m_lr, m_z = normalize(args, sample, ref_file, 'A')
+    results_r, results_z, results_w, ref_sizes, m_lr, m_z = normalize(
+        args, sample, ref_file, 'A')
 
     if not ref_file['has_male'] and actual_gender == 'M':
         logging.warning('This sample is male, whilst the reference is created with fewer than 5 males. '
@@ -167,9 +177,11 @@ def tool_test(args):
     logging.info('Normalizing gonosomes ...')
 
     null_ratios_aut_per_bin = ref_file['null_ratios']
-    null_ratios_gon_per_bin = ref_file['null_ratios.{}'.format(ref_gender)][len(null_ratios_aut_per_bin):]
+    null_ratios_gon_per_bin = ref_file['null_ratios.{}'.format(
+        ref_gender)][len(null_ratios_aut_per_bin):]
 
-    results_r_2, results_z_2, results_w_2, ref_sizes_2, _, _ = normalize(args, sample, ref_file, ref_gender)
+    results_r_2, results_z_2, results_w_2, ref_sizes_2, _, _ = normalize(
+        args, sample, ref_file, ref_gender)
 
     rem_input = {'args': args,
                  'wd': str(os.path.dirname(os.path.realpath(__file__))),
@@ -186,12 +198,14 @@ def tool_test(args):
 
     results_r = np.append(results_r, results_r_2)
     results_z = np.append(results_z, results_z_2) - m_z
-    results_w = np.append(results_w * np.nanmedian(results_w_2), results_w_2 * np.nanmedian(results_w))
+    results_w = np.append(results_w * np.nanmedian(results_w_2),
+                          results_w_2 * np.nanmedian(results_w))
     results_w = results_w / np.nanmedian(results_w)
     ref_sizes = np.append(ref_sizes, ref_sizes_2)
 
     null_ratios_aut_per_sample = np.transpose(null_ratios_aut_per_bin)
-    part_mask = np.array([not x for x in list(np.isnan(results_r))], dtype=bool)
+    part_mask = np.array(
+        [not x for x in list(np.isnan(results_r))], dtype=bool)
     null_m_lr_aut = np.array([np.nanmedian(x[part_mask[:len(null_ratios_aut_per_bin)]])
                               for x in null_ratios_aut_per_sample])
 
@@ -205,7 +219,8 @@ def tool_test(args):
                'results_nr': null_ratios}
 
     for result in results.keys():
-        results[result] = get_post_processed_result(args, results[result], ref_sizes, rem_input)
+        results[result] = get_post_processed_result(
+            args, results[result], ref_sizes, rem_input)
 
     log_trans(results, m_lr)
 
@@ -229,9 +244,10 @@ def tool_test(args):
 
 
 def output_gender(args):
-    ref_file = np.load(args.reference, encoding='latin1')
-    sample_file = np.load(args.infile, encoding='latin1')
-    gender = predict_gender(sample_file['sample'].item(), ref_file['trained_cutoff'])
+    ref_file = np.load(args.reference, encoding='latin1', allow_pickle=True)
+    sample_file = np.load(args.infile, encoding='latin1', allow_pickle=True)
+    gender = predict_gender(
+        sample_file['sample'].item(), ref_file['trained_cutoff'])
     if gender == 'M':
         print('male')
     else:
@@ -240,7 +256,7 @@ def output_gender(args):
 
 def main():
     warnings.filterwarnings('ignore')
-    
+
     parser = argparse.ArgumentParser(description='wisecondorX')
     parser.add_argument('--loglevel',
                         type=str,

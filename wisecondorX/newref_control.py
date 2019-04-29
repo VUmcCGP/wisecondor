@@ -94,10 +94,11 @@ def _tool_newref_part(args):
                          .format(args.part[0], args.part[1]))
         sys.exit()
     if args.part[0] < 0:
-        logging.critical('Part should be at least zero: {} < 0 is wrong'.format(args.part[0]))
+        logging.critical(
+            'Part should be at least zero: {} < 0 is wrong'.format(args.part[0]))
         sys.exit()
 
-    npzdata = np.load(args.prepfile, encoding='latin1')
+    npzdata = np.load(args.prepfile, encoding='latin1', allow_pickle=True)
     pca_corrected_data = npzdata['pca_corrected_data']
     masked_bins_per_chr = npzdata['masked_bins_per_chr']
     masked_bins_per_chr_cum = npzdata['masked_bins_per_chr_cum']
@@ -118,7 +119,7 @@ new temporary output file.
 
 
 def tool_newref_post(args, cpus):
-    npzdata_prep = np.load(args.prepfile, encoding='latin1')
+    npzdata_prep = np.load(args.prepfile, encoding='latin1', allow_pickle=True)
 
     big_indexes = []
     big_distances = []
@@ -161,7 +162,7 @@ reference file.
 def tool_newref_merge(args, outfiles, trained_cutoff):
     final_ref = {'has_female': False, 'has_male': False}
     for file_id in outfiles:
-        npz_file = np.load(file_id, encoding='latin1')
+        npz_file = np.load(file_id, encoding='latin1', allow_pickle=True)
         gender = str(npz_file['gender'])
         for component in [x for x in npz_file.keys() if x != 'gender']:
             if gender == 'F':

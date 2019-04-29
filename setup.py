@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 from setuptools import setup, find_packages
 
-version = '1.1.0'
+version = '1.1.0dev'
 dl_version = 'master' if 'dev' in version else '{}'.format(version)
 
 setup(
@@ -13,7 +13,8 @@ setup(
     long_description=__doc__,
     keywords=['bioinformatics', 'biology', 'sequencing', 'NGS', 'next generation sequencing',
               'CNV', 'SWGS', 'Shallow Whole Genome Sequencing'],
-    download_url='https://github.com/CenterForMedicalGeneticsGhent/WisecondorX/archive/v{}.tar.gz'.format(dl_version),
+    download_url='https://github.com/CenterForMedicalGeneticsGhent/WisecondorX/archive/v{}.tar.gz'.format(
+        dl_version),
     license='Attribution-NonCommercial-ShareAlike CC BY-NC-SA',
     packages=find_packages('.'),
     python_requires='>=2.7',
