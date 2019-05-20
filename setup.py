@@ -21,7 +21,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-        'futures',
+        'futures;python_version<"3"',
         'scipy',
         'scikit-learn',
         'pysam',
