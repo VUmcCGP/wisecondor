@@ -209,9 +209,9 @@ def tool_test(args):
     null_m_lr_aut = np.array([np.nanmedian(x[part_mask[:len(null_ratios_aut_per_bin)]])
                               for x in null_ratios_aut_per_sample])
 
-    null_ratios_aut_per_bin = null_ratios_aut_per_bin - null_m_lr_aut
     null_ratios = np.array(
         [x.tolist() for x in null_ratios_aut_per_bin] + [x.tolist() for x in null_ratios_gon_per_bin])
+    null_ratios = null_ratios - null_m_lr_aut
 
     results = {'results_r': results_r,
                'results_z': results_z,

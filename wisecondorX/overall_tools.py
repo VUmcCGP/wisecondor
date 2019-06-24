@@ -92,7 +92,9 @@ def get_z_score(results_c, results):
         segment_w = results_w[segment[0]][segment[1]:segment[2]]
         segment_w = [segment_w[i] for i in range(len(segment_w)) if segment_rr[i] != 0]
         null_segments = [np.ma.average(x, weights=segment_w) for x in np.transpose(segment_nr)]
-        zs.append(segment[3] / np.ma.std([x for x in null_segments if np.isfinite(x)]))
+        null_mean = np.ma.mean([x for x in null_segments if np.isfinite(x)])
+        null_sd = np.ma.std([x for x in null_segments if np.isfinite(x)])
+        zs.append((segment[3] - null_mean) / null_sd)
     return zs
 
 
