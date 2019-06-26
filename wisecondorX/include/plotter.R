@@ -201,7 +201,7 @@ par(xpd=F)
 par(xpd=NA)
 legend(x=chr.ends[length(chr.ends)] * 0.3,
        y=chr.wide.upper.limit + (abs(chr.wide.upper.limit) + abs(chr.wide.lower.limit)) * 0.23,
-       legend=c("Constitutional triploid", "Constitutional diploid", "Constitutional monoploid"),
+       legend=c("Constitutional 3n", "Constitutional 2n", "Constitutional 1n"),
        text.col=color.X, cex=1.3, bty="n", lty=c(3,3,3), lwd=1.5, col=color.X)
 legend(x=0,
        y=chr.wide.upper.limit + (abs(chr.wide.upper.limit) + abs(chr.wide.lower.limit)) * 0.23,
