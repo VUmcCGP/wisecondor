@@ -137,7 +137,7 @@ def _normalize_once(test_data, test_copy, ref_file, optimal_cutoff, ct, cp, ap):
 '''
 The means of sets of within-sample reference
 distances can serve as inverse weights for
-CBS and Stouffer's z-scoring.
+CBS, Z-scoring and plotting.
 '''
 
 
