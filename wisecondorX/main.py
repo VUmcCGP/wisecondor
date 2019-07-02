@@ -203,7 +203,7 @@ def tool_test(args):
     results_w = results_w / np.nanmedian(results_w)
 
     if np.isnan(results_w).any() or np.isinf(results_w).any():
-        logging.warning('Non-numeric values found in weights -- reference too small. Circular binary segmentation will be unweighted')
+        logging.warning('Non-numeric values found in weights -- reference too small. Circular binary segmentation and z-scoring will be unweighted')
         results_w = np.ones(len(results_w))
 
     ref_sizes = np.append(ref_sizes, ref_sizes_2)
