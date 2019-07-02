@@ -45,6 +45,8 @@ def train_gender_model(samples):
 
     cut_off = gmm_x[local_min_i][0]
 
+    # plot(cut_off)
+
     genders[y_fractions > cut_off] = 'M'
     genders[y_fractions < cut_off] = 'F'
 
@@ -181,7 +183,6 @@ def get_reference(pca_corrected_data, masked_bins_per_chr, masked_bins_per_chr_c
             ref = sample[index_array[bin_i - start_num]]
             r = np.log2(sample[bin_i] / np.median(ref))
             null_ratio_array[bin_i - start_num][null_i] = r
-
     return index_array, distance_array, null_ratio_array
 
 
