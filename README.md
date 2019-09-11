@@ -125,7 +125,7 @@ Returns gender.
 
 # Parameters
 
-The default parameters are optimized for shallow whole-genome sequencing data (0.1x - 1x depth) and reference bin 
+The default parameters are optimized for shallow whole-genome sequencing data (0.1x - 1x coverage) and reference bin 
 sizes ranging from 50 to 500 kb.  
 
 # Underlying algorithm
@@ -135,7 +135,7 @@ To understand the underlying algorithm, I highly recommend reading
 [Huijsdens-van Amsterdam et al (2018)](https://www.nature.com/articles/gim201832.epdf). Numerous adaptations to this 
 algorithm have been made, yet the central principles remain. Changes include e.g. the inclusion of a gender 
 prediction algorithm, gender handling prior to normalization (ultimately enabling X and Y predictions), between-sample 
-z-scoring, inclusion of a weighted circular binary segmentation algorithm and improved codes for outputting tables and 
+z-scoring, inclusion of a weighted circular binary segmentation algorithm and improved codes for obtaining tables and 
 plots.  
 
 # Interpretation results
