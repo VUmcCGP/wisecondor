@@ -70,7 +70,7 @@ WisecondorX convert input.bam output.npz [--optional arguments]
 `--paired` | Enables conversion for paired-end reads  
 
 
-&rarr; Bash recipe (example for NIPT) at `./pipeline/convert.sh`
+&rarr; Bash recipe at `./pipeline/convert.sh`
 
 ### Stage (2) Create reference
 
@@ -87,7 +87,7 @@ WisecondorX newref reference_input_dir/*.npz reference_output.npz [--optional ar
 `--yfrac x` | Y read fraction cutoff, in order to manually define gender. Setting this to 1 will treat all samples as female  
 `--cpus x` | Number of threads requested (default: x=1)  
 
-&rarr; Bash recipe (example for NIPT) at `./pipeline/newref.sh`
+&rarr; Bash recipe at `./pipeline/newref.sh`
 
 ### Stage (3) Predict copy number alterations  
 
@@ -112,7 +112,7 @@ WisecondorX predict test_input.npz reference_input.npz output_id [--optional arg
 
 <sup>**(\*)** At least one of these output formats should be selected</sup>  
 
-&rarr; Bash recipe (example for NIPT) at `./pipeline/predict.sh`
+&rarr; Bash recipe at `./pipeline/predict.sh`
 
 ### Additional functionality
 
