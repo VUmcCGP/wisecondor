@@ -1,18 +1,14 @@
 #!/usr/bin/env bash
 
 # PARAMETERS
-NPZ_FILES="path/to/samples.txt" # cases that will be tested versus the given reference
+
+NPZ_FILES="path/to/npz_files.txt" # file
 # Example of the structure of this file:
-# ID_1 path/to/convert.npz/ID_1.npz
-# ID_2 path/to/convert.npz/ID_2.npz
+# ID_1 path/to/converts_test/ID_1.npz
+# ID_2 path/to/converts_test/ID_2.npz
 # ...
-REF="path/to/newref.npz/reference.hg38.50kb.npz"
-OUTPUT_DIR="path/to/predict.output" # existing output folder
-
-
-# OPTIONAL PARAMETERS
-
-OPT="--plot --bed"
+REF="path/to/references/reference.100kb.npz"
+OUTPUT_DIR="path/to/output_100kb" # existing folder
 
 # SCRIPT
 
@@ -22,6 +18,6 @@ while read LINE; do
     NPZ=$(echo $LINE | awk -F ' ' '{print $2}')
 
     echo "Predicting sample ${SAMPLE}"
-    WisecondorX predict ${NPZ} ${REF} ${OUTPUT_DIR}/${SAMPLE} ${OPT}
+    WisecondorX predict ${NPZ} ${REF} ${OUTPUT_DIR}/${SAMPLE} --plot --bed
 
 done <${NPZ_FILES}
