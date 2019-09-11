@@ -41,21 +41,21 @@ pip install -U git+https://github.com/CenterForMedicalGeneticsGhent/WisecondorX
 
 ### Running WisecondorX
 
-There are three main stages (converting, reference creating & predicting) when using WisecondorX:  
-- Convert .bam files to .npz files (for both reference and test samples)  
+There are three main stages (converting, reference creating and predicting) when using WisecondorX:  
+- Convert .bam to .npz files (for both reference and test samples)  
 - Create a reference (using reference .npz files)  
     - **Important notes**
         - Automated gender prediction, required to consistently analyze sex chromosomes, is based on a Gaussian mixture 
         model. If few samples (<20) are included during reference creation, or not both male and female samples (for 
-        NIPT, this means male and female feti) are represented by the reference, this process might not be accurate. 
-        Therefore, alternatively, you can manually tweak the [`--yfrac`](#stage-2-create-reference) parameter.  
+        NIPT, this means male and female feti) are represented, this process might not be accurate. Therefore, 
+        alternatively, one can manually tweak the [`--yfrac`](#stage-2-create-reference) parameter.  
         - It is of paramount importance that the reference set consists of exclusively negative control samples that 
-        originate from the same sequencer, mapper, reference genome, type of material, etc, as the test samples. 
+        originate from the same sequencer, mapper, reference genome, type of material, ... etc, as the test samples. 
         As a rule of thumb, think of all laboratory and *in silico* steps: the more sources of bias that can be omitted,
         the better.  
         - Try to include at least 50 samples per reference. The more the better, yet, from 500 on it is unlikely to 
         observe additional improvement concerning normalization.  
-- Predict CNAs (using the reference file and test .npz cases of interest)  
+- Predict copy number alterations (using the reference file and test .npz cases of interest)  
 
 ### Stage (1) Convert .bam to .npz
 
@@ -66,7 +66,7 @@ WisecondorX convert input.bam output.npz [--optional arguments]
 
 <br>Optional argument <br><br> | Function  
 :--- | :---  
-`--binsize x` | Size per bin in bp, the reference bin size should be a multiple of this value. Note that this parameter does not impact the resolution, yet it can be used to optimize processing speed (default: x=5e3)  
+`--binsize x` | Size per bin in bp; the reference bin size should be a multiple of this value. Note that this parameter does not impact the resolution, yet it can be used to optimize processing speed (default: x=5e3)  
 `--paired` | Enables conversion for paired-end reads  
 
 
@@ -84,12 +84,12 @@ WisecondorX newref reference_input_dir/*.npz reference_output.npz [--optional ar
 `--nipt` | **Always include this flag for the generation of a NIPT reference**  
 `--binsize x` | Size per bin in bp, defines the resolution of the output (default: x=1e5)  
 `--refsize x` | Amount of reference locations per target; should generally not be tweaked (default: x=300)  
-`--yfrac x` | Use to manually set the chromosome Y read fraction cutoff, which defines gender. Setting this to 1 will treat all samples as female (no default)  
+`--yfrac x` | Y read fraction cutoff, in order to manually define gender. Setting this to 1 will treat all samples as female  
 `--cpus x` | Number of threads requested (default: x=1)  
 
 &rarr; Bash recipe (example for NIPT) at `./pipeline/newref.sh`
 
-### Stage (3) Predict CNAs  
+### Stage (3) Predict copy number alterations  
 
 ```bash
 
@@ -102,12 +102,12 @@ WisecondorX predict test_input.npz reference_input.npz output_id [--optional arg
 `--maskrepeats x` | Bins with distances > mean + sd * 3 in the reference will be masked. This parameter represents the number of masking cycles and defines the stringency of the blacklist (default: x=5)  
 `--zscore x` | z-score cutoff to call segments as aberrations (default: x=5)  
 `--alpha x` | p-value cutoff for calling a circular binary segmentation breakpoints (default: x=1e-4)  
-`--beta x` | When beta is given, `--zscore` is ignored. Beta sets a ratio cutoff for aberration calling. It's a number between 0 (liberal) and 1 (conservative) and, when used, is optimally close to the purity (e.g. fetal/tumor fraction) (no default)
-`--blacklist x` | Blacklist that masks additional regions in output, requires headerless .bed file. This is particularly useful when the reference set is a too small to recognize some obvious loci (such as centromeres; example at `./example.blacklist/centromere.hg38.txt`) (no default)  
+`--beta x` | When beta is given, `--zscore` is ignored. Beta sets a ratio cutoff for aberration calling. It's a number between 0 (liberal) and 1 (conservative) and, when used, is optimally close to the purity (e.g. fetal/tumor fraction)  
+`--blacklist x` | Blacklist that masks additional regions in output; requires headerless .bed file. This is particularly useful when the reference set is a too small to recognize some obvious loci (such as centromeres; example at `./example.blacklist/centromere.hg38.txt`) (no default)  
 `--gender x` | Force WisecondorX to analyze this case as a male (M) or female (F). Useful when e.g. dealing with a loss of chromosome Y, which causes erroneous gender predictions (choices: x=F or x=M)
 `--bed` | Outputs tab-delimited .bed files (trisomy 21 NIPT example at `./example.bed`), containing all necessary information  **(\*)**  
 `--plot` | Outputs custom .png plots (trisomy 21 NIPT example at `./example.plot`), directly interpretable  **(\*)**  
-`--ylim [a,b]` | Force WisecondorX to use y-axis interval [a,b] for plotting, e.g. [-2,2]. (no default)  
+`--ylim [a,b]` | Force WisecondorX to use y-axis interval [a,b] during plotting, e.g. [-2,2]  
 `--ciaro` | Some operating systems require the cairo bitmap type to write plots  
 
 <sup>**(\*)** At least one of these output formats should be selected</sup>  
@@ -151,7 +151,7 @@ set. Thus, the size increases with the certainty of an observation. The same goe
 Vertical grey bars represent the blacklist, which will match hypervariable loci and repeats. Finally, the horizontal 
 colored dotted lines show where the constitutional 1n and 3n states are expected (when constitutional DNA is at 100% 
 purity). Often, an aberration does not surpass these limits, which has several potential causes: depending on your type 
-of analysis, the sample could be subject to tumor fraction, fetal fraction, a mosaicism, etc ... Sometimes, the 
+of analysis, the sample could be subject to tumor fraction, fetal fraction, a mosaicism, ... etc. Sometimes, the 
 segments do surpass these limits: here it's likely you are dealing with 0n, 4n, 5n, 6n, ...
 
 ## Tables
@@ -168,8 +168,8 @@ technique (the test case vs the reference cases).
 
 ### ID_aberrations.bed
 
-This file contains aberrant segments, defined by the [`--beta`](#stage-3-predict-cnas) or 
-[`--zscore`](#stage-3-predict-cnas) parameters.  
+This file contains aberrant segments, defined by the [`--beta`](#stage-3-predict-copy-number-alterations) or 
+[`--zscore`](#stage-3-predict-copy-number-alterations) parameters.  
 
 ### ID_chr_statistics.bed
 
