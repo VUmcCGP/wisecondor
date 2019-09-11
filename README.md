@@ -10,7 +10,7 @@ Stouffer's z-score approach is error-prone when dealing with large amounts of ab
 is extremely slow (24h) when operating at small bin sizes (15 kb), and sex chromosomes are not part of the analysis. 
 Here, we present WisecondorX, an evolved WISECONDOR that aims at dealing with previous difficulties, resulting 
 in overall superior results and significantly lower computing times, allowing daily diagnostic use. WisecondorX is 
-meant to be applicable not only to NIPT, but also to gDNA, PGD, FFPE, LQB, ... etc.
+meant to be applicable not only to NIPT, but also gDNA, PGT, FFPE, LQB, ... etc.
 
 # Manual
 
@@ -45,12 +45,10 @@ There are three main stages (converting, reference creating & predicting) when u
 - Convert .bam files to .npz files (for both reference and test samples)  
 - Create a reference (using reference .npz files)  
     - **Important notes**
-        - WisecondorX will internally generate a male and female gonosomal reference. It is advised that both male and 
-        female samples (for NIPT, this means male and female feti) are represented in the reference set. If the latter 
-        cannot be achieved, you might require the `--yfrac` parameter.  
         - Automated gender prediction, required to consistently analyze sex chromosomes, is based on a Gaussian mixture 
-        model. If few samples (<20) are included during reference creation, this process might not be accurate. 
-        Therefore, alternatively, one can manually provide a chromosome Y read fraction cutoff (`--yfrac`).  
+        model. If few samples (<20) are included during reference creation, or not both male and female samples (for 
+        NIPT, this means male and female feti) are represented by the reference, this process might not be accurate. 
+        Therefore, alternatively, you can manually tweak the [`--yfrac`](#stage-2-create-reference) parameter.  
         - It is of paramount importance that the reference set consists of exclusively negative control samples that 
         originate from the same sequencer, mapper, reference genome, type of material, etc, as the test samples. 
         As a rule of thumb, think of all laboratory and *in silico* steps: the more sources of bias that can be omitted,
@@ -81,7 +79,7 @@ WisecondorX convert input.bam output.npz [--optional arguments]
 WisecondorX newref reference_input_dir/*.npz reference_output.npz [--optional arguments]
 ```
 
-<br>Optional argument &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br><br> | Function
+<br>Optional argument <br><br> | Function
 :--- | :---  
 `--nipt` | **Always include this flag for the generation of a NIPT reference**  
 `--binsize x` | Size per bin in bp, defines the resolution of the output (default: x=1e5)  
@@ -103,7 +101,7 @@ WisecondorX predict test_input.npz reference_input.npz output_id [--optional arg
 `--minrefbins x` | Minimum amount of sensible reference bins per target bin; should generally not be tweaked (default: x=150)  
 `--maskrepeats x` | Bins with distances > mean + sd * 3 in the reference will be masked. This parameter represents the number of masking cycles and defines the stringency of the blacklist (default: x=5)  
 `--zscore x` | z-score cutoff to call segments as aberrations (default: x=5)  
-`--alpha x` | p-value cutoff for calling a circular binary segmentation breakpoint (default: x=1e-4)  
+`--alpha x` | p-value cutoff for calling a circular binary segmentation breakpoints (default: x=1e-4)  
 `--beta x` | When beta is given, `--zscore` is ignored. Beta sets a ratio cutoff for aberration calling. It's a number between 0 (liberal) and 1 (conservative) and, when used, is optimally close to the purity (e.g. fetal/tumor fraction) (no default)
 `--blacklist x` | Blacklist that masks additional regions in output, requires headerless .bed file. This is particularly useful when the reference set is a too small to recognize some obvious loci (such as centromeres; example at `./example.blacklist/centromere.hg38.txt`) (no default)  
 `--gender x` | Force WisecondorX to analyze this case as a male (M) or female (F). Useful when e.g. dealing with a loss of chromosome Y, which causes erroneous gender predictions (choices: x=F or x=M)
