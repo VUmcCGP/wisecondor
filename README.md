@@ -96,7 +96,7 @@ WisecondorX newref reference_input_dir/*.npz reference_output.npz [--optional ar
 WisecondorX predict test_input.npz reference_input.npz output_id [--optional arguments]
 ```
   
-<br>Optional argument &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Function  
+<br>Optional argument <br><br> | Function
 :--- | :---  
 `--minrefbins x` | Minimum amount of sensible reference bins per target bin; should generally not be tweaked (default: x=150)  
 `--maskrepeats x` | Bins with distances > mean + sd * 3 in the reference will be masked. This parameter represents the number of masking cycles and defines the stringency of the blacklist (default: x=5)  
@@ -168,7 +168,8 @@ technique (the test case vs the reference cases).
 
 ### ID_aberrations.bed
 
-This file contains aberrant segments, defined by the `--beta` or `--zscore` parameters.  
+This file contains aberrant segments, defined by the [`--beta`](#stage-3-predict-cnas) or 
+[`--zscore`](#stage-3-predict-cnas) parameters.  
 
 ### ID_chr_statistics.bed
 
