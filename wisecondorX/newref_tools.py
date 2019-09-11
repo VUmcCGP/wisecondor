@@ -18,7 +18,7 @@ serve as the cut-off point.
 '''
 
 
-def train_gender_model(samples):
+def train_gender_model(samples, yfrac):
     genders = np.empty(len(samples), dtype='object')
     y_fractions = []
     for sample in samples:
@@ -38,14 +38,15 @@ def train_gender_model(samples):
     # ax.legend(loc='best')
     # plt.show()
 
-    sort_idd = np.argsort(gmm_x)
-    sorted_gmm_y = gmm_y[sort_idd]
+    if yfrac is not None:
+        cut_off = yfrac
+    else:
+        sort_idd = np.argsort(gmm_x)
+        sorted_gmm_y = gmm_y[sort_idd]
 
-    local_min_i = argrelextrema(sorted_gmm_y, np.less)
+        local_min_i = argrelextrema(sorted_gmm_y, np.less)
 
-    cut_off = gmm_x[local_min_i][0]
-
-    # plot(cut_off)
+        cut_off = gmm_x[local_min_i][0]
 
     genders[y_fractions > cut_off] = 'M'
     genders[y_fractions < cut_off] = 'F'

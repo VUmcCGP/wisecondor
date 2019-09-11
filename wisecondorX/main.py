@@ -32,6 +32,12 @@ def tool_convert(args):
 def tool_newref(args):
     logging.info('Creating new reference')
 
+    if args.yfrac is not None:
+        if args.yfrac < 0 or args.yfrac > 1:
+            logging.critical(
+                'Parameter --yfrac should be a positive number lower than or equal to 1')
+            sys.exit()
+
     split_path = list(os.path.split(args.outfile))
     if split_path[-1][-4:] == '.npz':
         split_path[-1] = split_path[-1][:-4]
@@ -52,8 +58,12 @@ def tool_newref(args):
         samples.append(scale_sample(sample, binsize, args.binsize))
 
     samples = np.array(samples)
-    genders, trained_cutoff = train_gender_model(samples)
+    genders, trained_cutoff = train_gender_model(samples, args.yfrac)
 
+    if genders.count('F') < 5 and args.nipt:
+        logging.warning(
+            'A NIPT reference should have at least 5 female feti samples. Removing --nipt flag.')
+        args.nipt = False
     if not args.nipt:
         for i, sample in enumerate(samples):
             samples[i] = gender_correct(sample, genders[i])
@@ -124,12 +134,12 @@ def tool_test(args):
     if args.beta is not None:
         if args.beta <= 0 or args.beta > 1:
             logging.critical(
-                'Parameter --beta should be a strictly positive number lower than 1')
+                'Parameter --beta should be a strictly positive number lower than or equal to 1')
             sys.exit()
 
     if args.alpha <= 0 or args.alpha > 1:
         logging.critical(
-            'Parameter --alpha should be a strictly positive number lower than 1')
+            'Parameter --alpha should be a strictly positive number lower than or equal to 1')
         sys.exit()
 
     logging.info('Importing data ...')
@@ -198,9 +208,9 @@ def tool_test(args):
 
     results_r = np.append(results_r, results_r_2)
     results_z = np.append(results_z, results_z_2) - m_z
-    results_w = np.append(results_w * np.nanmedian(results_w_2),
-                          results_w_2 * np.nanmedian(results_w))
-    results_w = results_w / np.nanmedian(results_w)
+    results_w = np.append(results_w * np.nanmean(results_w_2),
+                          results_w_2 * np.nanmean(results_w))
+    results_w = results_w / np.nanmean(results_w)
 
     if np.isnan(results_w).any() or np.isinf(results_w).any():
         logging.warning('Non-numeric values found in weights -- reference too small. Circular binary segmentation and z-scoring will be unweighted')
@@ -292,7 +302,12 @@ def main():
                                help='Path and filename for the reference output (e.g. path/to/myref.npz)')
     parser_newref.add_argument('--nipt',
                                action='store_true',
-                               help='Use only for NIPT! (e.g. path/to/reference/*.npz)'
+                               help='Use flag for NIPT (e.g. path/to/reference/*.npz)'
+                               )
+    parser_newref.add_argument('--yfrac',
+                               type=float,
+                               default=None,
+                               help='Use to manually set the y read fraction cutoff, which defines gender'
                                )
     parser_newref.add_argument('--refsize',
                                type=int,

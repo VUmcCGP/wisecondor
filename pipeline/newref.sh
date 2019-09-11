@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
 # PARAMETERS
-CORES=6
-INPUT_DIR="path/to/convert.npz" # existing (non-empty) folder, containing reference .npz files
-OUTPUT_DIR="path/to/newref.npz" # existing (empty) folder
+
+CORES=8
+INPUT_DIR="path/to/converts_ref" # folder containing reference .npz files
+OUTPUT_DIR="path/to/references" # existing folder
 REF_SIZES="1000 500 200 100" # space separated list (kb)
-RELEASE="hg38" # reference used to create bam files (solely used for reference filename)
 
 # SCRIPT
 
@@ -14,6 +14,6 @@ do
     echo "Creating reference at bins size ${REF} kb"
 
     WisecondorX newref ${INPUT_DIR}/*.npz \
-    ${OUTPUT_DIR}/reference.${RELEASE}.${REF}kb.npz \
+    ${OUTPUT_DIR}/reference.${REF}kb.npz \
     --binsize ${REF}000 --cpus ${CORES}
 done
