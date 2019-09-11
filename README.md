@@ -68,8 +68,7 @@ WisecondorX convert input.bam output.npz [--optional arguments]
 
 <br>Optional argument <br><br> | Function  
 :--- | :---  
-`--binsize x` | Size per bin in bp, the reference bin size should be a multiple of this value. Note that this parameter 
-does not impact the resolution, yet it can be used to optimize processing speed (default: x=5e3)  
+`--binsize x` | Size per bin in bp, the reference bin size should be a multiple of this value. Note that this parameter does not impact the resolution, yet it can be used to optimize processing speed (default: x=5e3)  
 `--paired` | Enables conversion for paired-end reads  
 
 
@@ -82,14 +81,12 @@ does not impact the resolution, yet it can be used to optimize processing speed 
 WisecondorX newref reference_input_dir/*.npz reference_output.npz [--optional arguments]
 ```
 
-<br>Optional argument &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br><br> | Function
+<br>Optional argument &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br><br> | Function
 :--- | :---  
 `--nipt` | **Always include this flag for the generation of a NIPT reference**  
 `--binsize x` | Size per bin in bp, defines the resolution of the output (default: x=1e5)  
 `--refsize x` | Amount of reference locations per target; should generally not be tweaked (default: x=300)  
-`--yfrac x` | Use to manually set the chromosome Y read fraction cutoff, which defines gender. Setting this to 1 will 
-treat all samples as female (no default)  
+`--yfrac x` | Use to manually set the chromosome Y read fraction cutoff, which defines gender. Setting this to 1 will treat all samples as female (no default)  
 `--cpus x` | Number of threads requested (default: x=1)  
 
 &rarr; Bash recipe (example for NIPT) at `./pipeline/newref.sh`
@@ -101,26 +98,16 @@ treat all samples as female (no default)
 WisecondorX predict test_input.npz reference_input.npz output_id [--optional arguments]
 ```
   
-<br>Optional argument &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-&nbsp;&nbsp;&nbsp;&nbsp; | Function  
+<br>Optional argument &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Function  
 :--- | :---  
-`--minrefbins x` | Minimum amount of sensible reference bins per target bin; should generally not be tweaked 
-(default: x=150)  
-`--maskrepeats x` | Bins with distances > mean + sd * 3 in the reference will be masked. This parameter represents 
-the number of masking cycles and defines the stringency of the blacklist (default: x=5)  
+`--minrefbins x` | Minimum amount of sensible reference bins per target bin; should generally not be tweaked (default: x=150)  
+`--maskrepeats x` | Bins with distances > mean + sd * 3 in the reference will be masked. This parameter represents the number of masking cycles and defines the stringency of the blacklist (default: x=5)  
 `--zscore x` | z-score cutoff to call segments as aberrations (default: x=5)  
 `--alpha x` | p-value cutoff for calling a circular binary segmentation breakpoint (default: x=1e-4)  
-`--beta x` | When beta is given, `--zscore` is ignored. Beta sets a ratio cutoff for aberration calling. 
-It's a number between 0 (liberal) and 1 (conservative) and, when used, is optimally close to the purity 
-(e.g. fetal/tumor fraction) (no default)
-`--blacklist x` | Blacklist that masks additional regions in output, requires headerless .bed file. This is 
-particularly useful when the reference set is a too small to recognize some obvious loci (such as centromeres; example 
-at `./example.blacklist/centromere.hg38.txt`) (no default)  
-`--gender x` | Force WisecondorX to analyze this case as a male (M) or female (F). Useful when e.g. dealing with a loss 
-of chromosome Y, which causes erroneous gender predictions (choices: x=F or x=M)
-`--bed` | Outputs tab-delimited .bed files (trisomy 21 NIPT example at `./example.bed`), containing all necessary 
-information  **(\*)**  
+`--beta x` | When beta is given, `--zscore` is ignored. Beta sets a ratio cutoff for aberration calling. It's a number between 0 (liberal) and 1 (conservative) and, when used, is optimally close to the purity (e.g. fetal/tumor fraction) (no default)
+`--blacklist x` | Blacklist that masks additional regions in output, requires headerless .bed file. This is particularly useful when the reference set is a too small to recognize some obvious loci (such as centromeres; example at `./example.blacklist/centromere.hg38.txt`) (no default)  
+`--gender x` | Force WisecondorX to analyze this case as a male (M) or female (F). Useful when e.g. dealing with a loss of chromosome Y, which causes erroneous gender predictions (choices: x=F or x=M)
+`--bed` | Outputs tab-delimited .bed files (trisomy 21 NIPT example at `./example.bed`), containing all necessary information  **(\*)**  
 `--plot` | Outputs custom .png plots (trisomy 21 NIPT example at `./example.plot`), directly interpretable  **(\*)**  
 `--ylim [a,b]` | Force WisecondorX to use y-axis interval [a,b] for plotting, e.g. [-2,2]. (no default)  
 `--ciaro` | Some operating systems require the cairo bitmap type to write plots  
