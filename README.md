@@ -17,9 +17,8 @@ meant to be applicable not only to NIPT, but also gDNA, PGT, FFPE, LQB, ... etc.
 ## Mapping
 
 We found superior results through WisecondorX when using [bowtie2](https://github.com/BenLangmead/bowtie2) as a mapper. 
-I would recommend using the latest version of the human reference genome (GRCh38). Note that it is important that 
-**no** read quality filtering is executed prior the running WisecondorX: this software requires low-quality reads 
-to distinguish informative bins from non-informative ones.
+Note that it is important that **no** read quality filtering is executed prior to running WisecondorX: this software 
+requires low-quality reads to distinguish informative bins from non-informative ones.
 
 ## WisecondorX
 
@@ -67,7 +66,6 @@ WisecondorX convert input.bam output.npz [--optional arguments]
 <br>Optional argument <br><br> | Function  
 :--- | :---  
 `--binsize x` | Size per bin in bp; the reference bin size should be a multiple of this value. Note that this parameter does not impact the resolution, yet it can be used to optimize processing speed (default: x=5e3)  
-`--paired` | Enables conversion for paired-end reads  
 
 
 &rarr; Bash recipe at `./pipeline/convert.sh`
