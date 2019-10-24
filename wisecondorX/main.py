@@ -285,9 +285,6 @@ def main():
                                 type=float,
                                 default=5e3,
                                 help='Bin size (bp)')
-    parser_convert.add_argument('--paired',
-                                action='store_true',
-                                help='Use paired-end reads | default is single-end')
     parser_convert.set_defaults(func=tool_convert)
 
     parser_newref = subparsers.add_parser('newref',
