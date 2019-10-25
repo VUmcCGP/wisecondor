@@ -25,7 +25,7 @@ requires low-quality reads to distinguish informative bins from non-informative 
 ### Installation
 
 Stable releases can be installed through pip install. This option ascertains the latest version is 
-downloaded, however, it does not install R dependencies(dependencies).  
+downloaded, however, it does not install R dependencies(#dependencies).  
 ```bash
 
 pip install -U git+https://github.com/CenterForMedicalGeneticsGhent/WisecondorX
