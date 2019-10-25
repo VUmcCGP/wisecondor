@@ -31,7 +31,7 @@ downloaded, however, it does not install R [dependencies](#dependencies).
 pip install -U git+https://github.com/CenterForMedicalGeneticsGhent/WisecondorX
 ```
 
-Alternatively, [Conda](https://conda.io/docs/) additionally installs all necessary [depedencies](#dependencies).
+Alternatively, [Conda](https://conda.io/docs/) additionally installs all necessary [depedencies](#dependencies), however, the latest version might not be downloaded.
 ```bash
 
 conda install -f -c conda-forge -c bioconda wisecondorx
