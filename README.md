@@ -6,7 +6,7 @@ including [WISECONDOR](https://github.com/VUmcCGP/wisecondor), [QDNAseq](https:/
 [cn.MOPS](https://bioconductor.org/packages/release/bioc/html/cn.mops.html), 
 WISECONDOR appeared to normalize sequencing data in the most consistent way, as shown by 
 [our paper](https://www.ncbi.nlm.nih.gov/pubmed/30566647). Nevertheless, WISECONDOR has limitations: 
-Stouffer's z-score approach is error-prone when dealing with large amounts of aberrations, the algorithm 
+Stouffer's Z-score approach is error-prone when dealing with large amounts of aberrations, the algorithm 
 is extremely slow (24h) when operating at small bin sizes (15 kb), and sex chromosomes are not part of the analysis. 
 Here, we present WisecondorX, an evolved WISECONDOR that aims at dealing with previous difficulties, resulting 
 in overall superior results and significantly lower computing times, allowing daily diagnostic use. WisecondorX is 
@@ -24,18 +24,18 @@ requires low-quality reads to distinguish informative bins from non-informative 
 
 ### Installation
 
-Stable releases can be installed using [Conda](https://conda.io/docs/). This option takes care of all necessary
-dependencies.
-```bash
-
-conda install -f -c conda-forge -c bioconda wisecondorx
-```
-
-Alternatively, WisecondorX can be installed through pip install. This option ascertains the latest version is 
-downloaded, yet it does not install R dependencies.  
+Stable releases can be installed through pip install. This option ascertains the latest version is 
+downloaded, however, it does not install R [dependencies](#dependencies).  
 ```bash
 
 pip install -U git+https://github.com/CenterForMedicalGeneticsGhent/WisecondorX
+```
+
+Alternatively, [Conda](https://conda.io/docs/) additionally installs all necessary [depedencies](#dependencies), 
+however, the latest version might not be downloaded.
+```bash
+
+conda install -f -c conda-forge -c bioconda wisecondorx
 ```
 
 ### Running WisecondorX
@@ -66,6 +66,7 @@ WisecondorX convert input.bam output.npz [--optional arguments]
 <br>Optional argument <br><br> | Function  
 :--- | :---  
 `--binsize x` | Size per bin in bp; the reference bin size should be a multiple of this value. Note that this parameter does not impact the resolution, yet it can be used to optimize processing speed (default: x=5e3)  
+`--normdup` | Use this flag to avoid duplicate removal  
 
 
 &rarr; Bash recipe at `./pipeline/convert.sh`
@@ -98,15 +99,15 @@ WisecondorX predict test_input.npz reference_input.npz output_id [--optional arg
 :--- | :---  
 `--minrefbins x` | Minimum amount of sensible reference bins per target bin; should generally not be tweaked (default: x=150)  
 `--maskrepeats x` | Bins with distances > mean + sd * 3 in the reference will be masked. This parameter represents the number of masking cycles and defines the stringency of the blacklist (default: x=5)  
-`--zscore x` | z-score cutoff to call segments as aberrations (default: x=5)  
-`--alpha x` | p-value cutoff for calling a circular binary segmentation breakpoints (default: x=1e-4)  
+`--zscore x` | Z-score cutoff to call segments as aberrations (default: x=5)  
+`--alpha x` | P-value cutoff for calling circular binary segmentation breakpoints (default: x=1e-4)  
 `--beta x` | When beta is given, `--zscore` is ignored. Beta sets a ratio cutoff for aberration calling. It's a number between 0 (liberal) and 1 (conservative) and, when used, is optimally close to the purity (e.g. fetal/tumor fraction)  
-`--blacklist x` | Blacklist that masks additional regions in output; requires headerless .bed file. This is particularly useful when the reference set is a too small to recognize some obvious loci (such as centromeres; example at `./example.blacklist/centromere.hg38.txt`) (no default)  
-`--gender x` | Force WisecondorX to analyze this case as a male (M) or female (F). Useful when e.g. dealing with a loss of chromosome Y, which causes erroneous gender predictions (choices: x=F or x=M)
+`--blacklist x` | Blacklist for masking additional regions; requires headerless .bed file. This is particularly useful when the reference set is too small to recognize some obvious loci (such as centromeres; example at `./example.blacklist/centromere.hg38.txt`) (no default)  
+`--gender x` | Force WisecondorX to analyze this case as male (M) or female (F). Useful when e.g. dealing with a loss of chromosome Y, which causes erroneous gender predictions (choices: x=F or x=M)
 `--bed` | Outputs tab-delimited .bed files (trisomy 21 NIPT example at `./example.bed`), containing all necessary information  **(\*)**  
 `--plot` | Outputs custom .png plots (trisomy 21 NIPT example at `./example.plot`), directly interpretable  **(\*)**  
 `--ylim [a,b]` | Force WisecondorX to use y-axis interval [a,b] during plotting, e.g. [-2,2]  
-`--ciaro` | Some operating systems require the cairo bitmap type to write plots  
+`--cairo` | Some operating systems require the cairo bitmap type to write plots  
 
 <sup>**(\*)** At least one of these output formats should be selected</sup>  
 
@@ -119,7 +120,7 @@ WisecondorX predict test_input.npz reference_input.npz output_id [--optional arg
 WisecondorX gender test_input.npz reference_input.npz
 ```
 
-Returns gender.  
+Returns gender according to the reference.  
 
 # Parameters
 
@@ -131,9 +132,9 @@ sizes ranging from 50 to 500 kb.
 To understand the underlying algorithm, I highly recommend reading 
 [Straver et al (2014)](https://www.ncbi.nlm.nih.gov/pubmed/24170809); and its update shortly introduced in 
 [Huijsdens-van Amsterdam et al (2018)](https://www.nature.com/articles/gim201832.epdf). Numerous adaptations to this 
-algorithm have been made, yet the central principles remain. Changes include e.g. the inclusion of a gender 
+algorithm have been made, yet the central normalization principles remain. Changes include e.g. the inclusion of a gender 
 prediction algorithm, gender handling prior to normalization (ultimately enabling X and Y predictions), between-sample 
-z-scoring, inclusion of a weighted circular binary segmentation algorithm and improved codes for obtaining tables and 
+Z-scoring, inclusion of a weighted circular binary segmentation algorithm and improved codes for obtaining tables and 
 plots.  
 
 # Interpretation results
@@ -142,13 +143,13 @@ plots.
 
 Every dot represents a bin. The dots range across the X-axis from chromosome 1 to X (or Y, in case of a male). The 
 vertical position of a dot represents the ratio between the observed number of reads and the expected number of reads, 
-the latter being the 'healthy' state. As these values are log2-transformed, 'healthy dots' should be close-to 0. 
+the latter being the 'normal' state. As these values are log2-transformed, copy neutral dots should be close-to 0. 
 Importantly, notice that the dots are always subject to Gaussian noise. Therefore, segments, indicated by horizontal 
-grey bars, cover bins of predicted equal copy number. The size of the dots represent the variability at the reference 
-set. Thus, the size increases with the certainty of an observation. The same goes for the line width of segments. 
-Vertical grey bars represent the blacklist, which will match hypervariable loci and repeats. Finally, the horizontal 
+white lines, cover bins of predicted equal copy number. The size of the dots represents the variability at the reference 
+set. Thus, the size increases with the certainty of an observation. The same goes for the line width of the segments. 
+Vertical grey bars represent the blacklist, which matches mostly hypervariable loci and repeats. Finally, the horizontal 
 colored dotted lines show where the constitutional 1n and 3n states are expected (when constitutional DNA is at 100% 
-purity). Often, an aberration does not surpass these limits, which has several potential causes: depending on your type 
+purity). Often, an aberration does not reach these limits, which has several potential causes: depending on your type 
 of analysis, the sample could be subject to tumor fraction, fetal fraction, a mosaicism, ... etc. Sometimes, the 
 segments do surpass these limits: here it's likely you are dealing with 0n, 4n, 5n, 6n, ...
 
@@ -161,7 +162,7 @@ The Z-scores are calculated as default using the within-sample reference bins as
 
 ### ID_segments.bed
 
-This file contains all segment-wise information. A combined Z-score is calculated using a between-sample z-scoring
+This file contains all segment-wise information. A combined Z-score is calculated using a between-sample Z-scoring
 technique (the test case vs the reference cases).  
 
 ### ID_aberrations.bed
@@ -171,7 +172,7 @@ This file contains aberrant segments, defined by the [`--beta`](#stage-3-predict
 
 ### ID_chr_statistics.bed
 
-This file contains some interesting statistics for each chromosome. The definition of the z-scores matches the one from 
+This file contains some interesting statistics for each chromosome. The definition of the Z-scores matches the one from 
 the 'ID_segments.bed'. Particularly interesting for NIPT.  
 
 # Dependencies

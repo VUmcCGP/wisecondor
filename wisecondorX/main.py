@@ -285,6 +285,9 @@ def main():
                                 type=float,
                                 default=5e3,
                                 help='Bin size (bp)')
+    parser_convert.add_argument('--normdup',
+                                action='store_true',
+                                help='Do not remove duplicates')
     parser_convert.set_defaults(func=tool_convert)
 
     parser_newref = subparsers.add_parser('newref',

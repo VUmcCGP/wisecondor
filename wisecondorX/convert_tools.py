@@ -53,7 +53,7 @@ def convert_bam(args):
                 if not read.is_proper_pair:
                     reads_pairf += 1
                     continue
-                if larp == read.pos and larp2 == read.next_reference_start:
+                if not args.normdup and larp == read.pos and larp2 == read.next_reference_start:
                     reads_rmdup += 1
                 else:
                     if read.mapping_quality >= 1:
@@ -66,7 +66,7 @@ def convert_bam(args):
                 reads_seen += 1
                 larp = read.pos
             else:
-                if larp == read.pos:
+                if not args.normdup and larp == read.pos:
                     reads_rmdup += 1
                 else:
                     if read.mapping_quality >= 1:
