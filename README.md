@@ -31,7 +31,8 @@ downloaded, however, it does not install R [dependencies](#dependencies).
 pip install -U git+https://github.com/CenterForMedicalGeneticsGhent/WisecondorX
 ```
 
-Alternatively, [Conda](https://conda.io/docs/) additionally installs all necessary [depedencies](#dependencies), however, the latest version might not be downloaded.
+Alternatively, [Conda](https://conda.io/docs/) additionally installs all necessary [depedencies](#dependencies), 
+however, the latest version might not be downloaded.
 ```bash
 
 conda install -f -c conda-forge -c bioconda wisecondorx
@@ -65,6 +66,7 @@ WisecondorX convert input.bam output.npz [--optional arguments]
 <br>Optional argument <br><br> | Function  
 :--- | :---  
 `--binsize x` | Size per bin in bp; the reference bin size should be a multiple of this value. Note that this parameter does not impact the resolution, yet it can be used to optimize processing speed (default: x=5e3)  
+`--normdup` | Use this flag to avoid duplicate removal  
 
 
 &rarr; Bash recipe at `./pipeline/convert.sh`
