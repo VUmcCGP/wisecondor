@@ -168,12 +168,12 @@ for (ab in input$results_c){
       dot.cols[start:end] = color.C
     }
   } else {
-    if (z < -zcutoff){
-      dot.cols[start:end] = color.B
+    if (is.na(z)){
+      dot.cols[start:end] = 'grey'
+      next
     }
-    if (z > zcutoff){
-      dot.cols[start:end] = color.C
-    }
+    if (z < -zcutoff) dot.cols[start:end] = color.B
+    if (z > zcutoff) dot.cols[start:end] = color.C
   }
 }
 
