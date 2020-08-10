@@ -5,6 +5,7 @@ import logging
 import os
 import subprocess
 import sys
+import math
 
 import numpy as np
 
@@ -69,7 +70,6 @@ def exec_R(json_dict):
     except subprocess.CalledProcessError as e:
         logging.critical('Rscript failed: {}'.format(e))
         sys.exit()
-
     os.remove(json_dict['infile'])
     if 'outfile' in json_dict.keys():
         json_out = json.load(open(json_dict['outfile']))
@@ -89,13 +89,19 @@ def get_z_score(results_c, results):
         segment_nr = results_nr[segment[0]][segment[1]:segment[2]]
         segment_rr = results_r[segment[0]][segment[1]:segment[2]]
         segment_nr = [segment_nr[i] for i in range(len(segment_nr)) if segment_rr[i] != 0]
+        for i in range(len(segment_nr)):
+            for ii in range(len(segment_nr[i])):
+                if not np.isfinite(segment_nr[i][ii]):
+                    segment_nr[i][ii] = np.nan
         segment_w = results_w[segment[0]][segment[1]:segment[2]]
         segment_w = [segment_w[i] for i in range(len(segment_w)) if segment_rr[i] != 0]
-        null_segments = [np.ma.average(x, weights=segment_w) for x in np.transpose(segment_nr)]
+        null_segments = [np.ma.average(np.ma.masked_array(x, np.isnan(x)), weights=segment_w) for x in np.transpose(segment_nr)]
         null_mean = np.ma.mean([x for x in null_segments if np.isfinite(x)])
         null_sd = np.ma.std([x for x in null_segments if np.isfinite(x)])
         z = (segment[3] - null_mean) / null_sd
         z = min(z, 1000) ; z = max(z, -1000)
+        if math.isnan(null_mean) or math.isnan(null_sd):
+            z = 'NaN'
         zs.append(z)
     return zs
 

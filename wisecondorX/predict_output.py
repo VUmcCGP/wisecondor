@@ -97,6 +97,8 @@ def _generate_segments_and_aberrations_bed(rem_input, results):
                 abberations_file.write('{}\tgain\n'.format('\t'.join([str(x) for x in row])))
             elif float(segment[4]) < __get_aberration_cutoff(rem_input['args'].beta, ploidy)[0]:
                 abberations_file.write('{}\tloss\n'.format('\t'.join([str(x) for x in row])))
+        elif isinstance(segment[3], str):
+            continue
         else:
             if float(segment[3]) > rem_input['args'].zscore:
                 abberations_file.write('{}\tgain\n'.format('\t'.join([str(x) for x in row])))
