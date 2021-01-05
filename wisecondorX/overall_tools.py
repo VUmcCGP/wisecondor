@@ -101,7 +101,7 @@ def get_z_score(results_c, results):
         z = (segment[3] - null_mean) / null_sd
         z = min(z, 1000) ; z = max(z, -1000)
         if math.isnan(null_mean) or math.isnan(null_sd):
-            z = 'NaN'
+            z = 'nan'
         zs.append(z)
     return zs
 
@@ -120,3 +120,16 @@ def get_median_segment_variance(results_c, results_r):
             var = np.var(segment_r)
             vars.append(var)
     return np.median(vars)
+
+
+'''
+Returns CPA, measure for sample-wise abnormality.
+'''
+
+
+def get_cpa(results_c, binsize):
+    x = 0
+    for segment in results_c:
+        x += (segment[2] - segment[1] + 1) * binsize * abs(segment[3])
+    CPA = x / len(results_c) * (10 ** -8)
+    return(CPA)

@@ -84,6 +84,7 @@ WisecondorX newref reference_input_dir/*.npz reference_output.npz [--optional ar
 `--binsize x` | Size per bin in bp, defines the resolution of the output (default: x=1e5)  
 `--refsize x` | Amount of reference locations per target; should generally not be tweaked (default: x=300)  
 `--yfrac x` | Y read fraction cutoff, in order to manually define gender. Setting this to 1 will treat all samples as female  
+`--plotyfrac x` | plots Y read fraction histogram and Gaussian mixture fit to file x, can help when setting `--yfrac` manually; software quits after plotting  
 `--cpus x` | Number of threads requested (default: x=1)  
 
 &rarr; Bash recipe at `./pipeline/newref.sh`
@@ -102,7 +103,7 @@ WisecondorX predict test_input.npz reference_input.npz output_id [--optional arg
 `--zscore x` | Z-score cutoff to call segments as aberrations (default: x=5)  
 `--alpha x` | P-value cutoff for calling circular binary segmentation breakpoints (default: x=1e-4)  
 `--beta x` | When beta is given, `--zscore` is ignored. Beta sets a ratio cutoff for aberration calling. It's a number between 0 (liberal) and 1 (conservative) and, when used, is optimally close to the purity (e.g. fetal/tumor fraction)  
-`--blacklist x` | Blacklist for masking additional regions; requires headerless .bed file. This is particularly useful when the reference set is too small to recognize some obvious loci (such as centromeres; example at `./example.blacklist/centromere.hg38.txt`) (no default)  
+`--blacklist x` | Blacklist for masking additional regions; requires headerless .bed file. This is particularly useful when the reference set is too small to recognize some obvious loci (such as centromeres; example at `./example.blacklist/centromere.hg38.txt`)  
 `--gender x` | Force WisecondorX to analyze this case as male (M) or female (F). Useful when e.g. dealing with a loss of chromosome Y, which causes erroneous gender predictions (choices: x=F or x=M)
 `--bed` | Outputs tab-delimited .bed files (trisomy 21 NIPT example at `./example.bed`), containing all necessary information  **(\*)**  
 `--plot` | Outputs custom .png plots (trisomy 21 NIPT example at `./example.plot`), directly interpretable  **(\*)**  
@@ -186,5 +187,6 @@ the 'ID_segments.bed'. Particularly interesting for NIPT.
     - scikit-learn (v0.20.0)
     - pysam (v0.15.1)
     - numpy (v1.15.2)
+    - matplotlib (v2.2.3)
 
 And of course, other versions are very likely to work as well.  
