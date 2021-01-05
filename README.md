@@ -103,7 +103,7 @@ WisecondorX predict test_input.npz reference_input.npz output_id [--optional arg
 `--zscore x` | Z-score cutoff to call segments as aberrations (default: x=5)  
 `--alpha x` | P-value cutoff for calling circular binary segmentation breakpoints (default: x=1e-4)  
 `--beta x` | When beta is given, `--zscore` is ignored. Beta sets a ratio cutoff for aberration calling. It's a number between 0 (liberal) and 1 (conservative) and, when used, is optimally close to the purity (e.g. fetal/tumor fraction)  
-`--blacklist x` | Blacklist for masking additional regions; requires headerless .bed file. This is particularly useful when the reference set is too small to recognize some obvious loci (such as centromeres; example at `./example.blacklist/centromere.hg38.txt`)  
+`--blacklist x` | Blacklist for masking additional regions; requires headerless .bed file. This is particularly useful when the reference set is too small to recognize some obvious loci (such as centromeres; examples at `./example.blacklist/`)  
 `--gender x` | Force WisecondorX to analyze this case as male (M) or female (F). Useful when e.g. dealing with a loss of chromosome Y, which causes erroneous gender predictions (choices: x=F or x=M)
 `--bed` | Outputs tab-delimited .bed files (trisomy 21 NIPT example at `./example.bed`), containing all necessary information  **(\*)**  
 `--plot` | Outputs custom .png plots (trisomy 21 NIPT example at `./example.plot`), directly interpretable  **(\*)**  
