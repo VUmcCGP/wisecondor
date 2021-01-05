@@ -4,7 +4,7 @@ import os
 
 import numpy as np
 
-from wisecondorX.overall_tools import exec_R, get_z_score, get_median_segment_variance
+from wisecondorX.overall_tools import exec_R, get_z_score, get_median_segment_variance, get_cpa
 
 '''
 Writes plots.
@@ -61,9 +61,9 @@ def _generate_bins_bed(rem_input, results):
             r = results_r[chr][i]
             z = results_z[chr][i]
             if r == 0:
-                r = 'NaN'
+                r = 'nan'
             if z == 0:
-                z = 'NaN'
+                z = 'nan'
             feat_str = '{}:{}-{}'.format(chr_name, str(feat), str(feat + binsize - 1))
             row = [chr_name, feat, feat + binsize - 1, feat_str, r, z]
             bins_file.write('{}\n'.format('\t'.join([str(x) for x in row])))
@@ -116,7 +116,7 @@ def __get_aberration_cutoff(beta, ploidy):
 
 
 def _generate_chr_statistics_file(rem_input, results):
-    stats_file = open('{}_chr_statistics.txt'.format(rem_input['args'].outid), 'w')
+    stats_file = open('{}_statistics.txt'.format(rem_input['args'].outid), 'w')
     stats_file.write('chr\tratio.mean\tratio.median\tzscore\n')
     chr_ratio_means = [np.ma.average(results['results_r'][chr], weights=results['results_w'][chr])
                        for chr in range(len(results['results_r']))]
@@ -126,7 +126,8 @@ def _generate_chr_statistics_file(rem_input, results):
     results_c_chr = [[x, 0, rem_input['bins_per_chr'][x] - 1, chr_ratio_means[x]]
                      for x in range(len(results['results_r']))]
 
-    msv = get_median_segment_variance(results['results_c'], results['results_r'])
+    msv = round(get_median_segment_variance(results['results_c'], results['results_r']), 5)
+    cpa = round(get_cpa(results['results_c'], rem_input['binsize']), 5)
     chr_z_scores = get_z_score(results_c_chr, results)
 
     for chr in range(len(results['results_r'])):
@@ -144,9 +145,19 @@ def _generate_chr_statistics_file(rem_input, results):
 
         stats_file.write('\t'.join([str(x) for x in row]) + '\n')
 
-    stats_file.write('Standard deviation ratios (per chromosome): {}\n'
-                     .format(str(np.nanstd(chr_ratio_means))))
+    stats_file.write('Gender based on --yfrac (or manually overridden by --gender): {}\n'
+                     .format(str(rem_input['actual_gender'])))
 
-    stats_file.write('Median segment variance (per bin): {}\n'
+    stats_file.write('Number of reads: {}\n'
+                     .format(str(rem_input['n_reads'])))
+
+    stats_file.write('Standard deviation of the ratios per chromosome: {}\n'
+                     .format(str(round(float(np.nanstd(chr_ratio_means)), 5))))
+
+    stats_file.write('Median segment variance per bin (doi: 10.1093/nar/gky1263): {}\n'
                      .format(str(msv)))
+
+    stats_file.write('Copy number profile abnormality (CPA) score (doi: 10.1186/s13073-020-00735-4): {}\n'
+                     .format(str(cpa)))
+
     stats_file.close()

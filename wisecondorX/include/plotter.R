@@ -124,8 +124,8 @@ layout(l.matrix)
 par(mar=c(2.5,4,1,0), mgp=c(2.4,0.5,0), oma=c(0,0,3,0))
 
 plot(1, main="", axes=F, # plots nothing -- enables segments function
-     xlab="", ylab="", col="white", xlim=c(chr.ends[1], chr.ends[length(chr.ends)]),
-     cex=0.0001, ylim=c(chr.wide.lower.limit,chr.wide.upper.limit))
+     xlab="", ylab="", xlim=c(chr.ends[1], chr.ends[length(chr.ends)]),
+     cex=0, ylim=c(chr.wide.lower.limit,chr.wide.upper.limit))
 
 plot.constitutionals <- function(ploidy, start, end){
   segments(start, log2(1/ploidy), end, log2(1/ploidy), col=color.B, lwd=2, lty=3)
@@ -291,8 +291,7 @@ for (c in chrs){
   par(mar=c(2.5,4,1,0), mgp=c(2.4,0.5,0))
   
   plot(1, main="", axes=F, # plots nothing -- enables segments function
-       xlab="", ylab="", col="white",
-       cex=0.0001, ylim=c(lower.limit,upper.limit), xlim=margins)
+       xlab="", ylab="", cex=0, ylim=c(lower.limit,upper.limit), xlim=margins)
 
   if (gender == "F"){
     plot.constitutionals(2, chr.ends[c] - bins.per.chr[c] * 0.02, chr.ends[c+1] + bins.per.chr[c] * 0.02)

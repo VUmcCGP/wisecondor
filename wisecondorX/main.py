@@ -58,7 +58,7 @@ def tool_newref(args):
         samples.append(scale_sample(sample, binsize, args.binsize))
 
     samples = np.array(samples)
-    genders, trained_cutoff = train_gender_model(samples, args.yfrac)
+    genders, trained_cutoff = train_gender_model(args, samples)
 
     if genders.count('F') < 5 and args.nipt:
         logging.warning(
@@ -308,6 +308,11 @@ def main():
                                type=float,
                                default=None,
                                help='Use to manually set the y read fraction cutoff, which defines gender'
+                               )
+    parser_newref.add_argument('--plotyfrac',
+                               type=str,
+                               default=None,
+                               help='Path to yfrac .png plot for --yfrac optimization (e.g. path/to/plot.png); software will stop after plotting after which --yfrac can be set manually'
                                )
     parser_newref.add_argument('--refsize',
                                type=int,
