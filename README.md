@@ -171,9 +171,9 @@ technique (the test case vs the reference cases).
 This file contains aberrant segments, defined by the [`--beta`](#stage-3-predict-copy-number-alterations) or 
 [`--zscore`](#stage-3-predict-copy-number-alterations) parameters.  
 
-### ID_chr_statistics.bed
+### ID_statistics.bed
 
-This file contains some interesting statistics for each chromosome. The definition of the Z-scores matches the one from 
+This file contains some interesting statistics (per chromosome and overall). The definition of the Z-scores matches the one from 
 the 'ID_segments.bed'. Particularly interesting for NIPT.  
 
 # Dependencies
