@@ -152,37 +152,36 @@ def tool_test(args):
     sample = scale_sample(sample, int(
         sample_file['binsize'].item()), int(ref_file['binsize']))
 
+    gender = predict_gender(sample, ref_file['trained_cutoff'])
     if not ref_file['is_nipt']:
-        actual_gender = predict_gender(sample, ref_file['trained_cutoff'])
         if args.gender:
-            actual_gender = args.gender
-        sample = gender_correct(sample, actual_gender)
+            gender = args.gender
+        sample = gender_correct(sample, gender)
+        ref_gender = gender
     else:
-        actual_gender = 'F'
-
-    if args.gender:
-        actual_gender = args.gender
-
-    ref_gender = actual_gender
+        if args.gender:
+            gender = args.gender
+        ref_gender = 'F'
 
     logging.info('Normalizing autosomes ...')
 
     results_r, results_z, results_w, ref_sizes, m_lr, m_z = normalize(
         args, sample, ref_file, 'A')
 
-    if not ref_file['has_male'] and actual_gender == 'M':
-        logging.warning('This sample is male, whilst the reference is created with fewer than 5 males. '
-                        'The female gonosomal reference will be used for X predictions. Note that these might '
-                        'not be accurate. If the latter is desired, create a new reference and include more '
-                        'male samples.')
-        ref_gender = 'F'
+    if not ref_file['is_nipt']:
+        if not ref_file['has_male'] and gender == 'M':
+            logging.warning('This sample is male, whilst the reference is created with fewer than 5 males. '
+                            'The female gonosomal reference will be used for X predictions. Note that these might '
+                            'not be accurate. If the latter is desired, create a new reference and include more '
+                            'male samples.')
+            ref_gender = 'F'
 
-    elif not ref_file['has_female'] and actual_gender == 'F':
-        logging.warning('This sample is female, whilst the reference is created with fewer than 5 females. '
-                        'The male gonosomal reference will be used for XY predictions. Note that these might '
-                        'not be accurate. If the latter is desired, create a new reference and include more '
-                        'female samples.')
-        ref_gender = 'M'
+        elif not ref_file['has_female'] and gender == 'F':
+            logging.warning('This sample is female, whilst the reference is created with fewer than 5 females. '
+                            'The male gonosomal reference will be used for XY predictions. Note that these might '
+                            'not be accurate. If the latter is desired, create a new reference and include more '
+                            'female samples.')
+            ref_gender = 'M'
 
     logging.info('Normalizing gonosomes ...')
 
@@ -198,7 +197,7 @@ def tool_test(args):
                  'binsize': int(ref_file['binsize']),
                  'n_reads': n_reads,
                  'ref_gender': ref_gender,
-                 'actual_gender': actual_gender,
+                 'gender': gender,
                  'mask': ref_file['mask.{}'.format(ref_gender)],
                  'bins_per_chr': ref_file['bins_per_chr.{}'.format(ref_gender)],
                  'masked_bins_per_chr': ref_file['masked_bins_per_chr.{}'.format(ref_gender)],
