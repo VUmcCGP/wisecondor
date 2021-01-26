@@ -33,7 +33,7 @@ def train_gender_model(args, samples):
     if args.plotyfrac is not None:
         import matplotlib.pyplot as plt
         fig, ax = plt.subplots(figsize=(16, 6))
-        ax.hist(y_fractions, bins=100, normed=True)
+        ax.hist(y_fractions, bins=100, density=True)
         ax.plot(gmm_x, gmm_y, 'r-', label='Gaussian mixture fit')
         ax.set_xlim([0, 0.02])
         ax.legend(loc='best')

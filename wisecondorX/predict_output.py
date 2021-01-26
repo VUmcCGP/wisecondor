@@ -88,9 +88,9 @@ def _generate_segments_and_aberrations_bed(rem_input, results):
                int(segment[2] * rem_input['binsize']),
                segment[4], segment[3]]
         segments_file.write('{}\n'.format('\t'.join([str(x) for x in row])))
-        ploidy = 2
 
-        if (chr_name == 'X' or chr_name == 'Y') and rem_input['actual_gender'] == 'M':
+        ploidy = 2
+        if (chr_name == 'X' or chr_name == 'Y') and rem_input['ref_gender'] == 'M':
             ploidy = 1
         if rem_input['args'].beta is not None:
             if float(segment[4]) > __get_aberration_cutoff(rem_input['args'].beta, ploidy)[1]:
@@ -146,7 +146,7 @@ def _generate_chr_statistics_file(rem_input, results):
         stats_file.write('\t'.join([str(x) for x in row]) + '\n')
 
     stats_file.write('Gender based on --yfrac (or manually overridden by --gender): {}\n'
-                     .format(str(rem_input['actual_gender'])))
+                     .format(str(rem_input['gender'])))
 
     stats_file.write('Number of reads: {}\n'
                      .format(str(rem_input['n_reads'])))
