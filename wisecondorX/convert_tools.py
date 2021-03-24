@@ -4,6 +4,7 @@ import logging
 
 import numpy as np
 import pysam
+import sys
 
 '''
 Converts bam file to numpy array by transforming
@@ -18,7 +19,16 @@ def convert_bam(args):
 
     logging.info('Importing data ...')
 
-    bam_file = pysam.AlignmentFile(args.infile, 'rb')
+    if args.infile.endswith(".sam"):
+        bam_file = pysam.AlignmentFile(args.infile, 'r')
+    elif args.infile.endswith(".bam"):
+        bam_file = pysam.AlignmentFile(args.infile, 'rb')
+    elif args.infile.endswith(".cram"):
+        bam_file = pysam.AlignmentFile(args.infile, 'rc')
+    else:
+        logging.error(
+            "Unsupported input file type. Make sure your input filename has a correct extension (sam/bam/cram)")
+        sys.exit(1)
 
     reads_seen = 0
     reads_kept = 0
