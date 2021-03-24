@@ -41,7 +41,7 @@ conda install -f -c conda-forge -c bioconda wisecondorx
 ### Running WisecondorX
 
 There are three main stages (converting, reference creating and predicting) when using WisecondorX:  
-- Convert .bam to .npz files (for both reference and test samples)  
+- Convert reads to .npz files (for both reference and test samples)  
 - Create a reference (using reference .npz files)  
     - **Important notes**
         - Automated gender prediction, required to consistently analyze sex chromosomes, is based on a Gaussian mixture 
@@ -56,11 +56,11 @@ There are three main stages (converting, reference creating and predicting) when
         observe additional improvement concerning normalization.  
 - Predict copy number alterations (using the reference file and test .npz cases of interest)  
 
-### Stage (1) Convert .bam to .npz
+### Stage (1) Convert aligned reads (sam/bam/cram) to .npz
 
 ```bash
 
-WisecondorX convert input.bam output.npz [--optional arguments]
+WisecondorX convert input.sam/bam/cram output.npz [--optional arguments]
 ```
 
 <br>Optional argument <br><br> | Function  
