@@ -8,7 +8,7 @@ import warnings
 
 import numpy as np
 
-from wisecondorX.convert_tools import convert_bam
+from wisecondorX.convert_tools import convert_reads
 from wisecondorX.newref_control import tool_newref_prep, tool_newref_main, tool_newref_merge
 from wisecondorX.newref_tools import train_gender_model, get_mask
 from wisecondorX.overall_tools import gender_correct, scale_sample
@@ -20,7 +20,7 @@ from wisecondorX.predict_tools import log_trans, exec_cbs, apply_blacklist, pred
 def tool_convert(args):
     logging.info('Starting conversion')
 
-    sample, qual_info = convert_bam(args)
+    sample, qual_info = convert_reads(args)
     np.savez_compressed(args.outfile,
                         binsize=args.binsize,
                         sample=sample,
