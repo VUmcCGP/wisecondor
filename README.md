@@ -41,7 +41,7 @@ conda install -f -c conda-forge -c bioconda wisecondorx
 ### Running WisecondorX
 
 There are three main stages (converting, reference creating and predicting) when using WisecondorX:  
-- Convert reads to .npz files (for both reference and test samples)  
+- Convert aligned reads to .npz files (for both reference and test samples)
 - Create a reference (using reference .npz files)  
     - **Important notes**
         - Automated gender prediction, required to consistently analyze sex chromosomes, is based on a Gaussian mixture 

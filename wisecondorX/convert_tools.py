@@ -7,7 +7,7 @@ import pysam
 import sys
 
 '''
-Converts reads file to numpy array by transforming
+Converts aligned reads file to numpy array by transforming
 individual reads to counts per bin.
 '''
 
@@ -38,7 +38,7 @@ def convert_reads(args):
     larp = -1
     larp2 = -1
 
-    logging.info('Converting reads ... This might take a while ...')
+    logging.info('Converting aligned reads ... This might take a while ...')
 
     for index, chr in enumerate(reads_file.references):
 
