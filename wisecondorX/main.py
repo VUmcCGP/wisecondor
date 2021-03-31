@@ -264,7 +264,7 @@ def output_gender(args):
 def main():
     warnings.filterwarnings('ignore')
 
-    parser = argparse.ArgumentParser(description='wisecondorX')
+    parser = argparse.ArgumentParser(description='WisecondorX')
     parser.add_argument('--loglevel',
                         type=str,
                         default='INFO',
@@ -272,7 +272,7 @@ def main():
     subparsers = parser.add_subparsers()
 
     parser_convert = subparsers.add_parser('convert',
-                                           description='Convert and filter a .bam file to a .npz',
+                                           description='Convert and filter a aligned reads to .npz',
                                            formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser_convert.add_argument('infile',
                                 type=str,
