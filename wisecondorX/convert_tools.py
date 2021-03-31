@@ -24,7 +24,11 @@ def convert_reads(args):
     elif args.infile.endswith(".bam"):
         reads_file = pysam.AlignmentFile(args.infile, 'rb')
     elif args.infile.endswith(".cram"):
-        reads_file = pysam.AlignmentFile(args.infile, 'rc')
+        if args.reference is not None:
+            reads_file = pysam.AlignmentFile(args.infile, 'rc', reference_filename=args.reference)
+        else:
+            logging.error("Cram support requires a reference file, please use the --reference argument")
+            sys.exit(1)
     else:
         logging.error(
             "Unsupported input file type. Make sure your input filename has a correct extension (sam/bam/cram)")

@@ -65,6 +65,7 @@ WisecondorX convert input.sam/bam/cram output.npz [--optional arguments]
 
 <br>Optional argument <br><br> | Function  
 :--- | :---  
+`--reference x` | Fasta reference to be used with cram inputs
 `--binsize x` | Size per bin in bp; the reference bin size should be a multiple of this value. Note that this parameter does not impact the resolution, yet it can be used to optimize processing speed (default: x=5e3)  
 `--normdup` | Use this flag to avoid duplicate removal  
 
