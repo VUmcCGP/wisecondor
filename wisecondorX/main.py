@@ -276,10 +276,13 @@ def main():
                                            formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser_convert.add_argument('infile',
                                 type=str,
-                                help='.bam input file for conversion')
+                                help='aligned reads input for conversion')
     parser_convert.add_argument('outfile',
                                 type=str,
                                 help='Output .npz file')
+    parser_convert.add_argument('-r', '--reference',
+                                type=str,
+                                help='Fasta reference to be used during cram conversion')
     parser_convert.add_argument('--binsize',
                                 type=float,
                                 default=5e3,
