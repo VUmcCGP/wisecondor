@@ -19,9 +19,7 @@ def convert_reads(args):
 
     logging.info('Importing data ...')
 
-    if args.infile.endswith(".sam"):
-        reads_file = pysam.AlignmentFile(args.infile, 'r')
-    elif args.infile.endswith(".bam"):
+    if args.infile.endswith(".bam"):
         reads_file = pysam.AlignmentFile(args.infile, 'rb')
     elif args.infile.endswith(".cram"):
         if args.reference is not None:
