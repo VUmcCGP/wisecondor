@@ -56,11 +56,11 @@ There are three main stages (converting, reference creating and predicting) when
         observe additional improvement concerning normalization.  
 - Predict copy number alterations (using the reference file and test .npz cases of interest)  
 
-### Stage (1) Convert aligned reads (sam/bam/cram) to .npz
+### Stage (1) Convert aligned reads (bam/cram) to .npz
 
 ```bash
 
-WisecondorX convert input.sam/bam/cram output.npz [--optional arguments]
+WisecondorX convert input.bam/cram output.npz [--optional arguments]
 ```
 
 <br>Optional argument <br><br> | Function  
