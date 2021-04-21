@@ -29,7 +29,7 @@ def convert_reads(args):
             sys.exit(1)
     else:
         logging.error(
-            "Unsupported input file type. Make sure your input filename has a correct extension (sam/bam/cram)")
+            "Unsupported input file type. Make sure your input filename has a correct extension ( bam or cram)")
         sys.exit(1)
 
     reads_seen = 0
