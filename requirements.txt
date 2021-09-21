@@ -1,0 +1,5 @@
+numpy
+pysam
+scikit-learn
+scipy
+typer
