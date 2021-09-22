@@ -1,5 +1,6 @@
-#! /usr/bin/env python
-from setuptools import setup, find_packages
+#!/usr/bin/env python
+
+from setuptools import find_packages, setup
 
 version = "1.2.5-dev"
 dl_version = "master" if "dev" in version else "{}".format(version)
@@ -26,16 +27,10 @@ setup(
     ),
     license="Attribution-NonCommercial-ShareAlike CC BY-NC-SA",
     packages=find_packages("."),
-    python_requires=">=2.7",
+    python_requires=">=3.6",
     include_package_data=True,
     zip_safe=False,
-    install_requires=[
-        'futures;python_version<"3"',
-        "scipy",
-        "scikit-learn",
-        "pysam",
-        "numpy",
-    ],
+    install_requires=["scipy", "scikit-learn", "pysam", "numpy", "typer"],
     entry_points={"console_scripts": ["WisecondorX = wisecondorX.main:main"]},
     classifiers=[
         "Development Status :: 3 - Alpha",
@@ -45,9 +40,7 @@ setup(
         "Operating System :: MacOS :: MacOS X",
         "Operating System :: POSIX",
         "Operating System :: Unix",
-        "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3 :: only",
         "Programming Language :: Python :: 3.6",
         "Topic :: Scientific/Engineering",
         "Topic :: Scientific/Engineering :: Bio-Informatics",

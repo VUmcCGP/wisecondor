@@ -1,48 +1,59 @@
-# WisecondorX
+#!/usr/bin/env python
 
 import bisect
 import logging
 import random
+from typing import List, Tuple
 
 import numpy as np
+from pydantic.types import FilePath
 from scipy.signal import argrelextrema
 from sklearn.decomposition import PCA
 from sklearn.mixture import GaussianMixture
 
-'''
-A Gaussian mixture model is fitted against
-all one-dimensional reference y-fractions.
-Two components are expected: one for males,
-and one for females. The local minimum will
-serve as the cut-off point.
-'''
 
-
-def train_gender_model(args, samples):
-    genders = np.empty(len(samples), dtype='object')
+def train_gender_model(samples: np.ndarray, yfrac: float, yfracplot: FilePath):
+    """
+    A Gaussian mixture model is fitted against
+    all one-dimensional reference y-fractions.
+    Two components are expected: one for males,
+    and one for females. The local minimum will
+    serve as the cut-off point.
+    """
+    genders = np.empty(len(samples), dtype="object")
     y_fractions = []
     for sample in samples:
-        y_fractions.append(float(np.sum(sample['24'])) / float(np.sum([np.sum(sample[x]) for x in sample.keys()])))
+        y_fractions.append(
+            float(np.sum(sample["24"]))
+            / float(np.sum([np.sum(sample[x]) for x in sample.keys()]))
+        )
     y_fractions = np.array(y_fractions)
 
-    gmm = GaussianMixture(n_components=2, covariance_type='full', reg_covar=1e-99, max_iter=10000, tol=1e-99)
+    gmm = GaussianMixture(
+        n_components=2,
+        covariance_type="full",
+        reg_covar=1e-99,
+        max_iter=10000,
+        tol=1e-99,
+    )
     gmm.fit(X=y_fractions.reshape(-1, 1))
     gmm_x = np.linspace(0, 0.02, 5000)
     gmm_y = np.exp(gmm.score_samples(gmm_x.reshape(-1, 1)))
 
-    if args.plotyfrac is not None:
+    if yfracplot is not None:
         import matplotlib.pyplot as plt
-        fig, ax = plt.subplots(figsize=(16, 6))
+
+        _, ax = plt.subplots(figsize=(16, 6))
         ax.hist(y_fractions, bins=100, density=True)
-        ax.plot(gmm_x, gmm_y, 'r-', label='Gaussian mixture fit')
+        ax.plot(gmm_x, gmm_y, "r-", label="Gaussian mixture fit")
         ax.set_xlim([0, 0.02])
-        ax.legend(loc='best')
-        plt.savefig(args.plotyfrac)
-        logging.info('Image written to {}, now quitting ...'.format(args.plotyfrac))
+        ax.legend(loc="best")
+        plt.savefig(yfracplot)
+        logging.info("Image written to {}, now quitting ...".format(yfracplot))
         exit()
 
-    if args.yfrac is not None:
-        cut_off = args.yfrac
+    if yfrac is not None:
+        cut_off = yfrac
     else:
         sort_idd = np.argsort(gmm_x)
         sorted_gmm_y = gmm_y[sort_idd]
@@ -50,21 +61,20 @@ def train_gender_model(args, samples):
         local_min_i = argrelextrema(sorted_gmm_y, np.less)
 
         cut_off = gmm_x[local_min_i][0]
-        logging.info('Determined --yfrac cutoff: {}'.format(str(round(cut_off, 4))))
+        logging.info(
+            "Determined --yfrac cutoff: {}".format(str(round(cut_off, 4)))
+        )
 
-    genders[y_fractions > cut_off] = 'M'
-    genders[y_fractions < cut_off] = 'F'
+    genders[y_fractions > cut_off] = "M"
+    genders[y_fractions < cut_off] = "F"
 
     return genders.tolist(), cut_off
 
 
-'''
-Finds mask (locations of bins without data) in the
-subset 'samples'.
-'''
-
-
-def get_mask(samples):
+def get_mask(samples: np.ndarray) -> Tuple[List[int], List[int]]:
+    """
+    Finds mask (locations of bins without data) in the subset 'samples'.
+    """
     by_chr = []
     bins_per_chr = []
     sample_count = len(samples)
@@ -89,12 +99,10 @@ def get_mask(samples):
     return mask, bins_per_chr
 
 
-'''
-Normalizes samples for read depth and applies mask.
-'''
-
-
 def normalize_and_mask(samples, chrs, mask):
+    """
+    Normalizes samples for read depth and applies mask.
+    """
     by_chr = []
     sample_count = len(samples)
 
@@ -116,13 +124,11 @@ def normalize_and_mask(samples, chrs, mask):
     return masked_data
 
 
-'''
-Executes PCA. Rotations are saved which enable
-between sample normalization in the test phase.
-'''
-
-
 def train_pca(ref_data, pcacomp=5):
+    """
+    Executes PCA. Rotations are saved which enable
+    between sample normalization in the test phase.
+    """
     t_data = ref_data.T
     pca = PCA(n_components=pcacomp)
     pca.fit(t_data)
@@ -134,21 +140,28 @@ def train_pca(ref_data, pcacomp=5):
     return corrected.T, pca
 
 
-'''
-Calculates within-sample reference.
-'''
-
-
-def get_reference(pca_corrected_data, masked_bins_per_chr, masked_bins_per_chr_cum,
-                  ref_size, part, split_parts):
+def get_reference(
+    pca_corrected_data,
+    masked_bins_per_chr,
+    masked_bins_per_chr_cum,
+    ref_size,
+    part,
+    split_parts,
+):
+    """
+    Calculates within-sample reference.
+    """
     big_indexes = []
     big_distances = []
 
     bincount = masked_bins_per_chr_cum[-1]
 
     start_num, end_num = _get_part(part - 1, split_parts, bincount)
-    logging.info('Working on thread {} of {}, meaning bins {} up to {}'
-                 .format(part, split_parts, start_num, end_num))
+    logging.info(
+        "Working on thread {} of {}, meaning bins {} up to {}".format(
+            part, split_parts, start_num, end_num
+        )
+    )
     regions = _split_by_chr(start_num, end_num, masked_bins_per_chr_cum)
 
     for region in regions:
@@ -167,22 +180,35 @@ def get_reference(pca_corrected_data, masked_bins_per_chr, masked_bins_per_chr_c
             big_indexes.extend(part_indexes)
             big_distances.extend(part_distances)
             continue
-        chr_data = np.concatenate((pca_corrected_data[:masked_bins_per_chr_cum[chr] -
-                                                       masked_bins_per_chr[chr], :],
-                                   pca_corrected_data[masked_bins_per_chr_cum[chr]:, :]))
+        chr_data = np.concatenate(
+            (
+                pca_corrected_data[
+                    : masked_bins_per_chr_cum[chr] - masked_bins_per_chr[chr],
+                    :,
+                ],
+                pca_corrected_data[masked_bins_per_chr_cum[chr] :, :],
+            )
+        )
 
-        part_indexes, part_distances = get_ref_for_bins(ref_size, start, end,
-                                                        pca_corrected_data, chr_data)
+        part_indexes, part_distances = get_ref_for_bins(
+            ref_size, start, end, pca_corrected_data, chr_data
+        )
 
         big_indexes.extend(part_indexes)
         big_distances.extend(part_distances)
 
     index_array = np.array(big_indexes)
     distance_array = np.array(big_distances)
-    null_ratio_array = np.zeros((len(distance_array), min(len(pca_corrected_data[0]), 100)))
+    null_ratio_array = np.zeros(
+        (len(distance_array), min(len(pca_corrected_data[0]), 100))
+    )
     samples = np.transpose(pca_corrected_data)
     for null_i, case_i in enumerate(
-            random.sample(range(len(pca_corrected_data[0])), min(len(pca_corrected_data[0]), 100))):
+        random.sample(
+            range(len(pca_corrected_data[0])),
+            min(len(pca_corrected_data[0]), 100),
+        )
+    ):
         sample = samples[case_i]
         for bin_i in list(range(len(sample)))[start_num:end_num]:
             ref = sample[index_array[bin_i - start_num]]
@@ -214,17 +240,17 @@ def _get_part(partnum, outof, bincount):
     return start_bin, end_bin
 
 
-'''
-Calculates within-sample reference for a particular chromosome.
-'''
-
-
 def get_ref_for_bins(ref_size, start, end, pca_corrected_data, chr_data):
+    """
+    Calculates within-sample reference for a particular chromosome.
+    """
     find_pos = bisect.bisect
     ref_indexes = np.zeros((end - start, ref_size), dtype=np.int32)
     ref_distances = np.ones((end - start, ref_size))
     for this_bin in range(start, end):
-        this_mask = np.sum(np.power(chr_data - pca_corrected_data[this_bin, :], 2), 1)
+        this_mask = np.sum(
+            np.power(chr_data - pca_corrected_data[this_bin, :], 2), 1
+        )
         this_indexes = [-1 for i in range(ref_size)]
         this_distances = [1e10 for i in range(ref_size)]
         remove_index = this_indexes.pop
