@@ -26,7 +26,7 @@ def convert_reads(
     if infile.suffix == ".bam":
         reads_file = pysam.AlignmentFile(infile, "rb")
     elif infile.suffix == ".cram":
-        if reference is not None:
+        if reference and reference.exists():
             reads_file = pysam.AlignmentFile(
                 infile, "rc", reference_filename=reference
             )
