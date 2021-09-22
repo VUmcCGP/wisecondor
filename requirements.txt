@@ -1,5 +1,6 @@
-numpy
-pysam
-scikit-learn
-scipy
-typer
+numpy>=1.10
+pysam>=1.15.2
+scikit-learn>=0.20.0
+scipy>=1.10
+typer>=0.4.0
+matplotlib
