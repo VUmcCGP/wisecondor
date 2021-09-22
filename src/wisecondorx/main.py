@@ -90,8 +90,8 @@ def newref(
         help="Path and filename for the reference output (e.g. path/to/myref.npz)",
     ),
     nipt: bool = typer.Option(False, "--nipt", help="Use flag for NIPT"),
-    yfrac: float = typer.Option(
-        ...,
+    yfrac: Optional[float] = typer.Option(
+        None,
         help="Use to manually set the y read fraction cutoff, which defines gender",
     ),
     yfracplot: Optional[Path] = typer.Option(
