@@ -23,9 +23,9 @@ def convert_reads(
     logging.info("Importing data ...")
 
     reads_file: pysam.AlignmentFile
-    if infile.endswith(".bam"):
+    if infile.suffix == ".bam":
         reads_file = pysam.AlignmentFile(infile, "rb")
-    elif infile.endswith(".cram"):
+    elif infile.suffix == ".cram":
         if reference is not None:
             reads_file = pysam.AlignmentFile(
                 infile, "rc", reference_filename=reference
