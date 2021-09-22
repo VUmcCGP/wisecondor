@@ -1,0 +1,17 @@
+LICENSE.md
+MANIFEST.in
+README.md
+pyproject.toml
+setup.cfg
+setup.py
+src/wisecondorx/__init__.py
+src/wisecondorx/main.py
+src/wisecondorx.egg-info/PKG-INFO
+src/wisecondorx.egg-info/SOURCES.txt
+src/wisecondorx.egg-info/dependency_links.txt
+src/wisecondorx.egg-info/entry_points.txt
+src/wisecondorx.egg-info/not-zip-safe
+src/wisecondorx.egg-info/requires.txt
+src/wisecondorx.egg-info/top_level.txt
+src/wisecondorx/include/CBS.R
+src/wisecondorx/include/plotter.R

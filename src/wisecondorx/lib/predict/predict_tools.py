@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any, Dict, Tuple
 
 import numpy as np
-from .overall_tools import exec_R, get_z_score
+from wisecondorx.lib.utils import exec_R, get_z_score
 from scipy.stats import norm
 from sklearn.decomposition import PCA
 

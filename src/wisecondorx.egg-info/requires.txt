@@ -1,0 +1,10 @@
+scipy
+scikit-learn
+pysam
+numpy
+typer
+
+[testing]
+flake8
+black
+pre-commit

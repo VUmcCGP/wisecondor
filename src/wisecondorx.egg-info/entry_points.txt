@@ -1,0 +1,5 @@
+[console_scripts]
+WisecondorX = wisecondorx.main:app
+wisecondorX = wisecondorx.main:app
+wisecondorx = wisecondorx.main:app
+

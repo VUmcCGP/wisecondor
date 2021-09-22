@@ -63,66 +63,132 @@ There are three main stages (converting, reference creating and predicting) when
 ### Stage (1) Convert aligned reads (bam/cram) to .npz
 
 ```bash
+ $ WisecondorX convert --help
+Usage: WisecondorX convert [OPTIONS] INFILE OUTFILE
 
-WisecondorX convert input.bam/cram output.npz [--optional arguments]
+  Convert and filter a aligned reads to .npz
+
+Arguments:
+  INFILE   aligned reads input for conversion  [required]
+  OUTFILE  Output .npz file  [required]
+
+Options:
+  --reference PATH   Fasta reference to be used during cram conversion
+  --binsize INTEGER  Bin size (bp)  [default: 5000]
+  --normmdup         Avoid remove duplicates  [default: False]
+  --help             Show this message and exit.
+
 ```
-
-| <br>Optional argument <br><br> | Function                                                                                                                                                                                                 |
-| :----------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--reference x`                | Fasta reference to be used with cram inputs                                                                                                                                                              |
-| `--binsize x`                  | Size per bin in bp; the reference bin size should be a multiple of this value. Note that this parameter does not impact the resolution, yet it can be used to optimize processing speed (default: x=5e3) |
-| `--normdup`                    | Use this flag to avoid duplicate removal                                                                                                                                                                 |
 
 &rarr; Bash recipe at `docs/include/pipeline/convert.sh`
 
 ### Stage (2) Create reference
 
 ```bash
+$ WisecondorX newref --help 
+Usage: WisecondorX newref [OPTIONS] INFILES... OUTFILE
 
-WisecondorX newref reference_input_dir/*.npz reference_output.npz [--optional arguments]
+  Create a new reference using healthy reference samples
+
+Arguments:
+  INFILES...  Path to all reference data files (e.g. path/to/reference/*.npz)
+              [required]
+
+  OUTFILE     Path and filename for the reference output (e.g.
+              path/to/myref.npz)  [required]
+
+
+Options:
+  --nipt             Use flag for NIPT  [default: False]
+  --yfrac FLOAT      Use to manually set the y read fraction cutoff, which
+                     defines gender  [required]
+
+  --yfracplot PATH   Path to yfrac .png plot for --yfrac optimization (e.g.
+                     path/to/plot.png); software will stop after plotting
+                     after which --yfrac can be set manually
+
+  --refsize INTEGER  Amount of reference locations per target  [default: 300]
+  --binsize INTEGER  Scale samples to this binsize, multiples of existing
+                     binsize only  [default: 100000]
+
+  --cpus INTEGER     Use multiple cores to find reference bins  [default: 1]
+  --help             Show this message and exit.
+
 ```
-
-| <br>Optional argument <br><br> | Function                                                                                                                                    |
-| :----------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------ |
-| `--nipt`                       | **Always include this flag for the generation of a NIPT reference**                                                                         |
-| `--binsize x`                  | Size per bin in bp, defines the resolution of the output (default: x=1e5)                                                                   |
-| `--refsize x`                  | Amount of reference locations per target; should generally not be tweaked (default: x=300)                                                  |
-| `--yfrac x`                    | Y read fraction cutoff, in order to manually define gender. Setting this to 1 will treat all samples as female                              |
-| `--plotyfrac x`                | plots Y read fraction histogram and Gaussian mixture fit to file x, can help when setting `--yfrac` manually; software quits after plotting |
-| `--cpus x`                     | Number of threads requested (default: x=1)                                                                                                  |
-
 &rarr; Bash recipe at `docs/include/pipeline/newref.sh`
 
 ### Stage (3) Predict copy number alterations
 
 ```bash
+$ WisecondorX predict --help
+Usage: WisecondorX predict [OPTIONS] INFILE REFERENCE OUTID
 
-WisecondorX predict test_input.npz reference_input.npz output_id [--optional arguments]
+  Find copy number aberrations
+
+Arguments:
+  INFILE     .npz input file  [required]
+  REFERENCE  Reference .npz, as previously created with newref  [required]
+  OUTID      Basename (w/o extension) of output files (paths are allowed, e.g.
+             path/to/ID_1)  [required]
+
+
+Options:
+  --minrefbins INTEGER         Minimum amount of sensible reference bins per
+                               target bin  [default: 150]
+
+  --maskrepeats INTEGER        Regions with distances > mean + sd * 3 will be
+                               masked. Number of masking cycles  [default: 5]
+
+  --alpha FLOAT                p-value cut-off for calling a CBS breakpoint
+                               [default: 0.0001]
+
+  --zscore FLOAT               z-score cut-off for aberration calling
+                               [default: 5]
+
+  --beta FLOAT                 When beta is given, --zscore is ignored and a
+                               ratio cut-off is used to call aberrations. Beta
+                               is a number between 0 (liberal) and 1
+                               (conservative) and is optimally close to the
+                               purity  [required]
+
+  --blacklist PATH             Blacklist that masks regions in output,
+                               structure of header-less file:
+                               chr...(/t)startpos(/t)endpos(/n)  [required]
+
+  --gender [F|M]               Force WisecondorX to analyze this case as a
+                               male (M) or a female (F)  [required]
+
+  --ylim <INTEGER INTEGER>...  y-axis limits for plotting. e.g. (-2,2)
+                               [required]
+
+  --bed / --no-bed             Outputs tab-delimited .bed files, containing
+                               the most important information  [default: True]
+
+  --plot / --no-plot           Outputs .png plots  [default: False]
+  --cairo                      Uses cairo bitmap type for plotting. Might be
+                               necessary for certain setups  [default: False]
+
+  --help                       Show this message and exit.
 ```
-
-| <br>Optional argument <br><br> | Function                                                                                                                                                                                                                          |
-| :----------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--minrefbins x`               | Minimum amount of sensible reference bins per target bin; should generally not be tweaked (default: x=150)                                                                                                                        |
-| `--maskrepeats x`              | Bins with distances > mean + sd \* 3 in the reference will be masked. This parameter represents the number of masking cycles and defines the stringency of the blacklist (default: x=5)                                           |
-| `--zscore x`                   | Z-score cutoff to call segments as aberrations (default: x=5)                                                                                                                                                                     |
-| `--alpha x`                    | P-value cutoff for calling circular binary segmentation breakpoints (default: x=1e-4)                                                                                                                                             |
-| `--beta x`                     | When beta is given, `--zscore` is ignored. Beta sets a ratio cutoff for aberration calling. It's a number between 0 (liberal) and 1 (conservative) and, when used, is optimally close to the purity (e.g. fetal/tumor fraction)   |
-| `--blacklist x`                | Blacklist for masking additional regions; requires headerless .bed file. This is particularly useful when the reference set is too small to recognize some obvious loci (such as centromeres; examples at `./example.blacklist/`) |
-| `--gender x`                   | Force WisecondorX to analyze this case as male (M) or female (F). Useful when e.g. dealing with a loss of chromosome Y, which causes erroneous gender predictions (choices: x=F or x=M)                                           |
-| `--bed`                        | Outputs tab-delimited .bed files (trisomy 21 NIPT example at `./example.bed`), containing all necessary information **(\*)**                                                                                                      |
-| `--plot`                       | Outputs custom .png plots (trisomy 21 NIPT example at `./example.plot`), directly interpretable **(\*)**                                                                                                                          |
-| `--ylim [a,b]`                 | Force WisecondorX to use y-axis interval [a,b] during plotting, e.g. [-2,2]                                                                                                                                                       |
-| `--cairo`                      | Some operating systems require the cairo bitmap type to write plots                                                                                                                                                               |
-
-<sup>**(\*)** At least one of these output formats should be selected</sup>
-
 &rarr; Bash recipe at `docs/include/pipeline/predict.sh`
 
 ### Additional functionality
 
 ```bash
+$ WisecondorX gender --help 
+Usage: WisecondorX gender [OPTIONS] INFILE REFERENCE
 
-WisecondorX gender test_input.npz reference_input.npz
+  Returns the gender of a .npz resulting from convert, based on a Gaussian
+  mixture model trained during newref
+
+Arguments:
+  INFILE     .npz input file  [required]
+  REFERENCE  Reference .npz, as previously created with newref  [required]
+
+Options:
+  --help  Show this message and exit.
+
+
 ```
 
 Returns gender according to the reference.

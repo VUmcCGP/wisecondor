@@ -8,17 +8,28 @@ from typing import List, Optional, Tuple
 
 import numpy as np
 import typer
-from .convert_tools import convert_reads
-from .newref_control import (
+from wisecondorx.lib.convert.convert_tools import convert_reads
+from wisecondorx.lib.newref.newref_control import (
     tool_newref_main,
     tool_newref_merge,
     tool_newref_prep,
 )
-from .newref_tools import get_mask, train_gender_model
-from .overall_tools import gender_correct, scale_sample
-from .predict_control import get_post_processed_result, normalize
-from .predict_output import exec_write_plots, generate_output_tables
-from .predict_tools import apply_blacklist, exec_cbs, log_trans, predict_gender
+from wisecondorx.lib.newref.newref_tools import get_mask, train_gender_model
+from wisecondorx.lib.utils import gender_correct, scale_sample
+from wisecondorx.lib.predict.predict_control import (
+    get_post_processed_result,
+    normalize,
+)
+from wisecondorx.lib.predict.predict_output import (
+    exec_write_plots,
+    generate_output_tables,
+)
+from wisecondorx.lib.predict.predict_tools import (
+    apply_blacklist,
+    exec_cbs,
+    log_trans,
+    predict_gender,
+)
 
 
 class Gender(str, Enum):
