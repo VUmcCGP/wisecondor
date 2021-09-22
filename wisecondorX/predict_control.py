@@ -2,7 +2,7 @@
 
 from typing import List
 
-from predict_tools import (
+from .predict_tools import (
     coverage_normalize_and_mask,
     get_optimal_cutoff,
     get_weights,

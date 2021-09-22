@@ -6,13 +6,13 @@ import random
 from typing import List, Tuple
 
 import numpy as np
-from pydantic.types import FilePath
+from pathlib import Path
 from scipy.signal import argrelextrema
 from sklearn.decomposition import PCA
 from sklearn.mixture import GaussianMixture
 
 
-def train_gender_model(samples: np.ndarray, yfrac: float, yfracplot: FilePath):
+def train_gender_model(samples: np.ndarray, yfrac: float, yfracplot: Path):
     """
     A Gaussian mixture model is fitted against
     all one-dimensional reference y-fractions.

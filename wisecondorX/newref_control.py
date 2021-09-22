@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any, List, Tuple
 
 import numpy as np
-from newref_tools import get_reference, normalize_and_mask, train_pca
+from .newref_tools import get_reference, normalize_and_mask, train_pca
 
 
 def tool_newref_prep(
