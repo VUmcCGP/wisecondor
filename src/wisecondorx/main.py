@@ -119,7 +119,7 @@ def newref(
             "Parameter --yfrac should be a positive number lower than or equal to 1"
         )
 
-    base_path = outfile.rstrip(".npz")
+    base_path = outfile.with_suffix("")
     partfile = f"{base_path}_part"
     prepfile = f"{base_path}_prep.npz"
 
