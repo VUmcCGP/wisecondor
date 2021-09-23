@@ -6,7 +6,6 @@ from typing import Dict, Tuple
 
 import numpy as np
 import pysam
-import json
 
 
 def convert_reads(
@@ -124,5 +123,6 @@ def convert_reads(
         "post_retro": reads_kept,
         "pair_fail": reads_pairf,
     }
-    logging.debug(f"Quality info: {json.dumps(qual_info, indent=2)}")
+    logging.debug(f"Quality info: {qual_info}")
+
     return bins_per_chr, qual_info
