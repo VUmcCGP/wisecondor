@@ -254,9 +254,10 @@ the 'ID_segments.bed'. Particularly interesting for NIPT.
   - DNAcopy (v1.50.1)
 - Python (v3.6) libraries
   - scipy (v1.1.0)
-    - scikit-learn (v0.20.0)
-    - pysam (v0.15.1)
-    - numpy (v1.15.2)
-    - matplotlib (v2.2.3)
+  - scikit-learn (v0.20.0)
+  - pysam (v0.15.1)
+  - numpy (v1.15.2)
+  - matplotlib (v2.2.3)
+  - typer (v0.4.0)
 
 And of course, other versions are very likely to work as well.

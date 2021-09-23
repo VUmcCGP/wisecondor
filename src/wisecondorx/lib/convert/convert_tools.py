@@ -6,7 +6,7 @@ from typing import Dict, Tuple
 
 import numpy as np
 import pysam
-import typer
+import json
 
 
 def convert_reads(
@@ -26,7 +26,10 @@ def convert_reads(
     if infile.suffix == ".bam":
         reads_file = pysam.AlignmentFile(infile, "rb")
     elif infile.suffix == ".cram":
-        if reference and reference.exists():
+        if reference:
+            if not reference.exists():
+                logging.error("Invalid reference file")
+                sys.exit(1)
             reads_file = pysam.AlignmentFile(
                 infile, "rc", reference_filename=reference
             )
@@ -34,7 +37,7 @@ def convert_reads(
             logging.error(
                 "Cram support requires a reference file, please use the --reference argument"
             )
-            typer.exit(1)
+            sys.exit(1)
     else:
         logging.error(
             "Unsupported input file type. Make sure your input filename has a correct extension ( bam or cram)"
@@ -121,4 +124,5 @@ def convert_reads(
         "post_retro": reads_kept,
         "pair_fail": reads_pairf,
     }
+    logging.debug(f"Quality info: {json.dumps(qual_info, indent=2)}")
     return bins_per_chr, qual_info
