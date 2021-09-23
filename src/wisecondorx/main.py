@@ -67,7 +67,7 @@ def convert(
     """
     Convert and filter a aligned reads to .npz
     """
-    typer.echo("Starting conversion")
+    logging.info("Starting conversion")
 
     sample, qual_info = convert_reads(
         infile=infile, binsize=binsize, reference=reference, normdup=normdup
@@ -76,7 +76,7 @@ def convert(
         outfile, binsize=binsize, sample=sample, quality=qual_info
     )
 
-    typer.echo("Finished conversion")
+    logging.info("Finished conversion")
 
 
 @app.command("newref")
@@ -113,7 +113,7 @@ def newref(
     """
     Create a new reference using healthy reference samples
     """
-    typer.echo("Creating new reference")
+    logging.info("Creating new reference")
     if yfrac and (0 < yfrac <= 1):
         raise typer.BadParameter(
             "Parameter --yfrac should be a positive number lower than or equal to 1"
@@ -237,7 +237,7 @@ def newref(
         nipt=nipt,
     )
 
-    typer.echo("Finished creating reference")
+    logging.info("Finished creating reference")
 
 
 def predict_zscore_callback(zscore: int) -> int:
@@ -328,8 +328,8 @@ def predict(
             "Select at least one of the supported output formats (--bed, --plot)"
         )
 
-    typer.echo("Starting CNA prediction")
-    typer.echo("Importing data ...")
+    logging.info("Starting CNA prediction")
+    logging.info("Importing data ...")
     ref_file = np.load(reference, encoding="latin1", allow_pickle=True)
     sample_file = np.load(infile, encoding="latin1", allow_pickle=True)
 
@@ -351,7 +351,7 @@ def predict(
     else:
         ref_gender = "F"
 
-    typer.echo("Normalizing autosomes ...")
+    logging.info("Normalizing autosomes ...")
 
     results_r, results_z, results_w, ref_sizes, m_lr, m_z = normalize(
         sample=sample,
@@ -379,7 +379,7 @@ def predict(
             )
             ref_gender = "M"
 
-    typer.echo("Normalizing gonosomes ...")
+    logging.info("Normalizing gonosomes ...")
 
     null_ratios_aut_per_bin = ref_file["null_ratios"]
     null_ratios_gon_per_bin = ref_file["null_ratios.{}".format(ref_gender)][
@@ -434,14 +434,14 @@ def predict(
     log_trans(results, m_lr)
 
     if blacklist:
-        typer.echo("Applying blacklist ...")
+        logging.info("Applying blacklist ...")
         apply_blacklist(
             blacklist_bed=blacklist,
             binsize=int(ref_file["binsize"]),
             results=results,
         )
 
-    typer.echo("Executing circular binary segmentation ...")
+    logging.info("Executing circular binary segmentation ...")
 
     results["results_c"] = exec_cbs(
         alpha=alpha,
@@ -452,7 +452,7 @@ def predict(
     )
 
     if bed:
-        typer.echo("Writing tables ...")
+        logging.info("Writing tables ...")
         generate_output_tables(
             outid=outid,
             binsize=int(ref_file["binsize"]),
@@ -466,7 +466,7 @@ def predict(
         )
 
     if plot:
-        typer.echo("Writing plots ...")
+        logging.info("Writing plots ...")
         exec_write_plots(
             outid=outid,
             ref_gender=ref_gender,
