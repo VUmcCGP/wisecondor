@@ -61,7 +61,7 @@ def convert(
     ),
     binsize: int = typer.Option(5000, help="Bin size (bp)"),
     normdup: bool = typer.Option(
-        False, "--normmdup", help="Avoid remove duplicates"
+        False, "--normdup", help="Avoid remove duplicates"
     ),
 ) -> None:
     """
