@@ -84,18 +84,20 @@ def tool_newref_main(
         "prepfile": prepfile,
         "partfile": partfile,
         "tmpoutfile": tmpoutfile,
-        "refsize": refsize,
     }
     if cpus != 1:
         with futures.ThreadPoolExecutor(max_workers=cpus) as executor:
             for part in range(0, cpus):
                 executor.submit(
-                    _tool_newref_part, {**args, **{"part": (part, cpus)}}
+                    _tool_newref_part,
+                    {**args, **{"part": (part, cpus), "refsize": refsize}},
                 )
             executor.shutdown(wait=True)
     else:
         for part in range(0, cpus):
-            _tool_newref_part(**{**args, **{"part": (part, cpus)}})
+            _tool_newref_part(
+                **{**args, **{"part": (part, cpus), "refsize": refsize}}
+            )
 
     tool_newref_post(**args, cpus=cpus)
     os.remove(prepfile)
