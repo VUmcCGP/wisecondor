@@ -5,7 +5,7 @@ import os
 import sys
 from concurrent import futures
 from pathlib import Path
-from typing import Any, List, Tuple
+from typing import Tuple
 
 import numpy as np
 from wisecondorx.lib.newref.newref_tools import (
@@ -18,7 +18,7 @@ from wisecondorx.lib.newref.newref_tools import (
 def tool_newref_prep(
     prepfile: Path,
     binsize: int,
-    samples: List[Any],
+    samples: np.ndarray,
     gender,
     mask,
     bins_per_chr,

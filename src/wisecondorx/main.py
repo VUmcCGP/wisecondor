@@ -120,14 +120,14 @@ def newref(
         )
 
     base_path = outfile.with_suffix("")
-    partfile = f"{base_path}_part"
-    prepfile = f"{base_path}_prep.npz"
+    partfile = Path(f"{base_path}_part")
+    prepfile = Path(f"{base_path}_prep.npz")
 
     samples = []
     logging.info("Importing data ...")
     for infile in infiles:
         logging.info("Loading: {}".format(infile))
-        npzdata = np.load(infile, encoding="latin1", allow_pickle=True)
+        npzdata = np.load(str(infile), encoding="latin1", allow_pickle=True)
         sample = npzdata["sample"].item()
         binsize = int(npzdata["binsize"])
         logging.info("Binsize: {}".format(int(binsize)))
@@ -156,7 +156,7 @@ def newref(
     outfiles = []
     if len(genders) > 9:
         logging.info("Starting autosomal reference creation ...")
-        tmpoutfile = f"{base_path}.tmp.A.npz"
+        tmpoutfile = Path(f"{base_path}.tmp.A.npz")
         outfiles.append(tmpoutfile)
         tool_newref_prep(
             prepfile=prepfile,
@@ -182,7 +182,7 @@ def newref(
 
     if genders.count("F") > 4:
         logging.info("Starting female gonosomal reference creation ...")
-        tmpoutfile = "{}.tmp.F.npz".format(base_path)
+        tmpoutfile = Path("{}.tmp.F.npz".format(base_path))
         outfiles.append(tmpoutfile)
         tool_newref_prep(
             prepfile=prepfile,
@@ -208,7 +208,7 @@ def newref(
     if not nipt:
         if genders.count("M") > 4:
             logging.info("Starting male gonosomal reference creation ...")
-            tmpoutfile = "{}.tmp.M.npz".format(base_path)
+            tmpoutfile = Path("{}.tmp.M.npz".format(base_path))
             outfiles.append(tmpoutfile)
             tool_newref_prep(
                 prepfile=prepfile,
@@ -330,8 +330,8 @@ def predict(
 
     logging.info("Starting CNA prediction")
     logging.info("Importing data ...")
-    ref_file = np.load(reference, encoding="latin1", allow_pickle=True)
-    sample_file = np.load(infile, encoding="latin1", allow_pickle=True)
+    ref_file = np.load(str(reference), encoding="latin1", allow_pickle=True)
+    sample_file = np.load(str(infile), encoding="latin1", allow_pickle=True)
 
     sample = sample_file["sample"].item()
     n_reads = sum([sum(sample[x]) for x in sample.keys()])
@@ -488,13 +488,13 @@ def gender(
     reference: Path = typer.Argument(
         ..., help="Reference .npz, as previously created with newref"
     ),
-) -> str:
+) -> None:
     """
     Returns the gender of a .npz resulting from convert, based on a Gaussian mixture model trained during newref
     """
 
-    ref_file = np.load(reference, encoding="latin1", allow_pickle=True)
-    sample_file = np.load(infile, encoding="latin1", allow_pickle=True)
+    ref_file = np.load(str(reference), encoding="latin1", allow_pickle=True)
+    sample_file = np.load(str(infile), encoding="latin1", allow_pickle=True)
     if (
         predict_gender(
             sample_file["sample"].item(), ref_file["trained_cutoff"]

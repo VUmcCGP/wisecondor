@@ -21,7 +21,7 @@ def exec_write_plots(
     binsize: int,
     n_reads: int,
     cairo: bool,
-    ylim: Tuple[str, str],
+    ylim: Tuple[int, int],
     results: Dict[str, Any],
 ):
     """
